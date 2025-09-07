@@ -2,9 +2,9 @@
 export interface BookData {
   isbn: string;
   title?: string;
+  subtitle?: string;
   author?: string;
   publisher?: string;
   pubdate?: string;
   cover?: string;
-  error?: string;
 }

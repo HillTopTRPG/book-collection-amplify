@@ -153,24 +153,22 @@ const WebCameraComponent = ({ width, height }: Props) => {
   }, [stream, isScanning]);
 
   return (
-    <div className="flex items-start gap-5">
+    <div className="flex flex-col items-center gap-5">
       <div className="flex flex-col items-center">
         <h2>Webカメラ & バーコードリーダー</h2>
 
-        <div style={{ marginBottom: '20px' }}>
-          <button
-            onClick={stream ? stopCamera : startCamera}
-            disabled={isLoading}
-            className="text-white px-5 border-none rounded-full"
-            style={{
-              backgroundColor: stream ? '#ff6b6b' : '#51cf66',
-              fontSize: '16px',
-              cursor: isLoading ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {isLoading ? 'カメラ起動中...' : stream ? 'カメラ停止' : 'カメラ開始'}
-          </button>
-        </div>
+        <button
+          onClick={stream ? stopCamera : startCamera}
+          disabled={isLoading}
+          className="text-white px-5 border-none rounded-full mb-2"
+          style={{
+            backgroundColor: stream ? '#ff6b6b' : '#51cf66',
+            fontSize: '16px',
+            cursor: isLoading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isLoading ? 'カメラ起動中...' : stream ? 'カメラ停止' : 'カメラ開始'}
+        </button>
 
         {error && (
           <div style={{ color: 'red', marginBottom: '20px' }}>
@@ -178,20 +176,16 @@ const WebCameraComponent = ({ width, height }: Props) => {
           </div>
         )}
 
-        <div className="relative bg-amber-100 box-border" style={{
-          width: width + 'px',
-          height: height + 4 + 'px',
-          border: `2px solid ${isScanning ? '#51cf66' : '#ccc'}`,
-        }}>
-          <div
-            id="scanner-container"
-            ref={scannerRef}
-            className="absolute inset-0"
-            style={{
-              display: isScanning ? 'block' : 'none'
-            }}
-          />
-        </div>
+        <div
+          id="scanner-container"
+          ref={scannerRef}
+          className=""
+          style={{
+            display: isScanning ? 'block' : 'none',
+            width: width + 'px',
+            border: `${isScanning ? '2px' : '0'} solid #51cf66`,
+          }}
+        />
 
         {stream && !isScanning && (
           <p style={{ marginTop: '10px', color: 'orange' }}>
