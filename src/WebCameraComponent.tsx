@@ -1,38 +1,22 @@
 import { useEffect, useRef, useState } from "react";
 import Quagga from "@ericblade/quagga2";
+import {BookData} from './types/book.ts'
+import {fetchBookData} from './utils/fetch.ts'
+import {checkIsdnCode} from './utils/validate.ts'
 
-function checkIsdnCode(code: string | null) {
-  if (code?.length !== 13) return false;
-
-  const checkDigit = parseInt(code.slice(-1)); // バーコードからチェックディジットを抽出する
-  const barcodeDigits = code.slice(0, -1).split(""); // チェックディジットを除いたバーコードの桁を抽出する
-
-  let sum = 0;
-  for (let i = 0; i < barcodeDigits.length; i++) {
-    if (i % 2 === 0) {
-      sum += parseInt(barcodeDigits[i]); // 奇数桁を足す
-    } else {
-      sum += 3 * parseInt(barcodeDigits[i]); // 偶数桁を3倍する
-    }
-  }
-
-  return (sum + checkDigit) % 10 === 0
-}
-
-interface WebCameraComponentProps {
+type Props = {
   width?: number;
   height?: number;
-}
+};
 
-const WebCameraComponent = ({ width = 640, height = 480 }: WebCameraComponentProps) => {
+const WebCameraComponent = ({ width = 640, height = 480 }: Props) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const scannerRef = useRef<HTMLDivElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
-  const [scannedCodes, setScannedCodes] = useState<string[]>([]);
-  const [latestCode, setLatestCode] = useState<string>("");
+  const [scannedDataList, setScannedDataList] = useState<{ isbn: string; data: BookData | null }[]>([]);
 
   const startCamera = async () => {
     setIsLoading(true);
@@ -49,6 +33,12 @@ const WebCameraComponent = ({ width = 640, height = 480 }: WebCameraComponentPro
       if (videoRef.current) {
         videoRef.current.srcObject = mediaStream;
       }
+
+      // カメラ起動後、少し待ってからバーコードスキャンを自動開始
+      setTimeout(() => {
+        startBarcodeScanning();
+      }, 1000);
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'カメラにアクセスできませんでした';
       setError(errorMessage);
@@ -118,7 +108,7 @@ const WebCameraComponent = ({ width = 640, height = 480 }: WebCameraComponentPro
       console.log('Quaggaスキャン開始');
 
       // イベントリスナーを設定
-      Quagga.onDetected((result) => {
+      Quagga.onDetected(async (result) => {
         const code = result.codeResult.code;
         console.log('バーコード検出:', code);
 
@@ -126,12 +116,19 @@ const WebCameraComponent = ({ width = 640, height = 480 }: WebCameraComponentPro
           return;
         }
 
-        setLatestCode(code);
-        setScannedCodes(prev => {
-          if (!prev.includes(code)) {
-            return [code, ...prev].slice(0, 10); // 最新10件を保持
-          }
-          return prev;
+        // 既にスキャン済みの場合はスキップ
+        if (scannedDataList.some(({ isbn }) => isbn === code)) {
+          return;
+        }
+
+        const scannedData = { isbn: code, data: null };
+        const newList = [scannedData, ...scannedDataList].slice(0, 10);
+        setScannedDataList(newList); // 最新10件を保持
+
+        fetchBookData(code).then((book) => {
+          const idx = newList.findIndex(data => data.isbn === code);
+          newList.splice(idx, 1, {...newList[idx], data: book});
+          setScannedDataList(newList);
         });
       });
 
@@ -164,33 +161,35 @@ const WebCameraComponent = ({ width = 640, height = 480 }: WebCameraComponentPro
 
   useEffect(() => {
     return () => {
-      stopBarcodeScanning();
+      if (isScanning) {
+        Quagga.stop();
+      }
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
       }
     };
-  }, [stream]);
+  }, [stream, isScanning]);
 
   return (
     <div style={{ textAlign: 'center', padding: '20px' }}>
       <h2>Webカメラ & バーコードリーダー</h2>
       
       <div style={{ marginBottom: '20px' }}>
-        <button onClick={startCamera} disabled={isLoading || !!stream}>
-          {isLoading ? 'カメラ起動中...' : 'カメラ開始'}
+        <button 
+          onClick={stream ? stopCamera : startCamera} 
+          disabled={isLoading}
+          style={{ 
+            backgroundColor: stream ? '#ff6b6b' : '#51cf66',
+            color: 'white',
+            padding: '10px 20px',
+            border: 'none',
+            borderRadius: '5px',
+            fontSize: '16px',
+            cursor: isLoading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isLoading ? 'カメラ起動中...' : stream ? 'カメラ停止' : 'カメラ開始'}
         </button>
-        <button onClick={stopCamera} disabled={!stream} style={{ marginLeft: '10px' }}>
-          カメラ停止
-        </button>
-        {stream && (
-          <button 
-            onClick={isScanning ? stopBarcodeScanning : startBarcodeScanning}
-            disabled={!stream}
-            style={{ marginLeft: '10px', backgroundColor: isScanning ? '#ff6b6b' : '#51cf66' }}
-          >
-            {isScanning ? 'スキャン停止' : 'バーコードスキャン開始'}
-          </button>
-        )}
       </div>
 
       {error && (
@@ -242,39 +241,12 @@ const WebCameraComponent = ({ width = 640, height = 480 }: WebCameraComponentPro
       </div>
       
       {stream && !isScanning && (
-        <p style={{ marginTop: '10px', color: 'green' }}>
-          カメラが正常に動作しています
-        </p>
-      )}
-      
-      {isScanning && (
-        <p style={{ marginTop: '10px', color: 'blue' }}>
-          バーコードをスキャン中...
+        <p style={{ marginTop: '10px', color: 'orange' }}>
+          スキャナー準備中...
         </p>
       )}
 
-      {/* スキャン結果の表示 */}
-      {latestCode && (
-        <div style={{ 
-          marginTop: '20px', 
-          padding: '15px', 
-          backgroundColor: '#e8f5e8', 
-          border: '2px solid #51cf66',
-          borderRadius: '8px'
-        }}>
-          <h3>最新スキャン結果</h3>
-          <p style={{ 
-            fontSize: '18px', 
-            fontWeight: 'bold', 
-            margin: '10px 0',
-            fontFamily: 'monospace'
-          }}>
-            {latestCode}
-          </p>
-        </div>
-      )}
-
-      {scannedCodes.length > 0 && (
+      {scannedDataList.length > 0 && (
         <div style={{ 
           marginTop: '20px', 
           padding: '15px', 
@@ -282,37 +254,64 @@ const WebCameraComponent = ({ width = 640, height = 480 }: WebCameraComponentPro
           border: '1px solid #dee2e6',
           borderRadius: '8px'
         }}>
-          <h4>スキャン履歴 (最新{scannedCodes.length}件)</h4>
-          <ul style={{ 
-            listStyle: 'none', 
-            padding: 0,
-            margin: '10px 0'
-          }}>
-            {scannedCodes.map((code, index) => (
-              <li key={index} style={{ 
-                padding: '5px 10px',
-                margin: '5px 0',
+          <h4>📚 スキャン履歴 (最新{scannedDataList.length}件)</h4>
+          <div style={{ margin: '10px 0' }}>
+            {scannedDataList.map(({ isbn, data: book }, index) => (
+              <div key={index} style={{ 
+                padding: '10px',
+                margin: '8px 0',
                 backgroundColor: index === 0 ? '#e8f5e8' : '#ffffff',
                 border: '1px solid #dee2e6',
-                borderRadius: '4px',
-                fontFamily: 'monospace'
+                borderRadius: '6px'
               }}>
-                {code}
-              </li>
+                <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+                  <div>ISBNコード: {isbn}</div>
+                  {
+                    book && (
+                      <>
+                        {book?.cover && (
+                          <img
+                            src={book.cover}
+                            alt="表紙"
+                            style={{
+                              width: '50px',
+                              height: '75px',
+                              objectFit: 'cover',
+                              borderRadius: '3px',
+                              border: '1px solid #ddd'
+                            }}
+                          />
+                        )}
+                        <div style={{ flex: 1 }}>
+                          <h5 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#333' }}>
+                            {book.title}
+                          </h5>
+                          <p style={{ margin: '2px 0', fontSize: '12px', color: '#666' }}>
+                            {book.author} / {book.publisher}
+                          </p>
+                          <p style={{ fontFamily: 'monospace', fontSize: '10px', color: '#999', margin: '4px 0 0 0' }}>
+                            {book.isbn}
+                          </p>
+                        </div>
+                      </>
+                    )
+                  }
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
           <button 
             onClick={() => {
-              setScannedCodes([]);
-              setLatestCode("");
+              setScannedDataList([]);
             }}
             style={{ 
-              padding: '5px 10px',
+              padding: '8px 12px',
               backgroundColor: '#6c757d',
               color: 'white',
               border: 'none',
               borderRadius: '4px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              fontSize: '14px'
             }}
           >
             履歴クリア
