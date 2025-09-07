@@ -6,6 +6,8 @@ import {useDispatch} from 'react-redux'
 import {AppDispatch} from './store'
 import {addScannedItem} from './store/scannerSlice.ts'
 import {fetchBookDataThunk} from './store/scannerThunks.ts'
+import { useToast } from '@/hooks/use-toast'
+import { Button } from '@/components/ui/button'
 
 type Props = {
   width: number;
@@ -14,6 +16,7 @@ type Props = {
 
 const WebCameraComponent = ({ width, height }: Props) => {
   const dispatch = useDispatch<AppDispatch>();
+  const { toast } = useToast();
   const scannerRef = useRef<HTMLDivElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -110,6 +113,14 @@ const WebCameraComponent = ({ width, height }: Props) => {
         if (!code || !checkIsdnCode(code)) {
           return;
         }
+        
+        // トーストを表示
+        toast({
+          title: "ISBN検出成功",
+          description: `ISBN: ${code} を検出しました`,
+          duration: 3000,
+        });
+        
         dispatch(addScannedItem({ isbn: code }));
         dispatch(fetchBookDataThunk(code));
       });
@@ -157,18 +168,14 @@ const WebCameraComponent = ({ width, height }: Props) => {
       <div className="flex flex-col items-center">
         <h2>Webカメラ & バーコードリーダー</h2>
 
-        <button
+        <Button
           onClick={stream ? stopCamera : startCamera}
           disabled={isLoading}
-          className="text-white px-5 border-none rounded-full mb-2"
-          style={{
-            backgroundColor: stream ? '#ff6b6b' : '#51cf66',
-            fontSize: '16px',
-            cursor: isLoading ? 'not-allowed' : 'pointer'
-          }}
+          className="mb-2"
+          variant={stream ? 'destructive' : 'default'}
         >
           {isLoading ? 'カメラ起動中...' : stream ? 'カメラ停止' : 'カメラ開始'}
-        </button>
+        </Button>
 
         {error && (
           <div style={{ color: 'red', marginBottom: '20px' }}>

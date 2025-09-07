@@ -1,4 +1,5 @@
 import WebCameraComponent from './WebCameraComponent.tsx'
+import { Toaster } from '@/components/ui/toaster'
 
 function App() {
 
@@ -7,6 +8,7 @@ function App() {
       <div className="flex gap-3 items-start">
         <WebCameraComponent width={300} height={147} />
       </div>
+      <Toaster />
     </main>
   );
 }
