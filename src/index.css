@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   margin: 0;
   background: linear-gradient(180deg, rgb(117, 81, 194), rgb(255, 255, 255));
@@ -5,8 +9,6 @@ body {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   height: 100vh;
   width: 100vw;
-  justify-content: center;
-  align-items: center;
 }
 
 main {
@@ -62,4 +64,18 @@ li:hover {
 a {
   font-weight: 800;
   text-decoration: none;
+}
+
+#root {
+  margin: 0 auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  width: 100vw;
+  height: 100vh;
+}
+
+#scanner-container canvas.drawingBuffer {
+  display: none;
 }
