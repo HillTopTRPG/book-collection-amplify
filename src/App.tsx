@@ -1,15 +1,18 @@
-import WebCameraComponent from './WebCameraComponent.tsx'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
+import HomePage from './pages/HomePage'
+import ScannerPage from './pages/ScannerPage'
 
 function App() {
-
   return (
-    <main className="p-1">
-      <div className="flex gap-3 items-start">
-        <WebCameraComponent width={300} height={147} />
-      </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/scanner" element={<ScannerPage />} />
+        <Route path="/collection" element={<div className="p-8 text-center">コレクション一覧は準備中です</div>} />
+      </Routes>
       <Toaster />
-    </main>
+    </Router>
   );
 }
 

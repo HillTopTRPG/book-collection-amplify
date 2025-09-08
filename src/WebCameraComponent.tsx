@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Quagga from "@ericblade/quagga2";
 import {checkIsdnCode} from './utils/validate.ts'
 import ScannedResults from './ScannedResults.tsx'
 import {useDispatch} from 'react-redux'
 import {AppDispatch} from './store'
-import {addScannedItem} from './store/scannerSlice.ts'
 import {fetchBookDataThunk} from './store/scannerThunks.ts'
 import { useToast } from '@/hooks/use-toast'
-import { Button } from '@/components/ui/button'
+import {useInterval} from 'usehooks-ts'
 
 type Props = {
   width: number;
@@ -20,54 +19,33 @@ const WebCameraComponent = ({ width, height }: Props) => {
   const scannerRef = useRef<HTMLDivElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isFirst, setIsFirst] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
 
-  const startCamera = async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width, height },
-        audio: false
-      });
-      
-      setStream(mediaStream);
-      
-      // if (videoRef.current) {
-      //   videoRef.current.srcObject = mediaStream;
-      // }
-
-      // カメラ起動後、少し待ってからバーコードスキャンを自動開始
-      setTimeout(() => {
-        startBarcodeScanning();
-      }, 1000);
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'カメラにアクセスできませんでした';
-      setError(errorMessage);
-      console.error('カメラアクセスエラー:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const startBarcodeScanning = async () => {
+  const startBarcodeScanning = useCallback(async () => {
     console.log('バーコードスキャン開始を試行中...');
     setIsScanning(true);
     setError(null);
 
     // DOMの準備を待つ
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     if (!scannerRef.current) {
       console.error('scannerRef.currentが存在しません');
       setError('スキャナーの要素が見つかりません。もう一度お試しください。');
       setIsScanning(false);
       return;
     }
-    
+
+    // DOM要素が実際にレンダリングされているかチェック
+    if (scannerRef.current.offsetWidth === 0 || scannerRef.current.offsetHeight === 0) {
+      console.error('DOM要素がまだレンダリングされていません');
+      setError('スキャナーがまだ準備できていません。少し待ってから再試行してください。');
+      setIsScanning(false);
+      return;
+    }
+
     try {
       await new Promise<void>((resolve, reject) => {
         Quagga.init({
@@ -108,54 +86,71 @@ const WebCameraComponent = ({ width, height }: Props) => {
       // イベントリスナーを設定
       Quagga.onDetected(async (result) => {
         const code = result.codeResult.code;
-        console.log('バーコード検出:', code);
 
         if (!code || !checkIsdnCode(code)) {
           return;
         }
-        
+
+        console.log('バーコード検出:', code);
+
         // トーストを表示
         toast({
-          title: "ISBN検出成功",
-          description: `ISBN: ${code} を検出しました`,
-          duration: 3000,
+          title: "ISBN検出",
+          description: `${code}`,
+          duration: 2000,
         });
-        
-        dispatch(addScannedItem({ isbn: code }));
+
         dispatch(fetchBookDataThunk(code));
       });
+      setError(null);
+      setIsScanning(true);
 
     } catch (error) {
       console.error('スキャナー開始エラー:', error);
       setError(`スキャナーの開始に失敗しました: ${error}`);
       setIsScanning(false);
     }
-  };
+  }, [dispatch, toast]);
 
-  const stopBarcodeScanning = () => {
-    if (isScanning) {
-      Quagga.stop();
-      setIsScanning(false);
-    }
-  };
+  const startCamera = useCallback(async () => {
+    setIsFirst(false);
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({
+        video: { width, height },
+        audio: false
+      });
+      
+      setStream(mediaStream);
 
-  const stopCamera = () => {
-    stopBarcodeScanning();
-    
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      setStream(null);
+      // カメラ起動後、DOM要素が準備されるまで待ってからバーコードスキャンを自動開始
+      setTimeout(() => {
+        if (scannerRef.current) {
+          startBarcodeScanning();
+        }
+      }, 500);
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'カメラにアクセスできませんでした';
+      setError(errorMessage);
+      console.error('カメラアクセスエラー:', err);
+    } finally {
+      setIsLoading(false);
     }
-    
-    // if (videoRef.current) {
-    //   videoRef.current.srcObject = null;
-    // }
-  };
+  }, [width, height, startBarcodeScanning]);
+
+  // コンポーネントマウント時に自動でカメラを起動
+  useInterval(() => {
+    if (!isFirst) return;
+    startCamera().then();
+  }, 100);
 
   useEffect(() => {
     return () => {
       if (isScanning) {
-        Quagga.stop();
+        Quagga.stop().then();
       }
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -165,17 +160,8 @@ const WebCameraComponent = ({ width, height }: Props) => {
 
   return (
     <div className="flex flex-col items-center gap-5">
-      <div className="flex flex-col items-center">
-        <h2>Webカメラ & バーコードリーダー</h2>
-
-        <Button
-          onClick={stream ? stopCamera : startCamera}
-          disabled={isLoading}
-          className="mb-2"
-          variant={stream ? 'destructive' : 'default'}
-        >
-          {isLoading ? 'カメラ起動中...' : stream ? 'カメラ停止' : 'カメラ開始'}
-        </Button>
+      <div className="flex flex-col items-center justify-normal">
+        <h2>バーコードリーダー</h2>
 
         {error && (
           <div style={{ color: 'red', marginBottom: '20px' }}>
@@ -186,16 +172,21 @@ const WebCameraComponent = ({ width, height }: Props) => {
         <div
           id="scanner-container"
           ref={scannerRef}
-          className=""
           style={{
-            display: isScanning ? 'block' : 'none',
-            width: width + 'px',
+            maxWidth: '300px',
+            maxHeight: '200px',
             border: `${isScanning ? '2px' : '0'} solid #51cf66`,
           }}
         />
 
+        {isLoading && (
+          <p className="mt-2 p-2 text-blue-400 bg-blue-50">
+            カメラ起動中...
+          </p>
+        )}
+
         {stream && !isScanning && (
-          <p style={{ marginTop: '10px', color: 'orange' }}>
+          <p className="mt-2 p-2 text-blue-400 bg-blue-50">
             スキャナー準備中...
           </p>
         )}

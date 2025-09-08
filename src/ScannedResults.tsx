@@ -2,6 +2,7 @@ import {useAppSelector} from './store/hooks.ts'
 import {clearScannedItems, selectScannedItems} from './store/scannerSlice.ts'
 import {useDispatch} from 'react-redux'
 import {AppDispatch} from './store'
+import { Spinner } from '@/components/ui/shadcn-io/spinner';
 
 export default function ScannedResults() {
   const dispatch = useDispatch<AppDispatch>();
@@ -25,7 +26,8 @@ export default function ScannedResults() {
             border: '1px solid #dee2e6',
             borderRadius: '6px'
           }}>
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+            <div className="flex gap-3 items-center justify-center">
+              { !book && <Spinner variant="bars" /> }
               {
                 book && (
                   <>

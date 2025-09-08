@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { BookData } from '../types/book';
 import { fetchBookDataThunk } from './scannerThunks';
 import {RootState} from './index.ts'
@@ -7,49 +7,37 @@ export interface ScannedItem { isbn: string; data: BookData | null }
 
 interface ScannerState {
   scannedItems: ScannedItem[];
+  isScanning: boolean;
+  stream: MediaStream | null;
+  error: string | null;
 }
 
 const initialState: ScannerState = {
   scannedItems: [],
+  isScanning: false,
+  stream: null,
+  error: null,
 };
 
 export const scannerSlice = createSlice({
   name: 'scanner',
   initialState,
   reducers: {
-    // バーコードスキャン関連
-    addScannedItem: (state, action: PayloadAction<{ isbn: string }>) => {
-      // 既に存在する場合はスキップ
-      if (state.scannedItems.some(({isbn}) => isbn === action.payload.isbn)) {
-        return;
-      }
-      const { isbn } = action.payload;
-
-      const newItem: ScannedItem = {
-        isbn,
-        data: null,
-      };
-
-      state.scannedItems.unshift(newItem);
-    },
-
-    updateScannedItemData: (state, action: PayloadAction<{ isbn: string; data: BookData }>) => {
-      const { isbn, data } = action.payload;
-      const item = state.scannedItems.find(item => item.isbn === isbn);
-      if (item) {
-        item.data = data;
-      }
-    },
-
     clearScannedItems: (state) => {
       state.scannedItems = [];
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchBookDataThunk.pending, (_, action) => {
-        const isbn = action.meta.arg
-        console.log(isbn);
+      .addCase(fetchBookDataThunk.pending, (state, action) => {
+        const isbn = action.meta.arg;
+
+        console.log({isbn})
+
+        // 既に存在する場合はスキップ
+        if (state.scannedItems.some((item) => item.isbn === isbn)) return;
+
+        state.scannedItems.unshift({ isbn, data: null });
       })
       .addCase(fetchBookDataThunk.fulfilled, (state, action) => {
         const { isbn, data } = action.payload;
@@ -71,8 +59,6 @@ export const scannerSlice = createSlice({
 });
 
 export const {
-  addScannedItem,
-  updateScannedItemData,
   clearScannedItems,
 } = scannerSlice.actions;
 
