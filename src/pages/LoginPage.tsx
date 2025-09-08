@@ -1,9 +1,9 @@
-import { Authenticator, useTheme, View, Image, Text, Heading } from '@aws-amplify/ui-react'
-import '@aws-amplify/ui-react/styles.css'
+import { Authenticator, useTheme, View, Image, Text, Heading } from '@aws-amplify/ui-react';
+import '@aws-amplify/ui-react/styles.css';
 
 const components = {
   Header() {
-    const { tokens } = useTheme()
+    const { tokens } = useTheme();
     return (
       <View textAlign="center" padding={tokens.space.large}>
         <Image
@@ -19,20 +19,20 @@ const components = {
           ログインして書籍コレクションを管理しましょう
         </Text>
       </View>
-    )
+    );
   },
 
   Footer() {
-    const { tokens } = useTheme()
+    const { tokens } = useTheme();
     return (
       <View textAlign="center" padding={tokens.space.large}>
         <Text style={{ color: '#6b7280', fontSize: '14px' }}>
           アカウントをお持ちでない場合は新規登録してください
         </Text>
       </View>
-    )
+    );
   }
-}
+};
 
 const formFields = {
   signIn: {
@@ -51,7 +51,7 @@ const formFields = {
       placeholder: 'パスワードを再入力してください',
     },
   },
-}
+};
 
 const theme = {
   name: 'book-collection-theme',
@@ -83,7 +83,7 @@ const theme = {
       },
     },
   },
-}
+};
 
 interface LoginPageProps {
   children: React.ReactNode
@@ -91,17 +91,15 @@ interface LoginPageProps {
 
 export default function LoginPage({ children }: LoginPageProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-purple-600 to-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <Authenticator
-          components={components}
-          formFields={formFields}
-          theme={theme}
-          hideSignUp={false}
-        >
-          {children}
-        </Authenticator>
-      </div>
+    <div className="min-h-screen flex items-center justify-center">
+      <Authenticator
+        components={components}
+        formFields={formFields}
+        theme={theme}
+        hideSignUp={false}
+      >
+        {children}
+      </Authenticator>
     </div>
-  )
+  );
 }

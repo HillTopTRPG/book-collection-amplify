@@ -1,7 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { BookData } from '../types/book';
 import { fetchBookDataThunk } from './scannerThunks';
-import {RootState} from './index.ts'
+import {RootState} from './index.ts';
 
 export interface ScannedItem { isbn: string; data: BookData | null }
 
@@ -31,8 +31,6 @@ export const scannerSlice = createSlice({
     builder
       .addCase(fetchBookDataThunk.pending, (state, action) => {
         const isbn = action.meta.arg;
-
-        console.log({isbn})
 
         // 既に存在する場合はスキップ
         if (state.scannedItems.some((item) => item.isbn === isbn)) return;

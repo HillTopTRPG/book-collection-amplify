@@ -1,6 +1,9 @@
-import {useEffect, useState} from 'react'
-import type {Schema} from '../amplify/data/resource.ts'
-import {generateClient} from 'aws-amplify/data'
+import {Fragment, useEffect, useState} from 'react';
+import type {Schema} from '../amplify/data/resource.ts';
+import {generateClient} from 'aws-amplify/data';
+import {ScrollArea} from '@radix-ui/react-scroll-area';
+import {Separator} from '@/components/ui/separator.tsx';
+import BookCard from '@/BookCard.tsx';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
@@ -11,10 +14,10 @@ const apiKeyClient = generateClient<Schema>({
 });
 
 export default function CollectionsList() {
-  const [collection, setCollection] = useState<Array<Schema["Collection"]["type"]>>([]);
-  const [books, setBooks] = useState<Array<Schema["Book"]["type"]>>([]);
+  const [collection, setCollection] = useState<Array<Schema['Collection']['type']>>([]);
+  const [books, setBooks] = useState<Array<Schema['Book']['type']>>([]);
 
-  const bookCollections = books.filter(book => collection.some(c => c.isbn === book.isbn))
+  const bookCollections = books.filter(book => collection.some(c => c.isbn === book.isbn));
 
   useEffect(() => {
     userPoolClient.models.Collection.observeQuery().subscribe({
@@ -26,19 +29,17 @@ export default function CollectionsList() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-3">
-      <h1>My Collections</h1>
-      <ul>
-        {bookCollections.map((book) => (
-          <li key={book.id}>{book.title}</li>
-        ))}
-      </ul>
-      <h1>All Books</h1>
-      <ul>
-        {books.map((book) => (
-          <li key={book.id}>{book.title}</li>
-        ))}
-      </ul>
+    <div className="flex flex-col gap-3 w-full">
+      <ScrollArea className="w-full rounded-md">
+        <div className="p-1">
+          {bookCollections.map((book, index) => (
+            <Fragment key={book.isbn}>
+              {index > 0 && <Separator className="my-2" />}
+              <BookCard book={book} />
+            </Fragment>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
-  )
+  );
 }

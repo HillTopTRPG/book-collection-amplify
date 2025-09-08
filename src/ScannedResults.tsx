@@ -1,12 +1,15 @@
-import {useAppSelector} from './store/hooks.ts'
-import {clearScannedItems, selectScannedItems} from './store/scannerSlice.ts'
-import {useDispatch} from 'react-redux'
-import {AppDispatch} from './store'
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
-import {generateClient} from 'aws-amplify/data'
-import type {Schema} from '../amplify/data/resource.ts'
-import {useEffect, useState} from 'react'
-import {useToast} from '@/hooks/use-toast.ts'
+import {useAppSelector} from './store/hooks.ts';
+import {clearScannedItems, selectScannedItems} from './store/scannerSlice.ts';
+import {useDispatch} from 'react-redux';
+import {AppDispatch} from './store';
+import {generateClient} from 'aws-amplify/data';
+import type {Schema} from '../amplify/data/resource.ts';
+import {Fragment, useEffect, useState} from 'react';
+import {useToast} from '@/hooks/use-toast.ts';
+import BookCard from '@/BookCard.tsx';
+import {ScrollArea} from '@radix-ui/react-scroll-area';
+import {Button} from '@aws-amplify/ui-react';
+import {Separator} from '@/components/ui/separator.tsx';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
@@ -21,8 +24,8 @@ export default function ScannedResults() {
   const scannedDataList = useAppSelector(selectScannedItems);
   const { toast } = useToast();
 
-  const [collections, setCollections] = useState<Array<Schema["Collection"]["type"]>>([]);
-  const [books, setBooks] = useState<Array<Schema["Book"]["type"]>>([]);
+  const [collections, setCollections] = useState<Array<Schema['Collection']['type']>>([]);
+  const [books, setBooks] = useState<Array<Schema['Book']['type']>>([]);
 
   useEffect(() => {
     const collectionSubscription = userPoolClient.models.Collection.observeQuery().subscribe({
@@ -34,12 +37,17 @@ export default function ScannedResults() {
     return () => {
       collectionSubscription.unsubscribe();
       bookSubscription.unsubscribe();
-    }
+    };
   }, []);
 
-  const registerDisable = scannedDataList.some(item => !item.data);
+  const clearDisable = !scannedDataList.length;
+  const registerDisable = clearDisable || scannedDataList.some(({ data }) => !data);
 
-  const registerCollection = () => {
+  const onClear = () => {
+    dispatch(clearScannedItems());
+  };
+
+  const onRegister = () => {
     const scannedBooks = scannedDataList.flatMap(({ data }) => data ? [data] : []);
     scannedBooks
       .filter(({ isbn })  => !books.some(book => book.isbn === isbn))
@@ -51,93 +59,43 @@ export default function ScannedResults() {
         if (!collections.some(book => book.isbn === isbn)) {
           userPoolClient.models.Collection.create({ isbn, meta: '', memo: '' });
           toast({
-            title: "登録",
+            title: '登録',
             description: `${title}`,
             duration: 2000,
           });
         } else {
           toast({
-            title: "登録スキップ",
+            title: '登録スキップ',
             description: `${title}`,
             duration: 2000,
           });
         }
       });
-  }
+    onClear();
+  };
 
   return (
-    <div style={{
-      marginTop: '20px',
-      padding: '15px',
-      backgroundColor: '#f8f9fa',
-      border: '1px solid #dee2e6',
-      borderRadius: '8px'
-    }}>
-      <h4>📚 スキャン履歴 (最新{scannedDataList.length}件)</h4>
-      <div style={{ margin: '10px 0' }}>
-        {scannedDataList.map(({ data: book }, index) => (
-          <div key={index} style={{
-            padding: '10px',
-            margin: '8px 0',
-            backgroundColor: index === 0 ? '#e8f5e8' : '#ffffff',
-            border: '1px solid #dee2e6',
-            borderRadius: '6px'
-          }}>
-            <div className="flex gap-3 items-center justify-center">
-              { !book && <Spinner variant="bars" /> }
-              {
-                book && (
-                  <>
-                    {book?.cover && (
-                      <img
-                        src={book.cover}
-                        alt="表紙"
-                        style={{
-                          width: '50px',
-                          height: '75px',
-                          objectFit: 'cover',
-                          borderRadius: '3px',
-                          border: '1px solid #ddd'
-                        }}
-                      />
-                    )}
-                    <div style={{ flex: 1 }}>
-                      <h5 style={{ margin: '0 0 4px 0', fontSize: '14px', color: '#333' }}>
-                        {book.title}
-                      </h5>
-                      <h5 style={{ margin: '0 0 4px 0', fontSize: '13px', color: '#333' }}>
-                        {book.subtitle}
-                      </h5>
-                      <p style={{ margin: '2px 0', fontSize: '12px', color: '#666' }}>
-                        {book.author} / {book.publisher}
-                      </p>
-                      <p style={{ fontFamily: 'monospace', fontSize: '10px', color: '#999', margin: '4px 0 0 0' }}>
-                        {book.isbn} / {book.pubdate}
-                      </p>
-                    </div>
-                  </>
-                )
-              }
-            </div>
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3 w-full max-h-max bg-white rounded-lg shadow-lg p-2">
+        <ScrollArea className="w-full max-h-max">
+          <div className="p-1">
+            {scannedDataList.map(({ data: book }, index) => (
+              <Fragment>
+                {index > 0 && <Separator className="my-2" />}
+                <BookCard key={index} book={book} />
+              </Fragment>
+            ))}
           </div>
-        ))}
+        </ScrollArea>
+        <div className="flex gap-3 justify-end border-t pt-2">
+          <Button size="small" variation="destructive" onClick={onClear} disabled={clearDisable}>
+          クリア
+          </Button>
+        </div>
       </div>
-      <button
-        onClick={() => {
-          dispatch(clearScannedItems());
-        }}
-        className="text-white border-none rounded text-xs px-2 py-3"
-        style={{ backgroundColor: '#6c757d' }}
-      >
-        履歴クリア
-      </button>
-      <button
-        onClick={registerCollection}
-        disabled={registerDisable}
-        className="text-white border-none rounded text-xs px-2 py-3 bg-amber-200"
-      >
+      <Button variation="primary" className="rounded-full" onClick={onRegister} disabled={registerDisable}>
         登録
-      </button>
+      </Button>
     </div>
   );
 }

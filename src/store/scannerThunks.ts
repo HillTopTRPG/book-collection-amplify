@@ -1,6 +1,6 @@
-import {createAsyncThunk} from '@reduxjs/toolkit'
-import {fetchGoogleBooksApi, fetchOpenBdApi} from '../utils/fetch'
-import {BookData} from '../types/book'
+import {createAsyncThunk} from '@reduxjs/toolkit';
+import {fetchGoogleBooksApi, fetchOpenBdApi} from '../utils/fetch';
+import {BookData} from '../types/book';
 
 export const fetchBookDataThunk = createAsyncThunk<
   { isbn: string; data: BookData },

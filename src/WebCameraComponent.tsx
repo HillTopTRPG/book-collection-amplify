@@ -1,13 +1,12 @@
-import { useEffect, useRef, useState, useCallback } from "react";
-import Quagga from "@ericblade/quagga2";
-import {checkIsdnCode} from './utils/validate.ts'
-import ScannedResults from './ScannedResults.tsx'
-import {useDispatch} from 'react-redux'
-import {AppDispatch} from './store'
-import {fetchBookDataThunk} from './store/scannerThunks.ts'
-import { useToast } from '@/hooks/use-toast'
-import {useInterval} from 'usehooks-ts'
-import CollectionsList from "./CollectionsList.tsx";
+import { useEffect, useRef, useState, useCallback } from 'react';
+import Quagga from '@ericblade/quagga2';
+import {checkIsdnCode} from './utils/validate.ts';
+import {useDispatch} from 'react-redux';
+import {AppDispatch} from './store';
+import {fetchBookDataThunk} from './store/scannerThunks.ts';
+import { useToast } from '@/hooks/use-toast';
+import {useInterval} from 'usehooks-ts';
+import CornerFrame from '@/CornerFrame.tsx';
 
 type Props = {
   width: number;
@@ -39,26 +38,18 @@ const WebCameraComponent = ({ width, height }: Props) => {
       return;
     }
 
-    // DOM要素が実際にレンダリングされているかチェック
-    if (scannerRef.current.offsetWidth === 0 || scannerRef.current.offsetHeight === 0) {
-      console.error('DOM要素がまだレンダリングされていません');
-      setError('スキャナーがまだ準備できていません。少し待ってから再試行してください。');
-      setIsScanning(false);
-      return;
-    }
-
     try {
       await new Promise<void>((resolve, reject) => {
         Quagga.init({
           inputStream: {
-            name: "Live",
-            type: "LiveStream",
+            name: 'Live',
+            type: 'LiveStream',
             target: scannerRef.current ?? undefined,
             constraints: {
               width: { min: 640, ideal: 1280, max: 1920 },
               height: { min: 480, ideal: 720, max: 1080 },
               frameRate: { ideal: 30, max: 30 },
-              facingMode: "environment" // スマホの場合は背面カメラを優先
+              facingMode: 'environment' // スマホの場合は背面カメラを優先
             },
           },
           frequency: 10, // スキャン頻度を下げる
@@ -96,7 +87,7 @@ const WebCameraComponent = ({ width, height }: Props) => {
 
         // トーストを表示
         toast({
-          title: "ISBN検出",
+          title: 'ISBN検出',
           description: `${code}`,
           duration: 2000,
         });
@@ -160,42 +151,37 @@ const WebCameraComponent = ({ width, height }: Props) => {
   }, [stream, isScanning]);
 
   return (
-    <div className="flex flex-col items-center gap-5">
-      <div className="flex flex-col items-center justify-normal">
-        <h2>バーコードリーダー</h2>
+    <div className="flex flex-col items-center justify-normal bg-white rounded-lg shadow-lg p-1">
+      {error && (
+        <div style={{ color: 'red', marginBottom: '20px' }}>
+          エラー: {error}
+        </div>
+      )}
 
-        {error && (
-          <div style={{ color: 'red', marginBottom: '20px' }}>
-            エラー: {error}
-          </div>
-        )}
-
-        <div
-          id="scanner-container"
-          ref={scannerRef}
-          className="overflow-hidden"
-          style={{
-            maxWidth: '300px',
-            maxHeight: '200px',
-            border: `${isScanning ? '2px' : '0'} solid #51cf66`,
-          }}
-        />
-
-        {isLoading && (
-          <p className="mt-2 p-2 text-blue-400 bg-blue-50">
-            カメラ起動中...
-          </p>
-        )}
-
-        {stream && !isScanning && (
-          <p className="mt-2 p-2 text-blue-400 bg-blue-50">
-            スキャナー準備中...
-          </p>
-        )}
-
+      <div
+        id="scanner-container"
+        ref={scannerRef}
+        className="overflow-hidden relative rounded-lg"
+        style={{
+          maxWidth: '300px',
+          maxHeight: '200px',
+        }}
+      >
+        <h1 className="absolute top-1 left-0 right-0 text-center text-xs text-white z-40">バーコードを写してください。</h1>
+        <CornerFrame />
       </div>
-      <ScannedResults />
-      <CollectionsList />
+
+      {isLoading && (
+        <p className="p-2 text-blue-400 bg-blue-50">
+          カメラ起動中...
+        </p>
+      )}
+
+      {stream && !isScanning && (
+        <p className="p-2 text-blue-400 bg-blue-50">
+          スキャナー準備中...
+        </p>
+      )}
     </div>
   );
 };

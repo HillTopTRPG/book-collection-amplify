@@ -1,6 +1,6 @@
 
 // openBD APIから書籍データを取得
-import {BookData} from '../types/book.ts'
+import {BookData} from '../types/book.ts';
 
 export async function fetchOpenBdApi(isbn: string): Promise<BookData> {
   try {

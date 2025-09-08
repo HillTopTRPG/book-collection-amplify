@@ -1,21 +1,14 @@
-import WebCameraComponent from '../WebCameraComponent.tsx'
-import { Link } from 'react-router-dom'
+import WebCameraComponent from '../WebCameraComponent.tsx';
+import ScannedResults from '@/ScannedResults.tsx';
 
 export default function ScannerPage() {
   return (
-    <main className="p-1">
-      <div className="mb-4">
-        <Link
-          to="/"
-          className="inline-flex items-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg transition-colors duration-200"
-        >
-          ← ホームに戻る
-        </Link>
-      </div>
-      
-      <div className="flex gap-3 items-start">
-        <WebCameraComponent width={300} height={200} />
-      </div>
-    </main>
-  )
+    <div className="flex flex-col w-full max-h-max gap-4">
+      <h1 className="text-2xl font-bold text-white text-center mt-2">
+        書籍登録
+      </h1>
+      <WebCameraComponent width={300} height={200} />
+      <ScannedResults />
+    </div>
+  );
 }

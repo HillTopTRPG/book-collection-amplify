@@ -1,12 +1,12 @@
-import { useAuthenticator } from '@aws-amplify/ui-react'
-import { ReactNode } from 'react'
+import { useAuthenticator } from '@aws-amplify/ui-react';
+import { ReactNode } from 'react';
 
 interface AuthWrapperProps {
   children: ReactNode
 }
 
 export default function AuthWrapper({ children }: AuthWrapperProps) {
-  const { authStatus } = useAuthenticator()
+  const { authStatus } = useAuthenticator();
 
   if (authStatus === 'configuring') {
     return (
@@ -16,8 +16,8 @@ export default function AuthWrapper({ children }: AuthWrapperProps) {
           <p className="mt-4 text-gray-600">初期化中...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

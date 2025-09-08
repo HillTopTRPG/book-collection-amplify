@@ -3,7 +3,7 @@ export function checkIsdnCode(code: string | null) {
   if (!(code.startsWith('978') || code.startsWith('979'))) return false;
 
   const checkDigit = parseInt(code.slice(-1)); // バーコードからチェックディジットを抽出する
-  const barcodeDigits = code.slice(0, -1).split(""); // チェックディジットを除いたバーコードの桁を抽出する
+  const barcodeDigits = code.slice(0, -1).split(''); // チェックディジットを除いたバーコードの桁を抽出する
 
   let sum = 0;
   for (let i = 0; i < barcodeDigits.length; i++) {
@@ -14,5 +14,5 @@ export function checkIsdnCode(code: string | null) {
     }
   }
 
-  return (sum + checkDigit) % 10 === 0
+  return (sum + checkDigit) % 10 === 0;
 }
