@@ -53,37 +53,6 @@ const formFields = {
   },
 };
 
-const theme = {
-  name: 'book-collection-theme',
-  tokens: {
-    colors: {
-      brand: {
-        primary: {
-          10: '#f3f4f6',
-          80: '#7c3aed',
-          90: '#6d28d9',
-          100: '#5b21b6',
-        },
-      },
-      background: {
-        primary: '#ffffff',
-        secondary: '#f9fafb',
-      },
-    },
-    components: {
-      authenticator: {
-        router: {
-          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-          borderWidth: '0',
-          borderRadius: '0.75rem',
-        },
-        form: {
-          padding: '2rem',
-        },
-      },
-    },
-  },
-};
 
 interface LoginPageProps {
   children: React.ReactNode
@@ -91,11 +60,10 @@ interface LoginPageProps {
 
 export default function LoginPage({ children }: LoginPageProps) {
   return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-start justify-center">
       <Authenticator
         components={components}
         formFields={formFields}
-        theme={theme}
         hideSignUp={false}
       >
         {children}

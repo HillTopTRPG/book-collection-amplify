@@ -6,7 +6,7 @@ export default function HomePage() {
   const { user } = useAuthenticator((context) => [context.user]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-8">
+    <div className="flex flex-col items-center justify-start min-h-screen p-4">
       <div className="max-w-md w-full bg-background rounded-lg shadow-lg p-8">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold mb-2">
