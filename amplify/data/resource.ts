@@ -12,6 +12,25 @@ const schema = a.schema({
       content: a.string(),
     })
     .authorization((allow) => [allow.publicApiKey()]),
+  Book: a
+    .model({
+      isbn: a.string(),
+      title: a.string(),
+      subtitle: a.string(),
+      author: a.string(),
+      publisher: a.string(),
+      pubdate: a.string(),
+      cover: a.string(),
+    })
+    .authorization((allow) => [allow.publicApiKey()]),
+  Collection: a
+    .model({
+      isbn: a.string(),
+      meta: a.string(),
+      memo: a.string(),
+      owner: a.string(),
+    })
+    .authorization((allow) => [allow.owner()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -19,7 +38,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "apiKey",
+    defaultAuthorizationMode: "userPool",
     // API Key is used for a.allow.public() rules
     apiKeyAuthorizationMode: {
       expiresInDays: 30,

@@ -1,0 +1,107 @@
+import { Authenticator, useTheme, View, Image, Text, Heading } from '@aws-amplify/ui-react'
+import '@aws-amplify/ui-react/styles.css'
+
+const components = {
+  Header() {
+    const { tokens } = useTheme()
+    return (
+      <View textAlign="center" padding={tokens.space.large}>
+        <Image
+          alt="Book Collection Logo"
+          src="data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3e%3ctext y='.9em' font-size='80'%3e📚%3c/text%3e%3c/svg%3e"
+          width="60px"
+          height="60px"
+        />
+        <Heading level={3} style={{ color: '#7c3aed' }}>
+          書籍コレクション
+        </Heading>
+        <Text style={{ color: '#6b7280' }}>
+          ログインして書籍コレクションを管理しましょう
+        </Text>
+      </View>
+    )
+  },
+
+  Footer() {
+    const { tokens } = useTheme()
+    return (
+      <View textAlign="center" padding={tokens.space.large}>
+        <Text style={{ color: '#6b7280', fontSize: '14px' }}>
+          アカウントをお持ちでない場合は新規登録してください
+        </Text>
+      </View>
+    )
+  }
+}
+
+const formFields = {
+  signIn: {
+    username: {
+      placeholder: 'メールアドレスを入力してください',
+    },
+  },
+  signUp: {
+    username: {
+      placeholder: 'メールアドレスを入力してください',
+    },
+    password: {
+      placeholder: 'パスワードを入力してください',
+    },
+    confirm_password: {
+      placeholder: 'パスワードを再入力してください',
+    },
+  },
+}
+
+const theme = {
+  name: 'book-collection-theme',
+  tokens: {
+    colors: {
+      brand: {
+        primary: {
+          10: '#f3f4f6',
+          80: '#7c3aed',
+          90: '#6d28d9',
+          100: '#5b21b6',
+        },
+      },
+      background: {
+        primary: '#ffffff',
+        secondary: '#f9fafb',
+      },
+    },
+    components: {
+      authenticator: {
+        router: {
+          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          borderWidth: '0',
+          borderRadius: '0.75rem',
+        },
+        form: {
+          padding: '2rem',
+        },
+      },
+    },
+  },
+}
+
+interface LoginPageProps {
+  children: React.ReactNode
+}
+
+export default function LoginPage({ children }: LoginPageProps) {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-purple-600 to-white flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Authenticator
+          components={components}
+          formFields={formFields}
+          theme={theme}
+          hideSignUp={false}
+        >
+          {children}
+        </Authenticator>
+      </div>
+    </div>
+  )
+}

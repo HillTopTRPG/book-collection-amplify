@@ -7,6 +7,7 @@ import {AppDispatch} from './store'
 import {fetchBookDataThunk} from './store/scannerThunks.ts'
 import { useToast } from '@/hooks/use-toast'
 import {useInterval} from 'usehooks-ts'
+import CollectionsList from "./CollectionsList.tsx";
 
 type Props = {
   width: number;
@@ -172,6 +173,7 @@ const WebCameraComponent = ({ width, height }: Props) => {
         <div
           id="scanner-container"
           ref={scannerRef}
+          className="overflow-hidden"
           style={{
             maxWidth: '300px',
             maxHeight: '200px',
@@ -193,6 +195,7 @@ const WebCameraComponent = ({ width, height }: Props) => {
 
       </div>
       <ScannedResults />
+      <CollectionsList />
     </div>
   );
 };

@@ -1,8 +1,10 @@
 import {useEffect, useState} from 'react'
 import type {Schema} from '../amplify/data/resource.ts'
-import {generateClient} from 'aws-amplify/api'
+import {generateClient} from 'aws-amplify/data'
 
-const client = generateClient<Schema>();
+const client = generateClient<Schema>({
+  authMode: 'apiKey'
+});
 
 export default function TodoList() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
