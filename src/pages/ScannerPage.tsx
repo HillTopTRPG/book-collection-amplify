@@ -3,7 +3,7 @@ import ScannedResults from '@/ScannedResults.tsx';
 
 export default function ScannerPage() {
   return (
-    <div className="flex flex-col w-full max-h-max gap-4 p-4">
+    <div className="flex flex-col w-full flex-1 gap-4 p-4">
       <h1 className="text-2xl font-bold text-white text-center mt-2">
         書籍登録
       </h1>

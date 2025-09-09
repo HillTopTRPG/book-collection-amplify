@@ -13,10 +13,10 @@ const components = {
           height="60px"
         />
         <Heading level={3} style={{ color: '#7c3aed' }}>
-          書籍コレクション
+          マイ書目
         </Heading>
         <Text style={{ color: '#6b7280' }}>
-          ログインして書籍コレクションを管理しましょう
+          ログインして蔵書コレクションを管理しましょう
         </Text>
       </View>
     );
@@ -41,9 +41,6 @@ const formFields = {
     },
   },
   signUp: {
-    username: {
-      placeholder: 'メールアドレスを入力してください',
-    },
     password: {
       placeholder: 'パスワードを入力してください',
     },
@@ -60,8 +57,10 @@ interface LoginPageProps {
 
 export default function LoginPage({ children }: LoginPageProps) {
   return (
-    <div className="min-h-screen flex items-start justify-center">
+    <div className="min-h-screen flex flex-col items-start justify-center">
       <Authenticator
+        loginMechanisms={['email']}
+        signUpAttributes={['email']}
         components={components}
         formFields={formFields}
         hideSignUp={false}

@@ -18,7 +18,7 @@ export default function MenuBar() {
 
   return (
     <div className="fixed left-0 top-0 right-0 bg-background h-[3rem] flex items-center px-2 gap-2 z-50">
-      <div className="flex-1">あなたの司書さん</div>
+      <div className="flex-1">マイ書目</div>
       <Button size="icon" className="rounded-full" variant="secondary" onClick={()=>setTheme(localStorage.theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <Moon /> : <Sun />}</Button>
     </div>
   );

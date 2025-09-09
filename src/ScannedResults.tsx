@@ -6,7 +6,7 @@ import {generateClient} from 'aws-amplify/data';
 import type {Schema} from '../amplify/data/resource.ts';
 import {Fragment, useEffect, useState} from 'react';
 import {useToast} from '@/hooks/use-toast.ts';
-import BookCard from '@/BookCard.tsx';
+import BookCard from '@/components/BookCard';
 import {ScrollArea} from '@radix-ui/react-scroll-area';
 import {Button} from '@aws-amplify/ui-react';
 import {Separator} from '@/components/ui/separator.tsx';
@@ -75,27 +75,29 @@ export default function ScannedResults() {
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex flex-col gap-3 w-full max-h-max bg-white rounded-lg shadow-lg p-2">
-        <ScrollArea className="w-full max-h-max">
-          <div className="p-1">
-            {scannedDataList.map(({ data: book }, index) => (
-              <Fragment>
-                {index > 0 && <Separator className="my-2" />}
-                <BookCard key={index} book={book} />
-              </Fragment>
-            ))}
+    <div className="flex-1 flex flex-col gap-3 w-full bg-background rounded-lg shadow-lg p-2">
+      {scannedDataList.length > 0 && (
+        <Fragment>
+          <div className="flex gap-3 justify-end">
+            <Button variation="primary" className="rounded-full flex-1" onClick={onRegister} disabled={registerDisable}>
+            登録
+            </Button>
+            <Button size="small" variation="destructive" className="rounded-full" onClick={onClear} disabled={clearDisable}>
+            クリア
+            </Button>
           </div>
-        </ScrollArea>
-        <div className="flex gap-3 justify-end border-t pt-2">
-          <Button size="small" variation="destructive" onClick={onClear} disabled={clearDisable}>
-          クリア
-          </Button>
-        </div>
-      </div>
-      <Button variation="primary" className="rounded-full" onClick={onRegister} disabled={registerDisable}>
-        登録
-      </Button>
+          <Separator />
+        </Fragment>
+      )}
+      <ScrollArea className="w-full max-h-max px-1">
+        {scannedDataList.map(({ data: book }, index) => (
+          <Fragment key={index}>
+            {index > 0 && <Separator className="my-2" />}
+            <BookCard book={book} />
+          </Fragment>
+        ))}
+        {!scannedDataList.length && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}
+      </ScrollArea>
     </div>
   );
 }

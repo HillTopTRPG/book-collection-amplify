@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import {createSelector, createSlice} from '@reduxjs/toolkit';
 import { BookData } from '../types/book';
 import { fetchBookDataThunk } from './scannerThunks';
 import {RootState} from './index.ts';
@@ -61,5 +61,6 @@ export const {
 } = scannerSlice.actions;
 
 export const selectScannedItems = (state: RootState) => state.scanner.scannedItems;
+export const selectFetchedBookList = createSelector(selectScannedItems, ((scannedItems) => scannedItems.map(({ data }) => data).filter((book): book is BookData => Boolean(book))));
 
 export default scannerSlice.reducer;

@@ -3,7 +3,7 @@ import type {Schema} from '../amplify/data/resource.ts';
 import {generateClient} from 'aws-amplify/data';
 import {ScrollArea} from '@radix-ui/react-scroll-area';
 import {Separator} from '@/components/ui/separator.tsx';
-import BookCard from '@/BookCard.tsx';
+import BookCard from '@/components/BookCard';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
@@ -29,7 +29,7 @@ export default function CollectionsList() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="flex flex-col flex-1 gap-3 w-full bg-background rounded-lg shadow-lg p-4">
       <ScrollArea className="w-full rounded-md">
         <div className="p-1">
           {bookCollections.map((book, index) => (
@@ -38,6 +38,13 @@ export default function CollectionsList() {
               <BookCard book={book} />
             </Fragment>
           ))}
+          {bookCollections.map((book, index) => (
+            <Fragment key={book.isbn}>
+              {index > 0 && <Separator className="my-2" />}
+              <BookCard book={book} />
+            </Fragment>
+          ))}
+          {!bookCollections.length && '蔵書はまだありません。'}
         </div>
       </ScrollArea>
     </div>

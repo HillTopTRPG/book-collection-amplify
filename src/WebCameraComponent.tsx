@@ -7,6 +7,12 @@ import {fetchBookDataThunk} from './store/scannerThunks.ts';
 import { useToast } from '@/hooks/use-toast';
 import {useInterval} from 'usehooks-ts';
 import CornerFrame from '@/CornerFrame.tsx';
+import useSound from 'use-sound';
+import se01 from '@/assets/se01.mp3';
+import {selectFetchedBookList} from '@/store/scannerSlice.ts';
+import {useAppSelector} from '@/store/hooks.ts';
+import {Volume2, VolumeOff} from 'lucide-react';
+import {Button} from '@/components/ui/button.tsx';
 
 type Props = {
   width: number;
@@ -16,12 +22,36 @@ type Props = {
 const WebCameraComponent = ({ width, height }: Props) => {
   const dispatch = useDispatch<AppDispatch>();
   const { toast } = useToast();
+  const fetchedBookList = useAppSelector(selectFetchedBookList);
+  const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState(fetchedBookList.length);
   const scannerRef = useRef<HTMLDivElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFirst, setIsFirst] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [volume, _setVolume] = useState(Number(localStorage.volume) ?? 0.8);
+  const [play] = useSound(se01, {
+    volume,
+    interrupt: true
+  });
+
+  const setVolume = (volume: number) => {
+    localStorage.volume = volume;
+    _setVolume(volume);
+  };
+
+  useEffect(() => {
+    if (lastFetchedBookListCount !== fetchedBookList.length && fetchedBookList.length > 0) {
+      // SEを再生
+      try {
+        play();
+      } catch {
+        console.error('音声再生エラー');
+      }
+    }
+    setLastFetchedBookListCount(fetchedBookList.length);
+  }, [fetchedBookList.length, lastFetchedBookListCount, play]);
 
   const startBarcodeScanning = useCallback(async () => {
     console.log('バーコードスキャン開始を試行中...');
@@ -151,11 +181,19 @@ const WebCameraComponent = ({ width, height }: Props) => {
   }, [stream, isScanning]);
 
   return (
-    <div className="flex flex-col items-center justify-normal bg-white rounded-lg shadow-lg p-1">
+    <div className="flex flex-col items-center justify-normal bg-background rounded-lg shadow-lg p-1 relative">
       {error && (
         <div style={{ color: 'red', marginBottom: '20px' }}>
           エラー: {error}
         </div>
+      )}
+
+      {stream && isScanning && (
+        <Button className="absolute bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40" size="icon" variant="outline" onClick={() => {
+          setVolume(volume ? 0 : 0.8);
+        }}>
+          {volume ? <Volume2 /> : <VolumeOff />}
+        </Button>
       )}
 
       <div

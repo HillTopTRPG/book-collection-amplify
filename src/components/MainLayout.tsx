@@ -13,7 +13,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <MenuBar />
 
       {/* メインコンテンツ - ボトムナビの高さ分をpaddingで確保 */}
-      <div className="mt-12 mb-20 w-full md:w-[32rem]">
+      <div className="mt-12 mb-20 w-full md:w-[32rem] flex-1 flex flex-col">
         {children}
       </div>
 
