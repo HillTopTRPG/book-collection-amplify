@@ -1,11 +1,11 @@
 import {FilterData} from '@/components/FilterUI.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
 import type {Schema} from '../../amplify/data/resource.ts';
-import ComboBox from '@/components/ComboBox.tsx';
 import SortButton from '@/components/SortButton.tsx';
 import {Trash,} from 'lucide-react';
 // import {Building, Calendar, CaseUpper, FunnelPlus, UserPen} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
+import ComboInput from '@/components/ComboInput.tsx';
 
 // const TYPE_OPTIONS = {
 //   title: <div className="flex gap-2"><CaseUpper />タイトル</div>,
@@ -37,7 +37,7 @@ type Props = {
 }
 
 export default function FilterItem({ books, item, onChange, onDelete }: Props) {
-  const comboBoxList = books
+  const comboOptions = books
     .flatMap(book => {
       switch (item.type) {
         case 'title':
@@ -61,13 +61,15 @@ export default function FilterItem({ books, item, onChange, onDelete }: Props) {
       {!item.value && (
         <SortButton sortOrder={item.sortOrder} setSortOrder={(v) => onChange('sortOrder', v)} />
       )}
-      <ComboBox
-        label={TypeMap[item.type]}
-        className="flex-1 text-left truncate bg-foreground text-background"
-        list={comboBoxList}
-        value={item.value}
-        setValue={(v) => onChange('value', v)}
-      />
+      {item.type !== 'pubdate' ? (
+        <ComboInput
+          label={TypeMap[item.type]}
+          className="flex-1 text-left truncate bg-foreground text-background"
+          list={comboOptions}
+          value={item.value}
+          setValue={(v) => onChange('value', v)}
+        />
+      ) : <div className="flex-1"></div>}
       <Button variant="destructive" size="icon" onClick={onDelete}><Trash /></Button>
     </div>
   );
