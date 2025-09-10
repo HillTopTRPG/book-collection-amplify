@@ -32,7 +32,7 @@ export default function CustomizedTabs<Tabs extends Record<string, IconElement>>
         { tabExtends }
       </TabsList>
       {Object.keys(tabs).map((key) => {
-        return (<TabsContent value={key} className="bg-background rounded-lg p-2">
+        return (<TabsContent key={key} value={key} className="bg-background rounded-lg p-2">
           {children(key)}
         </TabsContent>);
       })}
