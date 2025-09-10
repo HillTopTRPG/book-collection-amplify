@@ -25,6 +25,7 @@ const WebCameraComponent = ({ width, height }: Props) => {
   const fetchedBookList = useAppSelector(selectFetchedBookList);
   const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState(fetchedBookList.length);
   const scannerRef = useRef<HTMLDivElement>(null);
+  const lastFetchIsbn = useRef<string | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFirst, setIsFirst] = useState(true);
@@ -115,6 +116,9 @@ const WebCameraComponent = ({ width, height }: Props) => {
 
         console.log('バーコード検出:', code);
 
+        if (lastFetchIsbn.current === code) return;
+        lastFetchIsbn.current = code;
+
         // トーストを表示
         toast({
           title: 'ISBN検出',
@@ -202,7 +206,7 @@ const WebCameraComponent = ({ width, height }: Props) => {
         className="overflow-hidden relative rounded-lg"
         style={{
           maxWidth: '300px',
-          maxHeight: '200px',
+          maxHeight: '100px',
         }}
       >
         <h1 className="absolute top-1 left-0 right-0 text-center text-xs text-white z-40">バーコードを写してください。</h1>

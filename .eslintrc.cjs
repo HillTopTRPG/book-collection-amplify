@@ -29,12 +29,12 @@ module.exports = {
       "error",
       "always"
     ],
-    "no-console": [
-      "warn",
-      {
-        "allow": ["warn", "error"]
-      }
-    ],
+    // "no-console": [
+    //   "warn",
+    //   {
+    //     "allow": ["warn", "error"]
+    //   }
+    // ],
     'react-refresh/only-export-components': [
       'warn',
       { allowConstantExport: true },

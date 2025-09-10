@@ -1,7 +1,6 @@
 import {BookData} from '@/types/book.ts';
 import {Spinner} from '@/components/ui/shadcn-io/spinner';
 import {Fragment} from 'react';
-import {ImageOff} from 'lucide-react';
 
 type Props = {
   book: BookData | null;
@@ -11,9 +10,7 @@ export default function BookCardContent({ book }: Props) {
   if (!book) return <Spinner variant="bars" />;
   return (
     <Fragment>
-      {book?.cover ? (
-        <img src={book.cover} alt="表紙" className="w-[50px] h-[75px] rounded border" style={{ objectFit: 'cover' }} />
-      ) : <div className="w-[50px] h-[75px] rounded border flex items-center justify-center"><ImageOff /></div>}
+      <img src={book.cover || `https://ndlsearch.ndl.go.jp/thumbnail/${book.isbn}.jpg`} alt="表紙" className="w-[50px] h-[75px] rounded border" style={{ objectFit: 'cover' }} />
       <div className="flex-1">
         <h5 className="text-[14px] mb-1">{book.title}</h5>
         <h5 className="text-[13px] mb-1">{book.subtitle}</h5>

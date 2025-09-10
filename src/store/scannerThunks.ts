@@ -1,5 +1,5 @@
 import {createAsyncThunk} from '@reduxjs/toolkit';
-import {fetchGoogleBooksApi, fetchOpenBdApi} from '../utils/fetch';
+import {fetchGoogleBooksApi, fetchOpenBdApi, fetchRakutenBooksApi} from '../utils/fetch';
 import {BookData} from '../types/book';
 
 export const fetchBookDataThunk = createAsyncThunk<
@@ -11,14 +11,15 @@ export const fetchBookDataThunk = createAsyncThunk<
   async (isbn, { rejectWithValue }) => {
     const openBdApiResult = await fetchOpenBdApi(isbn);
     const googleBooksApiResult = await fetchGoogleBooksApi(isbn);
+    const rakutenBooksApiResult = await fetchRakutenBooksApi({isbn});
     const result: { isbn: string; data: BookData } = { isbn, data: {
       isbn,
-      title: googleBooksApiResult.title || openBdApiResult.title || '',
-      subtitle: googleBooksApiResult.subtitle || openBdApiResult.subtitle || '',
-      author: googleBooksApiResult.author || openBdApiResult.author || '著者不明',
-      publisher: googleBooksApiResult.publisher || openBdApiResult.publisher || '出版社不明',
-      pubdate: googleBooksApiResult.pubdate || openBdApiResult.pubdate || '出版日不明',
-      cover: googleBooksApiResult.cover || openBdApiResult.cover || '',
+      title: rakutenBooksApiResult.at(0)?.title || googleBooksApiResult.title || openBdApiResult.title || '',
+      subtitle: rakutenBooksApiResult.at(0)?.subtitle || googleBooksApiResult.subtitle || openBdApiResult.subtitle || '',
+      author: rakutenBooksApiResult.at(0)?.author || googleBooksApiResult.author || openBdApiResult.author || '著者不明',
+      publisher: rakutenBooksApiResult.at(0)?.publisher || googleBooksApiResult.publisher || openBdApiResult.publisher || '出版社不明',
+      pubdate: rakutenBooksApiResult.at(0)?.pubdate || googleBooksApiResult.pubdate || openBdApiResult.pubdate || '出版日不明',
+      cover: rakutenBooksApiResult.at(0)?.cover || googleBooksApiResult.cover || openBdApiResult.cover || '',
     } };
 
     if (!result.data.title) {
