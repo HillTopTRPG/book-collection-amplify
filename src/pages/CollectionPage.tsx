@@ -74,7 +74,7 @@ export default function CollectionPage() {
     });
 
   return (
-    <div className="flex flex-col w-full flex-1 gap-3 p-4">
+    <div className="flex flex-col w-full flex-1 gap-2 p-3">
       <FilterUI books={books} list={filters} onChange={setFilters} />
       <CollectionsList books={viewBooks} />
     </div>

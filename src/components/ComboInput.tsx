@@ -1,5 +1,6 @@
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
@@ -21,7 +22,9 @@ type Props = {
 export default function ComboInput({label, className, list, value, setValue}: Props) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(value);
+  const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, width: 0 });
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
   
   // Filter suggestions based on input value
   const filteredList = list.filter((item) => 
@@ -35,7 +38,9 @@ export default function ComboInput({label, className, list, value, setValue}: Pr
   // Handle click outside to close dropdown
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (containerRef.current && !containerRef.current.contains(target) &&
+          dropdownRef.current && !dropdownRef.current.contains(target)) {
         setOpen(false);
       }
     };
@@ -63,6 +68,17 @@ export default function ComboInput({label, className, list, value, setValue}: Pr
     setOpen(newValue.length > 0 && newFilteredList.length > 0); // Show suggestions if there are matches
   };
   
+  const updateDropdownPosition = () => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width
+      });
+    }
+  };
+
   const handleSelect = (selectedValue: string) => {
     const selectedItem = list.find(item => item.value === selectedValue);
     if (selectedItem) {
@@ -79,41 +95,60 @@ export default function ComboInput({label, className, list, value, setValue}: Pr
           placeholder={label}
           value={inputValue}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e.target.value)}
-          onFocus={() => setOpen(inputValue.length > 0 && filteredList.length > 0)}
-          className={`pr-8 ${className}`}
+          onFocus={() => {
+            updateDropdownPosition();
+            setOpen(list.length > 0);
+          }}
+          className={`${open ? '' : 'pr-7'} ${className}`}
         />
-        <ChevronsUpDownIcon 
-          className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 opacity-50 cursor-pointer" 
-          onClick={() => setOpen(!open)}
-        />
+        {!open && (
+          <ChevronsUpDownIcon
+            className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-background dark:text-background cursor-pointer pointer-events-auto z-30 bg-transparent"
+            onClick={() => {
+              updateDropdownPosition();
+              setOpen(!open);
+            }}
+          />
+        )}
       </div>
       
-      {open && filteredList.length > 0 && (
-        <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md">
-          <Command>
-            <CommandList>
-              <CommandGroup>
-                {filteredList.map((item) => (
-                  <CommandItem
-                    key={item.value}
-                    value={item.value}
-                    onSelect={() => handleSelect(item.value)}
-                    className="cursor-pointer"
-                  >
-                    <CheckIcon
-                      className={cn(
-                        'mr-2 h-4 w-4',
-                        inputValue === item.label ? 'opacity-100' : 'opacity-0'
-                      )}
-                    />
-                    {item.label}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            </CommandList>
-          </Command>
-        </div>
-      )}
+      {open && (inputValue.length > 0 ? filteredList.length > 0 : list.length > 0) && 
+        createPortal(
+          <div 
+            ref={dropdownRef}
+            className="fixed z-[99999] bg-popover border rounded-md shadow-md" 
+            style={{
+              left: dropdownPosition.left,
+              top: dropdownPosition.top,
+              width: dropdownPosition.width
+            }}
+          >
+            <Command>
+              <CommandList>
+                <CommandGroup>
+                  {(inputValue.length > 0 ? filteredList : list).map((item) => (
+                    <CommandItem
+                      key={item.value}
+                      value={item.value}
+                      onSelect={() => handleSelect(item.value)}
+                      className="cursor-pointer"
+                    >
+                      <CheckIcon
+                        className={cn(
+                          'mr-2 h-4 w-4',
+                          inputValue === item.label ? 'opacity-100' : 'opacity-0'
+                        )}
+                      />
+                      {item.label}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </div>,
+          document.body
+        )
+      }
     </div>
   );
 }

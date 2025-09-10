@@ -2,18 +2,11 @@ import {FilterData} from '@/components/FilterUI.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
 import type {Schema} from '../../amplify/data/resource.ts';
 import SortButton from '@/components/SortButton.tsx';
-import {Trash,} from 'lucide-react';
-// import {Building, Calendar, CaseUpper, FunnelPlus, UserPen} from 'lucide-react';
+import {Trash, GripVertical} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
 import ComboInput from '@/components/ComboInput.tsx';
-
-// const TYPE_OPTIONS = {
-//   title: <div className="flex gap-2"><CaseUpper />タイトル</div>,
-//   author: <div className="flex gap-2"><UserPen />著者</div>,
-//   publisher: <div className="flex gap-2"><Building />出版社</div>,
-//   pubdate: <div className="flex gap-2"><Calendar />発売日</div>,
-//   none: <div className="flex gap-2"><FunnelPlus /></div>,
-// } as const;
+import {useSortable} from '@dnd-kit/sortable';
+import {CSS} from '@dnd-kit/utilities';
 
 const TYPE_OPTIONS = {
   title: <div className="flex gap-2">タイトル</div>,
@@ -30,13 +23,29 @@ const TypeMap = {
 } as const;
 
 type Props = {
+  id: string;
   books: Array<Schema['Book']['type']>;
   item: FilterData;
   onChange: <Property extends keyof FilterData>(property: Property, value: FilterData[Property]) => void;
   onDelete: () => void;
 }
 
-export default function FilterItem({ books, item, onChange, onDelete }: Props) {
+export default function FilterItem({ id, books, item, onChange, onDelete }: Props) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: 'none',
+    opacity: isDragging ? 0 : 1,
+    zIndex: isDragging ? 1000 : 1,
+  };
+
   const comboOptions = books
     .flatMap(book => {
       switch (item.type) {
@@ -51,7 +60,18 @@ export default function FilterItem({ books, item, onChange, onDelete }: Props) {
     .map(value => ({ label: value, value }));
 
   return (
-    <div className="flex gap-1 w-full">
+    <div 
+      ref={setNodeRef}
+      style={style}
+      className="flex gap-1 w-full bg-background border rounded p-0.5"
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="flex items-center cursor-grab active:cursor-grabbing touch-none"
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </div>
       <SelectBox
         className="w-auto"
         options={TYPE_OPTIONS}
