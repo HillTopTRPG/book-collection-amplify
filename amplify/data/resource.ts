@@ -14,7 +14,7 @@ const schema = a.schema({
     .authorization((allow) => [allow.publicApiKey()]),
   Book: a
     .model({
-      isbn: a.string(),
+      isbn: a.string().required(),
       title: a.string(),
       subtitle: a.string(),
       author: a.string(),
@@ -25,9 +25,17 @@ const schema = a.schema({
     .authorization((allow) => [allow.publicApiKey()]),
   Collection: a
     .model({
-      isbn: a.string(),
+      isbn: a.string().required(),
       meta: a.string(),
       memo: a.string(),
+      owner: a.string(),
+    })
+    .authorization((allow) => [allow.owner()]),
+  FilterSet: a
+    .model({
+      name: a.string(),
+      filters: a.string().required(),
+      meta: a.string(),
       owner: a.string(),
     })
     .authorization((allow) => [allow.owner()]),

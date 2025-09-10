@@ -55,7 +55,7 @@ export async function fetchGoogleBooksApi(isbn: string): Promise<BookData> {
   }
 }
 
-type RakutenApiOption = {
+export type RakutenApiOption = {
   title?: string;
   author?: string;
   publisherName?: string;
@@ -83,7 +83,8 @@ export async function fetchRakutenBooksApi(options: RakutenApiOption): Promise<B
   const keys = _.keys(opt) as (keyof RakutenApiOption)[];
   const params = keys.flatMap((option) => {
     const value = opt[option];
-    return value ? [`&${option}=${encodeURI(value.toString())}`] : [];
+    console.log(option, value, encodeURIComponent(value?.toString() ?? ''));
+    return value ? [`&${option}=${encodeURIComponent(value.toString())}`] : [];
   }).join('');
   const response = await fetch(`https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404?format=json${params}`);
   const data = await response.json();

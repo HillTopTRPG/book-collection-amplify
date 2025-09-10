@@ -2,7 +2,7 @@ import {FilterData} from '@/components/FilterUI.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
 import type {Schema} from '../../amplify/data/resource.ts';
 import SortButton from '@/components/SortButton.tsx';
-import {Trash, GripVertical, BookA, UserPen, Building} from 'lucide-react'
+import {Trash, GripVertical, BookA, UserPen, Building} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
 import ComboInput from '@/components/ComboInput.tsx';
 import {useSortable} from '@dnd-kit/sortable';

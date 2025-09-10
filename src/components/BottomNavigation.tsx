@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Barcode, BookOpen, User } from 'lucide-react';
+import {Home, Barcode, User, Search} from 'lucide-react'
 import { useAuthenticator } from '@aws-amplify/ui-react';
 
 const navigationItems = [
@@ -15,8 +15,8 @@ const navigationItems = [
   },
   {
     path: '/collection',
-    icon: BookOpen,
-    label: 'コレクション',
+    icon: Search,
+    label: '検索',
   }
 ];
 
@@ -34,7 +34,7 @@ export default function BottomNavigation() {
             <Link
               key={path}
               to={path}
-              className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
+              className={`flex flex-col min-w-[4rem] items-center justify-center p-2 rounded-lg transition-colors duration-200 ${
                 isActive
                   ? 'text-purple-600 dark:text-purple-200 bg-purple-200 dark:bg-purple-800'
                   : 'text-gray-600 dark:text-gray-400 hover:text-purple-500 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950'

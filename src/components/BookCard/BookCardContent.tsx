@@ -4,9 +4,10 @@ import {Fragment} from 'react';
 
 type Props = {
   book: BookData | null;
+  isNoHave?: boolean;
 };
 
-export default function BookCardContent({ book }: Props) {
+export default function BookCardContent({ book, isNoHave }: Props) {
   if (!book) return <Spinner variant="bars" />;
   return (
     <Fragment>
@@ -19,6 +20,7 @@ export default function BookCardContent({ book }: Props) {
           {book.isbn} / {book.pubdate}
         </p>
       </div>
+      {isNoHave && <div className="absolute inset-0 bg-yellow-200/50 pointer-events-none">未所持</div>}
     </Fragment>
   );
 }
