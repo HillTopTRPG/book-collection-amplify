@@ -19,12 +19,13 @@ import {
 
 type Props = {
   label: string;
+  className?: string;
   list: { value: string, label: string }[];
   value: string;
   setValue: (value: string) => void;
 };
 
-export default function ComboBox({label, list, value, setValue}: Props) {
+export default function ComboBox({label, className, list, value, setValue}: Props) {
   const [open, setOpen] = React.useState(false);
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -33,17 +34,17 @@ export default function ComboBox({label, list, value, setValue}: Props) {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="justify-between py-2 px-4 max-w-full"
+          className={`justify-between gap-0 py-2 px-4 max-w-full ${className}`}
         >
           <span className="flex-1 truncate inline-block">
             {value
               ? list.find((item) => item.value === value)?.label
               : label}
           </span>
-          <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          <ChevronsUpDownIcon className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className="p-0">
         <Command>
           <CommandInput placeholder={`${label}の検索`} />
           <CommandList>

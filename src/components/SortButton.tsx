@@ -9,17 +9,9 @@ type Props = {
 };
 
 export default function SortButton({ sortOrder, setSortOrder }: Props) {
-  const icon = (() => {
-    switch (sortOrder) {
-      case 'asc':
-        return <ArrowDownNarrowWide />;
-      case 'desc':
-        return <ArrowUpWideNarrow />;
-    }
-  })();
   return (
-    <Button size="icon" variant="outline" onClick={() => {
+    <Button size="icon" className="rounded-full" onClick={() => {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    }}>{icon}</Button>
+    }}>{sortOrder === 'asc' ? <ArrowDownNarrowWide /> : <ArrowUpWideNarrow />}</Button>
   );
 }
