@@ -2,16 +2,16 @@ import {FilterData} from '@/components/FilterUI.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
 import type {Schema} from '../../amplify/data/resource.ts';
 import SortButton from '@/components/SortButton.tsx';
-import {Trash, GripVertical} from 'lucide-react';
+import {Trash, GripVertical, BookA, UserPen, Building} from 'lucide-react'
 import {Button} from '@/components/ui/button.tsx';
 import ComboInput from '@/components/ComboInput.tsx';
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
 
 const TYPE_OPTIONS = {
-  title: <div className="flex gap-2">タイトル</div>,
-  author: <div className="flex gap-2">著者</div>,
-  publisher: <div className="flex gap-2">出版社</div>,
+  title: <BookA />,
+  author: <UserPen />,
+  publisher: <Building />,
   pubdate: <div className="flex gap-2">発売日</div>,
 } as const;
 
@@ -78,9 +78,7 @@ export default function FilterItem({ id, books, item, onChange, onDelete }: Prop
         value={item.type}
         onChange={(v) => onChange('type', v)}
       />
-      {!item.value && (
-        <SortButton sortOrder={item.sortOrder} setSortOrder={(v) => onChange('sortOrder', v)} />
-      )}
+      <SortButton sortOrder={item.sortOrder} setSortOrder={(v) => onChange('sortOrder', v)} />
       {item.type !== 'pubdate' ? (
         <ComboInput
           label={TypeMap[item.type]}

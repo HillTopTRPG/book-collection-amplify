@@ -1,7 +1,7 @@
 
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
+import { CheckIcon, ChevronsUpDownIcon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import {
@@ -80,10 +80,15 @@ export default function ComboInput({label, className, list, value, setValue}: Pr
   };
 
   const handleSelect = (selectedValue: string) => {
-    const selectedItem = list.find(item => item.value === selectedValue);
-    if (selectedItem) {
-      setInputValue(selectedItem.label);
-      setValue(selectedItem.label);
+    if (selectedValue === 'clear-value') {
+      setInputValue('');
+      setValue('');
+    } else {
+      const selectedItem = list.find(item => item.value === selectedValue);
+      if (selectedItem) {
+        setInputValue(selectedItem.label);
+        setValue(selectedItem.label);
+      }
     }
     setOpen(false);
   };
@@ -142,6 +147,17 @@ export default function ComboInput({label, className, list, value, setValue}: Pr
                       {item.label}
                     </CommandItem>
                   ))}
+                  {(inputValue.length > 0 || list.length > 0) && (
+                    <CommandItem
+                      key="clear-value"
+                      value="clear-value"
+                      onSelect={() => handleSelect('clear-value')}
+                      className="cursor-pointer rounded-none border-t text-muted-foreground"
+                    >
+                      <X className="mr-2 h-4 w-4" />
+                      値をクリアする
+                    </CommandItem>
+                  )}
                 </CommandGroup>
               </CommandList>
             </Command>

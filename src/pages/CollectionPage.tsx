@@ -59,7 +59,6 @@ export default function CollectionPage() {
     .sort((a, b) => {
       return filters.reduce((prev, filter) => {
         if (prev !== 0) return prev;
-        if (filter.value) return prev;
         switch (filter.type) {
           case 'title':
           case 'author':
