@@ -10,9 +10,12 @@ export default function TodoList() {
   const [todos, setTodos] = useState<Array<Schema['Todo']['type']>>([]);
 
   useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
+    const todoSubscription = client.models.Todo.observeQuery().subscribe({
       next: (data) => setTodos([...data.items]),
     });
+    return () => {
+      todoSubscription.unsubscribe();
+    };
   }, []);
 
   function createTodo() {

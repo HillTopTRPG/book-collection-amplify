@@ -25,7 +25,7 @@ export async function fetchOpenBdApi(isbn: string): Promise<BookData> {
       publisher: book.publisher || null,
       pubdate: book.pubdate || null,
       cover: book.cover || null
-    };
+    } as const satisfies BookData;
   } catch (error) {
     console.error('openBD API エラー:', error);
     return { isbn };
@@ -48,7 +48,7 @@ export async function fetchGoogleBooksApi(isbn: string): Promise<BookData> {
       publisher: data.items[0].volumeInfo?.publisher || null,
       pubdate: data.items[0].volumeInfo?.publishedDate || null,
       cover: data.items[0].volumeInfo?.imageLinks?.thumbnail ?? null,
-    };
+    } as const satisfies BookData;
   } catch (error) {
     console.error('Google Books API エラー:', error);
     return { isbn };
@@ -90,16 +90,20 @@ export async function fetchRakutenBooksApi(options: RakutenApiOption): Promise<B
   const data = await response.json();
   return data['Items']
     .map(({Item: item}: {Item: RakutenBook}) => item)
-    .filter((item: RakutenBook) => !item.booksGenreId?.startsWith('001025'))
-    .map((item: RakutenBook) => {
-      return ({
-        isbn: item.isbn ?? null,
+    .flatMap((item: RakutenBook) => {
+      // isbnコード必須
+      if (!item.isbn) return [];
+      // まとめ売りの商品は除外
+      if (item.booksGenreId?.startsWith('001025')) return [];
+
+      return [{
+        isbn: item.isbn,
         title: item.title ?? null,
         subtitle: item.subTitle ?? null,
         author: item.author ?? null,
         publisher: item.publisherName ?? null,
         pubdate: item.salesDate ?? null,
         cover: item.mediumImageUrl ?? null,
-      });
+      } as const satisfies BookData];
     });
 }

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import {Home, Barcode, User, Search} from 'lucide-react'
+import {Home, Barcode, User, Search} from 'lucide-react';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 
 const navigationItems = [

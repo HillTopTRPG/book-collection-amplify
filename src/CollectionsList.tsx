@@ -91,7 +91,7 @@ export default function CollectionsList({ myBooks, isAddSearch }: Props) {
       }
     });
     const pubdateFilter = filterSet.find(filter => filter.type === 'pubdate');
-    request.sort = pubdateFilter?.sortOrder === 'desc' ? '+releaseDate' : '-releaseDate';
+    request.sort = pubdateFilter?.sortOrder === 'desc' ? '-releaseDate' : '+releaseDate';
     const result = await fetchRakutenBooksApi(request);
     setSearchResult(result);
   };
@@ -99,7 +99,7 @@ export default function CollectionsList({ myBooks, isAddSearch }: Props) {
   return (
     <div className="flex flex-col bg-background rounded-xl p-2 w-full flex-1 overflow-clip relative">
       {viewBooks.map((book, index) => (
-        <Fragment key={book.isbn}>
+        <Fragment key={index}>
           {index > 0 && <Separator className="my-1" />}
           <BookCard book={book} isNoHave={!myBooks.some(b => b.isbn === book.isbn)} />
         </Fragment>

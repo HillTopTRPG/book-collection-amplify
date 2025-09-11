@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage';
 import AuthWrapper from './components/AuthWrapper';
 import MainLayout from './components/MainLayout';
 import {ScrollArea} from '@radix-ui/react-scroll-area';
+import SubscribeLayer from '@/components/SubscribeLayer.tsx';
 
 Amplify.configure(config);
 
@@ -19,16 +20,18 @@ function App() {
       <Authenticator.Provider>
         <AuthWrapper>
           <LoginPage>
-            <Router>
-              <MainLayout>
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/scanner" element={<ScannerPage />} />
-                  <Route path="/collection" element={<CollectionPage />} />
-                </Routes>
-                <Toaster />
-              </MainLayout>
-            </Router>
+            <SubscribeLayer>
+              <Router>
+                <MainLayout>
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/scanner" element={<ScannerPage />} />
+                    <Route path="/collection" element={<CollectionPage />} />
+                  </Routes>
+                  <Toaster />
+                </MainLayout>
+              </Router>
+            </SubscribeLayer>
           </LoginPage>
         </AuthWrapper>
       </Authenticator.Provider>

@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
 import scannerReducer from './scannerSlice';
 import filterReducer from './filterSlice';
+import subscriptionDataReducer from './subscriptionDataSlice';
 
 export const store = configureStore({
   reducer: {
     scanner: scannerReducer,
     filter: filterReducer,
+    subscriptionData: subscriptionDataReducer,
   },
   // 開発時のミドルウェア設定
   middleware: (getDefaultMiddleware) =>

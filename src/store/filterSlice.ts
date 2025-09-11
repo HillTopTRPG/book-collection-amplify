@@ -28,7 +28,8 @@ export const filterSlice = createSlice({
 });
 
 export const {
-  setFilterSet, resetFilterSet,
+  setFilterSet,
+  resetFilterSet,
 } = filterSlice.actions;
 
 export const selectFilterSetId = (state: RootState) => state.filter.filterSetId;

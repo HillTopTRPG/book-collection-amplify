@@ -34,7 +34,7 @@ export default function ComboBox({label, className, list, value, setValue}: Prop
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className={`justify-between gap-0 py-2 px-4 max-w-full ${className}`}
+          className={`justify-between bg-foreground text-background gap-0 py-2 px-4 max-w-full ${className}`}
         >
           <span className="flex-1 truncate inline-block">
             {value

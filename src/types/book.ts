@@ -1,6 +1,6 @@
 // 書籍データの型定義
 export interface BookData {
-  isbn?: string | null;
+  isbn: string;
   title?: string | null;
   subtitle?: string | null;
   author?: string | null;

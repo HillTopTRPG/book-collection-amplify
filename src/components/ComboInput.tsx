@@ -94,7 +94,7 @@ export default function ComboInput({label, className, list, value, setValue}: Pr
   };
   
   return (
-    <div className="relative" ref={containerRef}>
+    <div className="relative flex-1" ref={containerRef}>
       <div className="relative">
         <Input
           placeholder={label}

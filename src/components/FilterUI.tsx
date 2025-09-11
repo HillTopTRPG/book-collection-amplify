@@ -23,12 +23,13 @@ import {
   restrictToVerticalAxis,
   restrictToParentElement,
 } from '@dnd-kit/modifiers';
-import {useEffect, useRef, useState} from 'react';
+import {useState} from 'react';
 import {generateClient} from 'aws-amplify/api';
 import ComboBox from '@/components/ComboBox.tsx';
 import {Switch} from '@/components/ui/switch.tsx';
 import {useAppDispatch, useAppSelector} from '@/store/hooks.ts';
 import {resetFilterSet, selectFilterSet, selectFilterSetId, setFilterSet} from '@/store/filterSlice.ts';
+import {selectFilterSets, setCreateFilterSet} from '@/store/subscriptionDataSlice.ts';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
@@ -48,26 +49,10 @@ type Props = {
 
 export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) {
   const dispatch = useAppDispatch();
-  const [dbFilters, setDbFilters] = useState<Array<Schema['FilterSet']['type']>>([]);
+  const dbFilters = useAppSelector(selectFilterSets);
   const filterSetId = useAppSelector(selectFilterSetId);
   const filterSet = useAppSelector(selectFilterSet);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const nextFilterSetNameRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    userPoolClient.models.FilterSet.observeQuery().subscribe({
-      next: (data) => {
-        setDbFilters([...data.items]);
-        if (nextFilterSetNameRef.current) {
-          const item = data.items.find(item => item.name === nextFilterSetNameRef.current);
-          if (item) {
-            dispatch(setFilterSet({ id: item.id, filterSet: JSON.parse(item.filters) }));
-          }
-          nextFilterSetNameRef.current = null;
-        }
-      },
-    });
-  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -111,14 +96,12 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
       });
     } else {
       const nextFilterSetName = `Filter${dbFilters.length + 1}`;
-      nextFilterSetNameRef.current = nextFilterSetName;
-
-      // 新規作成
-      userPoolClient.models.FilterSet.create({
+      const newFilterSet = {
         name: nextFilterSetName,
         filters: JSON.stringify(filterSet),
         meta: '',
-      });
+      } as const satisfies Parameters<typeof userPoolClient.models.FilterSet.create>[0];
+      dispatch(setCreateFilterSet(newFilterSet));
     }
   };
 
@@ -137,7 +120,7 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
       modifiers={[restrictToVerticalAxis, restrictToParentElement]}
     >
       <div className="flex flex-col gap-0.5">
-        <div className="flex gap-2 mb-2">
+        <div className="flex gap-2 mb-1.5">
           <ComboBox
             label="フィルター"
             className="flex-1"

@@ -4,12 +4,13 @@ import {useDispatch} from 'react-redux';
 import {AppDispatch} from './store';
 import {generateClient} from 'aws-amplify/data';
 import type {Schema} from '../amplify/data/resource.ts';
-import {Fragment, useEffect, useState} from 'react';
+import {Fragment} from 'react';
 import {useToast} from '@/hooks/use-toast.ts';
 import BookCard from '@/components/BookCard';
 import {ScrollArea} from '@radix-ui/react-scroll-area';
 import {Button} from '@aws-amplify/ui-react';
 import {Separator} from '@/components/ui/separator.tsx';
+import {selectBooks, selectCollections} from '@/store/subscriptionDataSlice.ts';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
@@ -22,23 +23,9 @@ const apiKeyClient = generateClient<Schema>({
 export default function ScannedResults() {
   const dispatch = useDispatch<AppDispatch>();
   const scannedDataList = useAppSelector(selectScannedItems);
+  const collections = useAppSelector(selectCollections);
+  const books = useAppSelector(selectBooks);
   const { toast } = useToast();
-
-  const [collections, setCollections] = useState<Array<Schema['Collection']['type']>>([]);
-  const [books, setBooks] = useState<Array<Schema['Book']['type']>>([]);
-
-  useEffect(() => {
-    const collectionSubscription = userPoolClient.models.Collection.observeQuery().subscribe({
-      next: (data) => setCollections([...data.items]),
-    });
-    const bookSubscription = apiKeyClient.models.Book.observeQuery().subscribe({
-      next: (data) => setBooks([...data.items]),
-    });
-    return () => {
-      collectionSubscription.unsubscribe();
-      bookSubscription.unsubscribe();
-    };
-  }, []);
 
   const clearDisable = !scannedDataList.length;
   const registerDisable = clearDisable || scannedDataList.some(({ data }) => !data);

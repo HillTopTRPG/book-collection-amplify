@@ -33,7 +33,7 @@ const schema = a.schema({
     .authorization((allow) => [allow.owner()]),
   FilterSet: a
     .model({
-      name: a.string(),
+      name: a.string().required(),
       filters: a.string().required(),
       meta: a.string(),
       owner: a.string(),
