@@ -1,9 +1,9 @@
-import {useAppSelector} from './store/hooks.ts';
-import {clearScannedItems, selectScannedItems} from './store/scannerSlice.ts';
+import {useAppSelector} from '@/store/hooks.ts';
+import {clearScannedItems, selectScannedItems} from '@/store/scannerSlice.ts';
 import {useDispatch} from 'react-redux';
-import {AppDispatch} from './store';
+import {AppDispatch} from '@/store';
 import {generateClient} from 'aws-amplify/data';
-import type {Schema} from '../amplify/data/resource.ts';
+import type {Schema} from '../../../amplify/data/resource.ts';
 import {Fragment} from 'react';
 import {useToast} from '@/hooks/use-toast.ts';
 import BookCard from '@/components/BookCard';

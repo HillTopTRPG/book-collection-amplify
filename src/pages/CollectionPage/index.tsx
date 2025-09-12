@@ -1,6 +1,6 @@
-import CollectionsList from '../CollectionsList';
+import CollectionsList from './CollectionsList';
 import {useState} from 'react';
-import FilterUI from '@/components/FilterUI.tsx';
+import FilterUI from '@/components/FilterUI';
 import {useAppSelector} from '@/store/hooks.ts';
 import {selectBooks, selectCollections} from '@/store/subscriptionDataSlice.ts';
 

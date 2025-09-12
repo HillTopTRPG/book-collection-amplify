@@ -1,6 +1,6 @@
 import {Fragment, ReactNode} from 'react';
 import BottomNavigation from './BottomNavigation';
-import MenuBar from '@/components/MenuBar.tsx';
+import MenuBar from './MenuBar';
 
 interface MainLayoutProps {
   children: ReactNode

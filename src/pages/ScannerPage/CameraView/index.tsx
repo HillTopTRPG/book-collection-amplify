@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import Quagga from '@ericblade/quagga2';
-import {checkIsdnCode} from './utils/validate.ts';
+import {checkIsdnCode} from '@/utils/validate.ts';
 import {useDispatch} from 'react-redux';
-import {AppDispatch} from './store';
-import {fetchBookDataThunk} from './store/scannerThunks.ts';
+import {AppDispatch} from '@/store';
+import {fetchBookDataThunk} from '@/store/scannerThunks.ts';
 import { useToast } from '@/hooks/use-toast';
 import {useInterval} from 'usehooks-ts';
-import CornerFrame from '@/CornerFrame.tsx';
+import CornerFrame from './CornerFrame.tsx';
 import useSound from 'use-sound';
 import se01 from '@/assets/se01.mp3';
 import {selectFetchedBookList} from '@/store/scannerSlice.ts';
@@ -19,7 +19,7 @@ type Props = {
   height: number;
 };
 
-const WebCameraComponent = ({ width, height }: Props) => {
+export default function CameraView({ width, height }: Props) {
   const dispatch = useDispatch<AppDispatch>();
   const { toast } = useToast();
   const fetchedBookList = useAppSelector(selectFetchedBookList);
@@ -226,6 +226,4 @@ const WebCameraComponent = ({ width, height }: Props) => {
       )}
     </div>
   );
-};
-
-export default WebCameraComponent;
+}

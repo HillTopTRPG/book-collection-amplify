@@ -1,5 +1,4 @@
-import FilterItem from '@/components/FilterItem.tsx';
-import type {Schema} from '../../amplify/data/resource.ts';
+import FilterItem from './FilterItem.tsx';
 import {Button} from '@/components/ui/button.tsx';
 import {CloudUpload, FunnelPlus} from 'lucide-react';
 import {
@@ -30,6 +29,7 @@ import {Switch} from '@/components/ui/switch.tsx';
 import {useAppDispatch, useAppSelector} from '@/store/hooks.ts';
 import {resetFilterSet, selectFilterSet, selectFilterSetId, setFilterSet} from '@/store/filterSlice.ts';
 import {selectFilterSets, setCreateFilterSet} from '@/store/subscriptionDataSlice.ts';
+import {Schema} from '../../../amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'

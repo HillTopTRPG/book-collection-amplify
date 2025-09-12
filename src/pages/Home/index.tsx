@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import {Barcode, BookOpen} from 'lucide-react';
 
-export default function HomePage() {
+export default function Home() {
   const { user } = useAuthenticator((context) => [context.user]);
 
   return (

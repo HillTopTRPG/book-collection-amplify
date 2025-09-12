@@ -45,6 +45,6 @@ Username: amplify-admin
 4. DynamoDBが自動スケーリングで永続化ストレージを提供
 
 ## 重要なファイル
-- `src/App.tsx` - Todo CRUD操作を持つメインアプリケーションコンポーネント
+- `src/index.tsx` - Todo CRUD操作を持つメインアプリケーションコンポーネント
 - `amplify/data/resource.ts` - GraphQLスキーマ定義（Todoモデル拡張用の開発コメントを含む）
 - `amplify.yml` - CI/CDパイプライン用AWSビルド設定

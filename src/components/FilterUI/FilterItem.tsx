@@ -1,6 +1,6 @@
-import {FilterData} from '@/components/FilterUI.tsx';
+import {FilterData} from '@/components/FilterUI';
 import SelectBox from '@/components/SelectBox.tsx';
-import type {Schema} from '../../amplify/data/resource.ts';
+import type {Schema} from '../../../amplify/data/resource.ts';
 import SortButton from '@/components/SortButton.tsx';
 import {Trash, GripVertical, BookA, UserPen, Building} from 'lucide-react';
 import {Button} from '@/components/ui/button.tsx';
