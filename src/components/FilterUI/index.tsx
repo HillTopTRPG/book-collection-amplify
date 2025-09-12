@@ -7,9 +7,7 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
+  DragOverlay
 } from '@dnd-kit/core';
 import {
   restrictToVerticalAxis,
@@ -24,7 +22,6 @@ import {
 import { generateClient } from 'aws-amplify/api';
 import { CloudUpload, FunnelPlus } from 'lucide-react';
 
-import { Schema } from '$/amplify/data/resource.ts';
 import ComboBox from '@/components/ComboBox.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
@@ -34,15 +31,14 @@ import { selectFilterSets, setCreateFilterSet } from '@/store/subscriptionDataSl
 
 import FilterItem from './FilterItem.tsx';
 
+import type { Schema } from '$/amplify/data/resource.ts';
+import type {
+  DragEndEvent,
+  DragStartEvent } from '@dnd-kit/core';
+
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
 });
-
-export type FilterData = {
-  type: 'title' | 'author' | 'publisher' | 'pubdate';
-  value: string;
-  sortOrder: 'asc' | 'desc';
-};
 
 type Props = {
   books: Array<Schema['Book']['type']>;

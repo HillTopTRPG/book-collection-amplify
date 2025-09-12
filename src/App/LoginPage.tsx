@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 import { Authenticator, useTheme, View, Image, Text, Heading } from '@aws-amplify/ui-react';
 

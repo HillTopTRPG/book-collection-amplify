@@ -10,7 +10,7 @@ import { useInterval } from 'usehooks-ts';
 import se01 from '@/assets/se01.mp3';
 import { Button } from '@/components/ui/button.tsx';
 import { useToast } from '@/hooks/use-toast';
-import { AppDispatch } from '@/store';
+import type { AppDispatch } from '@/store';
 import { useAppSelector } from '@/store/hooks.ts';
 import { selectFetchedBookList } from '@/store/scannerSlice.ts';
 import { fetchBookDataThunk } from '@/store/scannerThunks.ts';

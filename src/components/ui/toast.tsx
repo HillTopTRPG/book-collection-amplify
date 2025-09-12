@@ -1,4 +1,5 @@
-import { ComponentPropsWithoutRef, ElementRef, forwardRef, ReactElement } from 'react';
+import type { ComponentPropsWithoutRef, ElementRef, ReactElement } from 'react';
+import { forwardRef } from 'react';
 
 import { Cross2Icon } from '@radix-ui/react-icons';
 import * as ToastPrimitives from '@radix-ui/react-toast';

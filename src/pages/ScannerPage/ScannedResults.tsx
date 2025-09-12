@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux';
 import BookCard from '@/components/BookCard';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
-import { AppDispatch } from '@/store';
+import type { AppDispatch } from '@/store';
 import { useAppSelector } from '@/store/hooks.ts';
 import { clearScannedItems, selectScannedItems } from '@/store/scannerSlice.ts';
 import { selectBooks, selectCollections } from '@/store/subscriptionDataSlice.ts';

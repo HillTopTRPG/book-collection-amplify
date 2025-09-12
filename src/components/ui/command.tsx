@@ -1,4 +1,5 @@
-import { ComponentPropsWithoutRef, ElementRef, forwardRef, HTMLAttributes } from 'react';
+import type { ComponentPropsWithoutRef, ElementRef, HTMLAttributes } from 'react';
+import { forwardRef } from 'react';
 
 import { type DialogProps } from '@radix-ui/react-dialog';
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';

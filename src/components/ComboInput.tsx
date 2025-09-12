@@ -1,4 +1,5 @@
-import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
+import type { ChangeEvent } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { CheckIcon, ChevronsUpDownIcon, X } from 'lucide-react';
 import { createPortal } from 'react-dom';

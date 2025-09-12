@@ -1,6 +1,6 @@
 import * as _ from 'es-toolkit/compat';
 
-import { BookData } from '../types/book.ts';
+import type { BookData } from '../types/book.ts';
 
 // 楽天 Books APIの認証情報（ローカル環境では .env ファイルから取得）
 const RAKUTEN_API_APPLICATION_ID: string = import.meta.env.VITE_RAKUTEN_API_APPLICATION_ID;

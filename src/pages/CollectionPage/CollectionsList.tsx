@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { selectFilterSet } from '@/store/filterSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
-import { BookData } from '@/types/book.ts';
-import { fetchRakutenBooksApi, RakutenApiOption } from '@/utils/fetch.ts';
+import type { BookData } from '@/types/book.ts';
+import type { RakutenApiOption } from '@/utils/fetch.ts';
+import { fetchRakutenBooksApi } from '@/utils/fetch.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
 

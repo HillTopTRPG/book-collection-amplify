@@ -1,9 +1,9 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
 
-import { Schema } from '$/amplify/data/resource.ts';
-
-import { RootState } from './index.ts';
+import type { Schema } from '$/amplify/data/resource.ts';
+import type { RootState } from './index.ts';
+import type { PayloadAction } from '@reduxjs/toolkit';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'

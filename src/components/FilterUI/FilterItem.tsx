@@ -6,12 +6,12 @@ import { isNil } from 'es-toolkit/compat';
 import { Trash, GripVertical, BookA, UserPen, Building } from 'lucide-react';
 
 import ComboInput from '@/components/ComboInput.tsx';
-import { FilterData } from '@/components/FilterUI';
 import SelectBox from '@/components/SelectBox.tsx';
 import SortButton from '@/components/SortButton.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { selectFilterSet, selectFilterSetId, setFilterSet } from '@/store/filterSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import type { FilterData } from '@/types/filter.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
 
