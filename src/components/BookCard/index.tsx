@@ -5,6 +5,7 @@ import BookCardContent from '@/components/BookCard/BookCardContent.tsx';
 type Props = {
   book: BookData | null;
   isNoHave?: boolean;
+  isAlreadyHave?: boolean;
 };
 
 export default function BookCard(props: Props) {

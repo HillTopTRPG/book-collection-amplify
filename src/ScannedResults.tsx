@@ -80,7 +80,10 @@ export default function ScannedResults() {
         {scannedDataList.map(({ data: book }, index) => (
           <Fragment key={index}>
             {index > 0 && <Separator className="my-2" />}
-            <BookCard book={book} />
+            <BookCard
+              book={book}
+              isAlreadyHave={collections.some(({ isbn }) => book?.isbn === isbn)}
+            />
           </Fragment>
         ))}
         {!scannedDataList.length && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}

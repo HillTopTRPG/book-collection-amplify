@@ -5,9 +5,10 @@ import {Fragment} from 'react';
 type Props = {
   book: BookData | null;
   isNoHave?: boolean;
+  isAlreadyHave?: boolean;
 };
 
-export default function BookCardContent({ book, isNoHave }: Props) {
+export default function BookCardContent({ book, isNoHave, isAlreadyHave }: Props) {
   if (!book) return <Spinner variant="bars" />;
   return (
     <Fragment>
@@ -21,6 +22,7 @@ export default function BookCardContent({ book, isNoHave }: Props) {
         </p>
       </div>
       {isNoHave && <div className="absolute inset-0 bg-yellow-200/50 pointer-events-none">未所持</div>}
+      {isAlreadyHave && <div className="absolute inset-0 bg-yellow-200/50 pointer-events-none text-orange-600 text-stroke-3 font-bold text-stroke-white">既に持っています</div>}
     </Fragment>
   );
 }
