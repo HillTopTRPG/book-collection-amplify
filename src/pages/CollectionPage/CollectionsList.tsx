@@ -32,9 +32,9 @@ export default function CollectionsList({ myBooks, isAddSearch }: Props) {
 
   // フィルター済み蔵書リスト
   const filteredMyBooks = myBooks
-    .filter(book => {
+    .filter(book => 
       // フィルターにマッチするかどうか
-      return filterSet
+      filterSet
         ?.flatMap(filter => {
           if (!filter.value) return [true];
           switch (filter.type) {
@@ -47,23 +47,21 @@ export default function CollectionsList({ myBooks, isAddSearch }: Props) {
               return [true];
           }
         })
-        .every(Boolean);
-    })
-    .sort((a, b) => {
-      return filterSet?.reduce((prev, filter) => {
-        if (prev !== 0) return prev;
-        switch (filter.type) {
-          case 'title':
-          case 'author':
-          case 'publisher':
-            return sortString(a[filter.type], b[filter.type], filter.sortOrder);
-          case 'pubdate':
-            return sortString(convertPubdate(a[filter.type]), convertPubdate(b[filter.type]), filter.sortOrder);
-          default:
-            return prev;
-        }
-      }, 0) ?? 0;
-    });
+        .every(Boolean)
+    )
+    .sort((a, b) => filterSet?.reduce((prev, filter) => {
+      if (prev !== 0) return prev;
+      switch (filter.type) {
+        case 'title':
+        case 'author':
+        case 'publisher':
+          return sortString(a[filter.type], b[filter.type], filter.sortOrder);
+        case 'pubdate':
+          return sortString(convertPubdate(a[filter.type]), convertPubdate(b[filter.type]), filter.sortOrder);
+        default:
+          return prev;
+      }
+    }, 0) ?? 0);
 
   const viewBooks = isAddSearch && searchResult
     ? [...searchResult, ...filteredMyBooks].filter((item, idx, self) => self.findIndex(s => s.isbn === item.isbn) === idx)

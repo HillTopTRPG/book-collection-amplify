@@ -1,4 +1,3 @@
-// openBD APIから書籍データを取得
 import * as _ from 'es-toolkit/compat';
 
 import { BookData } from '../types/book.ts';
@@ -6,7 +5,8 @@ import { BookData } from '../types/book.ts';
 // 楽天 Books APIの認証情報（ローカル環境では .env ファイルから取得）
 const RAKUTEN_API_APPLICATION_ID: string = import.meta.env.VITE_RAKUTEN_API_APPLICATION_ID;
 
-export async function fetchOpenBdApi(isbn: string): Promise<BookData> {
+// openBD APIから書籍データを取得
+export const fetchOpenBdApi = async (isbn: string): Promise<BookData> => {
   try {
     const response = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
     const data = await response.json();
@@ -30,9 +30,9 @@ export async function fetchOpenBdApi(isbn: string): Promise<BookData> {
     console.error('openBD API エラー:', error);
     return { isbn };
   }
-}
+};
 
-export async function fetchGoogleBooksApi(isbn: string): Promise<BookData> {
+export const fetchGoogleBooksApi = async (isbn: string): Promise<BookData> => {
   try {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
     const data = await response.json();
@@ -53,7 +53,7 @@ export async function fetchGoogleBooksApi(isbn: string): Promise<BookData> {
     console.error('Google Books API エラー:', error);
     return { isbn };
   }
-}
+};
 
 export type RakutenApiOption = {
   title?: string;
@@ -76,7 +76,7 @@ type RakutenBook = {
   subTitle?: string;
   title?: string;
 };
-export async function fetchRakutenBooksApi(options: RakutenApiOption): Promise<BookData[]> {
+export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<BookData[]> => {
   const opt = structuredClone(options);
   opt.applicationId ??= RAKUTEN_API_APPLICATION_ID;
   opt.booksGenreId ??= '001';
@@ -107,4 +107,4 @@ export async function fetchRakutenBooksApi(options: RakutenApiOption): Promise<B
         cover: item.mediumImageUrl ?? null,
       } as const satisfies BookData];
     });
-}
+};

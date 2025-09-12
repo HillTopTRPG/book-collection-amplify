@@ -12,9 +12,7 @@ export default function CollectionPage() {
   const [isAddSearch, setIsAddSearch] = useState(false);
 
   // 蔵書リスト
-  const myBooks = books.filter(book => {
-    return collections.some(c => c.isbn === book.isbn);
-  });
+  const myBooks = books.filter(book => collections.some(c => c.isbn === book.isbn));
 
   return (
     <div className="flex flex-col w-full flex-1 gap-2 p-3">

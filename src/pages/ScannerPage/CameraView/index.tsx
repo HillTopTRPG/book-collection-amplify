@@ -175,15 +175,13 @@ export default function CameraView({ width, height }: Props) {
     startCamera().then();
   }, 100);
 
-  useEffect(() => {
-    return () => {
-      if (isScanning) {
-        Quagga.stop().then();
-      }
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    };
+  useEffect(() => () => {
+    if (isScanning) {
+      Quagga.stop().then();
+    }
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
   }, [stream, isScanning]);
 
   const toggleVolume = useCallback(() => {

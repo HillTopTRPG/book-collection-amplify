@@ -146,6 +146,8 @@ module.exports = {
         'ignoreRefs': true,
         'ignoreDOMComponents': false
       }
-    ]
+    ],
+    "arrow-body-style": ["error", "as-needed"],
+    "func-style": "error",
   },
 }

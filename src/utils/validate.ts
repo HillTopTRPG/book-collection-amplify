@@ -1,4 +1,4 @@
-export function checkIsdnCode(code: string | null) {
+export const checkIsdnCode = (code: string | null) => {
   if (code?.length !== 13) return false;
   if (!(code.startsWith('978') || code.startsWith('979'))) return false;
 
@@ -15,4 +15,4 @@ export function checkIsdnCode(code: string | null) {
   }
 
   return (sum + checkDigit) % 10 === 0;
-}
+};
