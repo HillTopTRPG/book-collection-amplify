@@ -90,6 +90,36 @@ module.exports = {
     'array-bracket-spacing': [
       'error',
       'never'
+    ],
+    'no-multiple-empty-lines': [
+      'error',
+      {
+        'max': 1,
+        'maxEOF': 0,
+        'maxBOF': 0
+      }
+    ],
+    'padded-blocks': [
+      'error',
+      'never'
+    ],
+    'padding-line-between-statements': [
+      'error',
+      {
+        'blankLine': 'always',
+        'prev': ['const', 'let', 'var'],
+        'next': 'return'
+      },
+      {
+        'blankLine': 'always',
+        'prev': '*',
+        'next': ['function', 'class']
+      },
+      {
+        'blankLine': 'always',
+        'prev': ['function', 'class'],
+        'next': '*'
+      }
     ]
   },
 }

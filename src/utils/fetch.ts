@@ -1,4 +1,3 @@
-
 // openBD APIから書籍データを取得
 import * as _ from 'es-toolkit/compat';
 
@@ -84,10 +83,12 @@ export async function fetchRakutenBooksApi(options: RakutenApiOption): Promise<B
   const keys = _.keys(opt) as (keyof RakutenApiOption)[];
   const params = keys.flatMap((option) => {
     const value = opt[option]?.toString();
+
     return value ? [`&${option}=${encodeURIComponent(value)}`] : [];
   }).join('');
   const response = await fetch(`https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404?format=json${params}`);
   const data = await response.json();
+
   return data['Items']
     .map(({ Item: item }: {Item: RakutenBook}) => item)
     .flatMap((item: RakutenBook) => {

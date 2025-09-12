@@ -16,10 +16,7 @@ import { selectFetchedBookList } from '@/store/scannerSlice.ts';
 import { fetchBookDataThunk } from '@/store/scannerThunks.ts';
 import { checkIsdnCode } from '@/utils/validate.ts';
 
-
 import CornerFrame from './CornerFrame.tsx';
-
-
 
 type Props = {
   width: number;
@@ -137,7 +134,6 @@ export default function CameraView({ width, height }: Props) {
       });
       setError(null);
       setIsScanning(true);
-
     } catch (error) {
       console.error('スキャナー開始エラー:', error);
       setError(`スキャナーの開始に失敗しました: ${error}`);
@@ -164,7 +160,6 @@ export default function CameraView({ width, height }: Props) {
           startBarcodeScanning();
         }
       }, 500);
-
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'カメラにアクセスできませんでした';
       setError(errorMessage);

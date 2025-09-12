@@ -1,4 +1,3 @@
-
 import BookCardContent from '@/components/BookCard/BookCardContent.tsx';
 import { BookData } from '@/types/book.ts';
 

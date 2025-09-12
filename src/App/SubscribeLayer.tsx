@@ -58,6 +58,7 @@ export default function SubscribeLayer({ children }: Props) {
         }
       },
     });
+
     return () => {
       collectionSubscription.unsubscribe();
       bookSubscription.unsubscribe();

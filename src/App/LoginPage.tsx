@@ -4,6 +4,7 @@ import '@aws-amplify/ui-react/styles.css';
 const components = {
   Header() {
     const { tokens } = useTheme();
+
     return (
       <View textAlign="center" padding={tokens.space.large}>
         <Image
@@ -24,6 +25,7 @@ const components = {
 
   Footer() {
     const { tokens } = useTheme();
+
     return (
       <View textAlign="center" padding={tokens.space.large}>
         <Text style={{ color: '#6b7280', fontSize: '14px' }}>
@@ -49,7 +51,6 @@ const formFields = {
     },
   },
 };
-
 
 interface LoginPageProps {
   children: React.ReactNode

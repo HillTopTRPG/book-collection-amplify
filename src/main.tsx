@@ -9,7 +9,6 @@ import App from '@/App';
 
 import { store } from './store';
 
-
 import './index.css';
 
 Amplify.configure(outputs);

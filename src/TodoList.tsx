@@ -15,6 +15,7 @@ export default function TodoList() {
     const todoSubscription = client.models.Todo.observeQuery().subscribe({
       next: (data) => setTodos([...data.items]),
     });
+
     return () => {
       todoSubscription.unsubscribe();
     };

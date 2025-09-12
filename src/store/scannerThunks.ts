@@ -25,6 +25,7 @@ export const fetchBookDataThunk = createAsyncThunk<
 
     if (!result.data.title) {
       const errorMsg = '書籍データ取得失敗';
+
       return rejectWithValue({ isbn, errorMsg });
     }
 

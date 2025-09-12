@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button.tsx';
 
 import type { Schema } from '$/amplify/data/resource.ts';
 
-
 const TYPE_OPTIONS = {
   title: <BookA />,
   author: <UserPen />,

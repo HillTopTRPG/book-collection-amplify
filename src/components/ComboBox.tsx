@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
@@ -29,6 +28,7 @@ type Props = {
 
 export default function ComboBox({ label, className, list, value, setValue }: Props) {
   const [open, setOpen] = React.useState(false);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
