@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import {Barcode, BookOpen} from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Home() {
   const { user } = useAuthenticator((context) => [context.user]);

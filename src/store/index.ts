@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
-import scannerReducer from './scannerSlice';
+
 import filterReducer from './filterSlice';
+import scannerReducer from './scannerSlice';
 import subscriptionDataReducer from './subscriptionDataSlice';
 
 export const store = configureStore({

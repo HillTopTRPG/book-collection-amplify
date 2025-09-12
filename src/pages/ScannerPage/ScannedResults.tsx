@@ -1,16 +1,19 @@
+import {Fragment} from 'react';
+
+import {Button} from '@aws-amplify/ui-react';
+import {ScrollArea} from '@radix-ui/react-scroll-area';
+import {generateClient} from 'aws-amplify/data';
+import {useDispatch} from 'react-redux';
+
+import BookCard from '@/components/BookCard';
+import {Separator} from '@/components/ui/separator.tsx';
+import {useToast} from '@/hooks/use-toast.ts';
+import {AppDispatch} from '@/store';
 import {useAppSelector} from '@/store/hooks.ts';
 import {clearScannedItems, selectScannedItems} from '@/store/scannerSlice.ts';
-import {useDispatch} from 'react-redux';
-import {AppDispatch} from '@/store';
-import {generateClient} from 'aws-amplify/data';
-import type {Schema} from '../../../amplify/data/resource.ts';
-import {Fragment} from 'react';
-import {useToast} from '@/hooks/use-toast.ts';
-import BookCard from '@/components/BookCard';
-import {ScrollArea} from '@radix-ui/react-scroll-area';
-import {Button} from '@aws-amplify/ui-react';
-import {Separator} from '@/components/ui/separator.tsx';
 import {selectBooks, selectCollections} from '@/store/subscriptionDataSlice.ts';
+
+import type {Schema} from '../../../amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'

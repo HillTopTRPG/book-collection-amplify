@@ -1,8 +1,10 @@
-import CollectionsList from './CollectionsList';
 import {useState} from 'react';
+
 import FilterUI from '@/components/FilterUI';
 import {useAppSelector} from '@/store/hooks.ts';
 import {selectBooks, selectCollections} from '@/store/subscriptionDataSlice.ts';
+
+import CollectionsList from './CollectionsList';
 
 export default function CollectionPage() {
   const collections = useAppSelector(selectCollections);

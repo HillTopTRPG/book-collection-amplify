@@ -1,15 +1,17 @@
 
 import * as React from 'react';
-import { createPortal } from 'react-dom';
+
 import { CheckIcon, ChevronsUpDownIcon, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
+import { createPortal } from 'react-dom';
+
 import {
   Command,
   CommandGroup,
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
+import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 
 type Props = {
   label: string;

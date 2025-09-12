@@ -1,3 +1,7 @@
+import {ReactNode} from 'react';
+
+import {keys} from 'es-toolkit/compat';
+
 import {
   Select,
   SelectContent,
@@ -7,8 +11,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select.tsx';
-import {ReactNode} from 'react';
-import {keys} from 'es-toolkit/compat';
 
 const COLOR_CLASS = 'bg-foreground text-background';
 

@@ -5,10 +5,23 @@ module.exports = {
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:react-hooks/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
-  plugins: ['react-refresh'],
+  plugins: ['react-refresh', 'import'],
+  settings: {
+    'import/resolver': {
+      typescript: {
+        alwaysTryTypes: true,
+        project: './tsconfig.json'
+      },
+      node: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx']
+      }
+    }
+  },
   rules: {
     "indent": [
       "error",
@@ -39,5 +52,36 @@ module.exports = {
       'warn',
       { allowConstantExport: true },
     ],
+    'import/order': [
+      'error',
+      {
+        'groups': [
+          'builtin',
+          'external',
+          'internal',
+          'parent',
+          'sibling',
+          'index',
+          'type'
+        ],
+        'pathGroups': [
+          {
+            'pattern': 'react',
+            'group': 'external',
+            'position': 'before'
+          },
+          {
+            'pattern': '@/**',
+            'group': 'internal'
+          }
+        ],
+        'pathGroupsExcludedImportTypes': ['react'],
+        'newlines-between': 'always',
+        'alphabetize': {
+          'order': 'asc',
+          'caseInsensitive': true
+        }
+      }
+    ]
   },
 }

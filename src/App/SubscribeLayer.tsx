@@ -1,14 +1,17 @@
 import {ReactNode, useEffect, useRef} from 'react';
+
+import {generateClient} from 'aws-amplify/data';
+
+import {setFilterSet} from '@/store/filterSlice.ts';
+import {useAppDispatch, useAppSelector} from '@/store/hooks.ts';
 import {
   selectCreateFilterSet,
   setBooks,
   setCollections, setCreateFilterSet,
   setFilterSets,
 } from '@/store/subscriptionDataSlice.ts';
-import {generateClient} from 'aws-amplify/data';
+
 import {Schema} from '../../amplify/data/resource.ts';
-import {setFilterSet} from '@/store/filterSlice.ts';
-import {useAppDispatch, useAppSelector} from '@/store/hooks.ts';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'

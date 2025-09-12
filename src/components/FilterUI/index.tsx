@@ -1,6 +1,5 @@
-import FilterItem from './FilterItem.tsx';
-import {Button} from '@/components/ui/button.tsx';
-import {CloudUpload, FunnelPlus} from 'lucide-react';
+import {useState} from 'react';
+
 import {
   DndContext,
   closestCenter,
@@ -13,23 +12,28 @@ import {
   DragStartEvent,
 } from '@dnd-kit/core';
 import {
+  restrictToVerticalAxis,
+  restrictToParentElement,
+} from '@dnd-kit/modifiers';
+import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import {
-  restrictToVerticalAxis,
-  restrictToParentElement,
-} from '@dnd-kit/modifiers';
-import {useState} from 'react';
 import {generateClient} from 'aws-amplify/api';
+import {CloudUpload, FunnelPlus} from 'lucide-react';
+
 import ComboBox from '@/components/ComboBox.tsx';
+import {Button} from '@/components/ui/button.tsx';
 import {Switch} from '@/components/ui/switch.tsx';
-import {useAppDispatch, useAppSelector} from '@/store/hooks.ts';
 import {resetFilterSet, selectFilterSet, selectFilterSetId, setFilterSet} from '@/store/filterSlice.ts';
+import {useAppDispatch, useAppSelector} from '@/store/hooks.ts';
 import {selectFilterSets, setCreateFilterSet} from '@/store/subscriptionDataSlice.ts';
+
 import {Schema} from '../../../amplify/data/resource.ts';
+
+import FilterItem from './FilterItem.tsx';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'

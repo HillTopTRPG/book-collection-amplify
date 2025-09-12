@@ -1,18 +1,24 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+
 import Quagga from '@ericblade/quagga2';
-import {checkIsdnCode} from '@/utils/validate.ts';
-import {useDispatch} from 'react-redux';
-import {AppDispatch} from '@/store';
-import {fetchBookDataThunk} from '@/store/scannerThunks.ts';
-import { useToast } from '@/hooks/use-toast';
-import {useInterval} from 'usehooks-ts';
-import CornerFrame from './CornerFrame.tsx';
-import useSound from 'use-sound';
-import se01 from '@/assets/se01.mp3';
-import {selectFetchedBookList} from '@/store/scannerSlice.ts';
-import {useAppSelector} from '@/store/hooks.ts';
 import {Volume2, VolumeOff} from 'lucide-react';
+import {useDispatch} from 'react-redux';
+import useSound from 'use-sound';
+import {useInterval} from 'usehooks-ts';
+
+import se01 from '@/assets/se01.mp3';
 import {Button} from '@/components/ui/button.tsx';
+import { useToast } from '@/hooks/use-toast';
+import {AppDispatch} from '@/store';
+import {useAppSelector} from '@/store/hooks.ts';
+import {selectFetchedBookList} from '@/store/scannerSlice.ts';
+import {fetchBookDataThunk} from '@/store/scannerThunks.ts';
+import {checkIsdnCode} from '@/utils/validate.ts';
+
+
+import CornerFrame from './CornerFrame.tsx';
+
+
 
 type Props = {
   width: number;
