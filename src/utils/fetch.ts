@@ -2,7 +2,7 @@
 // openBD APIから書籍データを取得
 import * as _ from 'es-toolkit/compat';
 
-import {BookData} from '../types/book.ts';
+import { BookData } from '../types/book.ts';
 
 // 楽天 Books APIの認証情報（ローカル環境では .env ファイルから取得）
 const RAKUTEN_API_APPLICATION_ID: string = import.meta.env.VITE_RAKUTEN_API_APPLICATION_ID;
@@ -89,7 +89,7 @@ export async function fetchRakutenBooksApi(options: RakutenApiOption): Promise<B
   const response = await fetch(`https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404?format=json${params}`);
   const data = await response.json();
   return data['Items']
-    .map(({Item: item}: {Item: RakutenBook}) => item)
+    .map(({ Item: item }: {Item: RakutenBook}) => item)
     .flatMap((item: RakutenBook) => {
       // isbnコード必須
       if (!item.isbn) return [];

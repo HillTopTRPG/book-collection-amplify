@@ -1,8 +1,8 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import {FilterData} from '@/components/FilterUI';
+import { FilterData } from '@/components/FilterUI';
 
-import {RootState} from './index.ts';
+import { RootState } from './index.ts';
 
 interface FilterState {
   filterSetId: string | null;

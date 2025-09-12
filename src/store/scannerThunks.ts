@@ -1,7 +1,7 @@
-import {createAsyncThunk} from '@reduxjs/toolkit';
+import { createAsyncThunk } from '@reduxjs/toolkit';
 
-import {BookData} from '../types/book';
-import {fetchGoogleBooksApi, fetchOpenBdApi, fetchRakutenBooksApi} from '../utils/fetch';
+import { BookData } from '../types/book';
+import { fetchGoogleBooksApi, fetchOpenBdApi, fetchRakutenBooksApi } from '../utils/fetch';
 
 export const fetchBookDataThunk = createAsyncThunk<
   { isbn: string; data: BookData },
@@ -12,7 +12,7 @@ export const fetchBookDataThunk = createAsyncThunk<
   async (isbn, { rejectWithValue }) => {
     const openBdApiResult = await fetchOpenBdApi(isbn);
     const googleBooksApiResult = await fetchGoogleBooksApi(isbn);
-    const rakutenBooksApiResult = await fetchRakutenBooksApi({isbn});
+    const rakutenBooksApiResult = await fetchRakutenBooksApi({ isbn });
     const result: { isbn: string; data: BookData } = { isbn, data: {
       isbn,
       title: rakutenBooksApiResult.at(0)?.title || googleBooksApiResult.title || openBdApiResult.title || '',

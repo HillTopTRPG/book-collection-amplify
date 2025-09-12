@@ -1,4 +1,4 @@
-import {Fragment, ReactNode} from 'react';
+import { Fragment, ReactNode } from 'react';
 
 import BottomNavigation from './BottomNavigation';
 import MenuBar from './MenuBar';

@@ -1,14 +1,14 @@
-import {useSortable} from '@dnd-kit/sortable';
-import {CSS} from '@dnd-kit/utilities';
-import {Trash, GripVertical, BookA, UserPen, Building} from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { Trash, GripVertical, BookA, UserPen, Building } from 'lucide-react';
 
 import ComboInput from '@/components/ComboInput.tsx';
-import {FilterData} from '@/components/FilterUI';
+import { FilterData } from '@/components/FilterUI';
 import SelectBox from '@/components/SelectBox.tsx';
 import SortButton from '@/components/SortButton.tsx';
-import {Button} from '@/components/ui/button.tsx';
+import { Button } from '@/components/ui/button.tsx';
 
-import type {Schema} from '../../../amplify/data/resource.ts';
+import type { Schema } from '../../../amplify/data/resource.ts';
 
 
 const TYPE_OPTIONS = {

@@ -1,6 +1,6 @@
 
 import BookCardContent from '@/components/BookCard/BookCardContent.tsx';
-import {BookData} from '@/types/book.ts';
+import { BookData } from '@/types/book.ts';
 
 type Props = {
   book: BookData | null;

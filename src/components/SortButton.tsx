@@ -2,7 +2,7 @@ import {
   ArrowDownNarrowWide, ArrowUpWideNarrow,
 } from 'lucide-react';
 
-import {Button} from '@/components/ui/button.tsx';
+import { Button } from '@/components/ui/button.tsx';
 
 type Props = {
   sortOrder: 'asc' | 'desc';

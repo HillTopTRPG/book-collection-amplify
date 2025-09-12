@@ -21,7 +21,7 @@ type Props = {
   setValue: (value: string) => void;
 };
 
-export default function ComboInput({label, className, list, value, setValue}: Props) {
+export default function ComboInput({ label, className, list, value, setValue }: Props) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState(value);
   const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, width: 0 });

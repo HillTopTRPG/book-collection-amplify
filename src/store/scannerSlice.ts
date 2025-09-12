@@ -1,8 +1,8 @@
-import {createSelector, createSlice} from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
 
 import { BookData } from '../types/book';
 
-import {RootState} from './index.ts';
+import { RootState } from './index.ts';
 import { fetchBookDataThunk } from './scannerThunks';
 
 export interface ScannedItem { isbn: string; data: BookData | null }

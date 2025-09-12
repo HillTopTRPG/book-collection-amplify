@@ -1,5 +1,5 @@
 import { Authenticator } from '@aws-amplify/ui-react';
-import {ScrollArea} from '@radix-ui/react-scroll-area';
+import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { Amplify } from 'aws-amplify';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 

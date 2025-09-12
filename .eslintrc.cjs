@@ -82,6 +82,14 @@ module.exports = {
           'caseInsensitive': true
         }
       }
+    ],
+    'object-curly-spacing': [
+      'error',
+      'always'
+    ],
+    'array-bracket-spacing': [
+      'error',
+      'never'
     ]
   },
 }

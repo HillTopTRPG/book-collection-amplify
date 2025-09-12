@@ -1,7 +1,7 @@
-import {Fragment} from 'react';
+import { Fragment } from 'react';
 
-import {Spinner} from '@/components/ui/shadcn-io/spinner';
-import {BookData} from '@/types/book.ts';
+import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { BookData } from '@/types/book.ts';
 
 type Props = {
   book: BookData | null;
