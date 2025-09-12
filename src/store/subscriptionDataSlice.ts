@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
 
-import { Schema } from '../../amplify/data/resource.ts';
+import { Schema } from '$/amplify/data/resource.ts';
 
 import { RootState } from './index.ts';
 

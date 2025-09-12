@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 
 import { generateClient } from 'aws-amplify/data';
 
-import type { Schema } from '../amplify/data/resource.ts';
+import type { Schema } from '$/amplify/data/resource.ts';
 
 const client = generateClient<Schema>({
   authMode: 'apiKey'

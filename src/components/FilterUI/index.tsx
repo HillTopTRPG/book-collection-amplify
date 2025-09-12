@@ -24,14 +24,13 @@ import {
 import { generateClient } from 'aws-amplify/api';
 import { CloudUpload, FunnelPlus } from 'lucide-react';
 
+import { Schema } from '$/amplify/data/resource.ts';
 import ComboBox from '@/components/ComboBox.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Switch } from '@/components/ui/switch.tsx';
 import { resetFilterSet, selectFilterSet, selectFilterSetId, setFilterSet } from '@/store/filterSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectFilterSets, setCreateFilterSet } from '@/store/subscriptionDataSlice.ts';
-
-import { Schema } from '../../../amplify/data/resource.ts';
 
 import FilterItem from './FilterItem.tsx';
 

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import Quagga from '@ericblade/quagga2';
 import { Volume2, VolumeOff } from 'lucide-react';
 import { useDispatch } from 'react-redux';
+// eslint-disable-next-line import/no-named-as-default
 import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
 

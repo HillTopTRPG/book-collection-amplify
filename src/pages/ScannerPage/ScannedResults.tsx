@@ -13,7 +13,7 @@ import { useAppSelector } from '@/store/hooks.ts';
 import { clearScannedItems, selectScannedItems } from '@/store/scannerSlice.ts';
 import { selectBooks, selectCollections } from '@/store/subscriptionDataSlice.ts';
 
-import type { Schema } from '../../../amplify/data/resource.ts';
+import type { Schema } from '$/amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'

@@ -3,12 +3,11 @@ import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { Amplify } from 'aws-amplify';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+import config from '$/amplify_outputs';
 import { Toaster } from '@/components/ui/toaster';
 import CollectionPage from '@/pages/CollectionPage';
 import Home from '@/pages/Home';
 import ScannerPage from '@/pages/ScannerPage';
-
-import config from '../../amplify_outputs.json';
 
 import AuthWrapper from './AuthWrapper';
 import LoginPage from './LoginPage';

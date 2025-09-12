@@ -23,7 +23,9 @@
     /* Path mapping */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "$/amplify_outputs": ["./amplify_outputs.json"],
+      "$/amplify/*": ["./amplify/*"],
     }
   },
   "include": ["src"],

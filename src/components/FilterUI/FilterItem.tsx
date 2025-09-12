@@ -8,7 +8,7 @@ import SelectBox from '@/components/SelectBox.tsx';
 import SortButton from '@/components/SortButton.tsx';
 import { Button } from '@/components/ui/button.tsx';
 
-import type { Schema } from '../../../amplify/data/resource.ts';
+import type { Schema } from '$/amplify/data/resource.ts';
 
 
 const TYPE_OPTIONS = {
