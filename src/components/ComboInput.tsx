@@ -118,53 +118,52 @@ export default function ComboInput({ label, className, list, value, setValue }: 
         )}
       </div>
       
-      {open && (inputValue.length > 0 ? filteredList.length > 0 : list.length > 0) && 
-        createPortal(
-          <div 
-            ref={dropdownRef}
-            className="fixed z-[99999] bg-popover border rounded-md shadow-md" 
-            style={{
-              left: dropdownPosition.left,
-              top: dropdownPosition.top,
-              width: dropdownPosition.width
-            }}
-          >
-            <Command>
-              <CommandList>
-                <CommandGroup>
-                  {(inputValue.length > 0 ? filteredList : list).map((item) => (
-                    <CommandItem
-                      key={item.value}
-                      value={item.value}
-                      onSelect={() => handleSelect(item.value)}
-                      className="cursor-pointer"
-                    >
-                      <CheckIcon
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          inputValue === item.label ? 'opacity-100' : 'opacity-0'
-                        )}
-                      />
-                      {item.label}
-                    </CommandItem>
-                  ))}
-                  {(inputValue.length > 0 || list.length > 0) && (
-                    <CommandItem
-                      key="clear-value"
-                      value="clear-value"
-                      onSelect={() => handleSelect('clear-value')}
-                      className="cursor-pointer rounded-none border-t text-muted-foreground"
-                    >
-                      <X className="mr-2 h-4 w-4" />
+      {open && (inputValue.length > 0 ? filteredList.length > 0 : list.length > 0) ? createPortal(
+        <div 
+          ref={dropdownRef}
+          className="fixed z-[99999] bg-popover border rounded-md shadow-md" 
+          style={{
+            left: dropdownPosition.left,
+            top: dropdownPosition.top,
+            width: dropdownPosition.width
+          }}
+        >
+          <Command>
+            <CommandList>
+              <CommandGroup>
+                {(inputValue.length > 0 ? filteredList : list).map((item) => (
+                  <CommandItem
+                    key={item.value}
+                    value={item.value}
+                    onSelect={() => handleSelect(item.value)}
+                    className="cursor-pointer"
+                  >
+                    <CheckIcon
+                      className={cn(
+                        'mr-2 h-4 w-4',
+                        inputValue === item.label ? 'opacity-100' : 'opacity-0'
+                      )}
+                    />
+                    {item.label}
+                  </CommandItem>
+                ))}
+                {(inputValue.length > 0 || list.length > 0) && (
+                  <CommandItem
+                    key="clear-value"
+                    value="clear-value"
+                    onSelect={() => handleSelect('clear-value')}
+                    className="cursor-pointer rounded-none border-t text-muted-foreground"
+                  >
+                    <X className="mr-2 h-4 w-4" />
                       値をクリアする
-                    </CommandItem>
-                  )}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>,
-          document.body
-        )
+                  </CommandItem>
+                )}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </div>,
+        document.body
+      ) : null
       }
     </div>
   );

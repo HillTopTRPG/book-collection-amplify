@@ -107,12 +107,10 @@ export default function CollectionsList({ myBooks, isAddSearch }: Props) {
         </Fragment>
       ))}
       {!viewBooks.length && '表示する書籍がありません。'}
-      {isAddSearch && filterSet.some(filter => filter.value) && (
-        <Button
-          className="rounded-full fixed right-3 bottom-[5.5rem] z-40"
-          onClick={refreshSearch}
-        >未所持検索更新</Button>
-      )}
+      {isAddSearch && filterSet.some(filter => filter.value) ? <Button
+        className="rounded-full fixed right-3 bottom-[5.5rem] z-40"
+        onClick={refreshSearch}
+      >未所持検索更新</Button> : null}
     </div>
   );
 }

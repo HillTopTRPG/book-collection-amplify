@@ -22,7 +22,7 @@ const Switch = React.forwardRef<
         'pointer-events-none block h-6 min-w-6 rounded-full data-[state=checked]:bg-foreground data-[state=unchecked]:bg-background data-[state=checked]:text-background data-[state=unchecked]:text-foreground border-2 border-foreground shadow-lg ring-0 transition-transform data-[state=checked]:-translate-x-5 data-[state=unchecked]:translate-x-[2px]'
       )}
     >
-      {props.checked && <Check width={20} height={20} />}
+      {props.checked ? <Check width={20} height={20} /> : null}
     </SwitchPrimitives.Thumb>
   </SwitchPrimitives.Root>
 ));

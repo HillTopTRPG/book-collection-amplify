@@ -188,19 +188,15 @@ export default function CameraView({ width, height }: Props) {
 
   return (
     <div className="flex flex-col items-center justify-normal bg-background rounded-lg shadow-lg p-1 relative">
-      {error && (
-        <div style={{ color: 'red', marginBottom: '20px' }}>
+      {error ? <div style={{ color: 'red', marginBottom: '20px' }}>
           エラー: {error}
-        </div>
-      )}
+      </div> : null}
 
-      {stream && isScanning && (
-        <Button className="absolute bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40" size="icon" variant="outline" onClick={() => {
-          setVolume(volume ? 0 : 0.8);
-        }}>
-          {volume ? <Volume2 /> : <VolumeOff />}
-        </Button>
-      )}
+      {stream && isScanning ? <Button className="absolute bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40" size="icon" variant="outline" onClick={() => {
+        setVolume(volume ? 0 : 0.8);
+      }}>
+        {volume ? <Volume2 /> : <VolumeOff />}
+      </Button> : null}
 
       <div
         id="scanner-container"
@@ -215,17 +211,13 @@ export default function CameraView({ width, height }: Props) {
         <CornerFrame />
       </div>
 
-      {isLoading && (
-        <p className="p-2 text-blue-400 bg-blue-50">
+      {isLoading ? <p className="p-2 text-blue-400 bg-blue-50">
           カメラ起動中...
-        </p>
-      )}
+      </p> : null}
 
-      {stream && !isScanning && (
-        <p className="p-2 text-blue-400 bg-blue-50">
+      {stream && !isScanning ? <p className="p-2 text-blue-400 bg-blue-50">
           スキャナー準備中...
-        </p>
-      )}
+      </p> : null}
     </div>
   );
 }

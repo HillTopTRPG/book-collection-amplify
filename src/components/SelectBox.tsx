@@ -30,7 +30,7 @@ export default function SelectBox<Options extends Record<string, ReactNode>>({ l
       </SelectTrigger>
       <SelectContent className={COLOR_CLASS}>
         <SelectGroup>
-          {label && <SelectLabel>{label}</SelectLabel>}
+          {label ? <SelectLabel>{label}</SelectLabel> : null}
           {keys(options).map((key) => (
             <SelectItem key={key} value={key} className={COLOR_CLASS}>{options[key]}</SelectItem>
           ))}
