@@ -1,4 +1,7 @@
+import { ReactNode } from 'react';
+
 import { Authenticator, useTheme, View, Image, Text, Heading } from '@aws-amplify/ui-react';
+
 import '@aws-amplify/ui-react/styles.css';
 
 const components = {
@@ -53,7 +56,7 @@ const formFields = {
 };
 
 interface LoginPageProps {
-  children: React.ReactNode
+  children: ReactNode
 }
 
 export default function LoginPage({ children }: LoginPageProps) {

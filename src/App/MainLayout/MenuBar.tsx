@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { Moon, Sun } from 'lucide-react';
 
@@ -18,10 +18,14 @@ export default function MenuBar() {
 
   onChangeDarkMode(theme);
 
+  const onSwitchTheme = useCallback(() => {
+    setTheme(localStorage.theme === 'dark' ? 'light' : 'dark');
+  }, []);
+
   return (
     <div className="fixed left-0 top-0 right-0 bg-background h-[3rem] flex items-center px-2 gap-2 z-50">
       <div className="flex-1">マイ書目</div>
-      <Button size="icon" className="rounded-full" variant="secondary" onClick={()=>setTheme(localStorage.theme === 'dark' ? 'light' : 'dark')}>{theme === 'dark' ? <Moon /> : <Sun />}</Button>
+      <Button size="icon" className="rounded-full" variant="secondary" onClick={onSwitchTheme}>{theme === 'dark' ? <Moon /> : <Sun />}</Button>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { StrictMode } from 'react';
 
 import { Amplify } from 'aws-amplify';
 import * as ReactDOM from 'react-dom/client';
@@ -14,9 +14,9 @@ import './index.css';
 Amplify.configure(outputs);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  <StrictMode>
     <Provider store={store}>
       <App />
     </Provider>
-  </React.StrictMode>
+  </StrictMode>
 );

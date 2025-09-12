@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, useCallback } from 'react';
 
 import { Button } from '@aws-amplify/ui-react';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
@@ -33,11 +33,11 @@ export default function ScannedResults() {
   const clearDisable = !scannedDataList.length;
   const registerDisable = clearDisable || scannedDataList.some(({ data }) => !data);
 
-  const onClear = () => {
+  const onClear = useCallback(() => {
     dispatch(clearScannedItems());
-  };
+  }, [dispatch]);
 
-  const onRegister = () => {
+  const onRegister = useCallback(() => {
     const scannedBooks = scannedDataList.flatMap(({ data }) => data ? [data] : []);
     scannedBooks
       .filter(({ isbn })  => !books.some(book => book.isbn === isbn))
@@ -62,7 +62,7 @@ export default function ScannedResults() {
         }
       });
     onClear();
-  };
+  }, [books, collections, onClear, scannedDataList, toast]);
 
   return (
     <div className="flex-1 flex flex-col gap-3 w-full bg-background rounded-lg shadow-lg p-2">

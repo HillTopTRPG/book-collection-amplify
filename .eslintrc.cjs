@@ -135,6 +135,17 @@ module.exports = {
       }
     ],
     'react/react-in-jsx-scope': 'off',
-    '@typescript-eslint/switch-exhaustiveness-check': 'error'
+    '@typescript-eslint/switch-exhaustiveness-check': 'error',
+    'no-nested-ternary': 'error',
+    'react/jsx-no-bind': [
+      'error',
+      {
+        'allowArrowFunctions': false,
+        'allowBind': true,
+        'allowFunctions': false,
+        'ignoreRefs': true,
+        'ignoreDOMComponents': false
+      }
+    ]
   },
 }

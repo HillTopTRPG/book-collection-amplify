@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useState } from 'react';
 
 import BookCard from '@/components/BookCard';
 import { Button } from '@/components/ui/button.tsx';
@@ -75,7 +75,7 @@ export default function CollectionsList({ myBooks, isAddSearch }: Props) {
     }
   }, [isAddSearch]);
 
-  const refreshSearch = async () => {
+  const refreshSearch = useCallback(async () => {
     const request: RakutenApiOption = {};
     filterSet.forEach((filter) => {
       if (!filter.value) return;
@@ -96,7 +96,7 @@ export default function CollectionsList({ myBooks, isAddSearch }: Props) {
     request.sort = pubdateFilter?.sortOrder === 'desc' ? '-releaseDate' : '+releaseDate';
     const result = await fetchRakutenBooksApi(request);
     setSearchResult(result);
-  };
+  }, [filterSet]);
 
   return (
     <div className="flex flex-col bg-background rounded-xl p-2 w-full flex-1 overflow-clip relative">

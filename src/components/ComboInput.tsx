@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { CheckIcon, ChevronsUpDownIcon, X } from 'lucide-react';
 import { createPortal } from 'react-dom';
@@ -21,23 +21,23 @@ type Props = {
 };
 
 export default function ComboInput({ label, className, list, value, setValue }: Props) {
-  const [open, setOpen] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState(value);
-  const [dropdownPosition, setDropdownPosition] = React.useState({ top: 0, left: 0, width: 0 });
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const [inputValue, setInputValue] = useState(value);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Filter suggestions based on input value
   const filteredList = list.filter((item) => 
     item.label.toLowerCase().includes(inputValue.toLowerCase())
   );
   
-  React.useEffect(() => {
+  useEffect(() => {
     setInputValue(value);
   }, [value]);
 
   // Handle click outside to close dropdown
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       const target = event.target as Node;
       if (containerRef.current && !containerRef.current.contains(target) &&
@@ -57,7 +57,7 @@ export default function ComboInput({ label, className, list, value, setValue }: 
     };
   }, [open]);
   
-  const handleInputChange = (newValue: string) => {
+  const handleInputChange = useCallback((newValue: string) => {
     setInputValue(newValue);
     setValue(newValue); // Always set the value to allow free text
     
@@ -67,7 +67,7 @@ export default function ComboInput({ label, className, list, value, setValue }: 
     );
     
     setOpen(newValue.length > 0 && newFilteredList.length > 0); // Show suggestions if there are matches
-  };
+  }, [list, setValue]);
   
   const updateDropdownPosition = () => {
     if (containerRef.current) {
@@ -80,7 +80,7 @@ export default function ComboInput({ label, className, list, value, setValue }: 
     }
   };
 
-  const handleSelect = (selectedValue: string) => {
+  const handleSelect = useCallback((selectedValue: string) => {
     if (selectedValue === 'clear-value') {
       setInputValue('');
       setValue('');
@@ -92,7 +92,23 @@ export default function ComboInput({ label, className, list, value, setValue }: 
       }
     }
     setOpen(false);
-  };
+  }, [list, setValue]);
+
+  const onChangeInput = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    handleInputChange(e.target.value);
+  }, [handleInputChange]);
+
+  const onFocusInput = useCallback(() => {
+    updateDropdownPosition();
+    setOpen(list.length > 0);
+  }, [list.length]);
+
+  const onClickIcon = useCallback(() => {
+    updateDropdownPosition();
+    setOpen(!open);
+  }, [open]);
+
+  const onSelect = useCallback((currentValue: string) => handleSelect(currentValue), [handleSelect]);
   
   return (
     <div className="relative flex-1" ref={containerRef}>
@@ -100,20 +116,14 @@ export default function ComboInput({ label, className, list, value, setValue }: 
         <Input
           placeholder={label}
           value={inputValue}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e.target.value)}
-          onFocus={() => {
-            updateDropdownPosition();
-            setOpen(list.length > 0);
-          }}
+          onChange={onChangeInput}
+          onFocus={onFocusInput}
           className={`${open ? '' : 'pr-7'} ${className}`}
         />
         {!open && (
           <ChevronsUpDownIcon
             className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-background dark:text-background cursor-pointer pointer-events-auto z-30 bg-transparent"
-            onClick={() => {
-              updateDropdownPosition();
-              setOpen(!open);
-            }}
+            onClick={onClickIcon}
           />
         )}
       </div>
@@ -135,7 +145,7 @@ export default function ComboInput({ label, className, list, value, setValue }: 
                   <CommandItem
                     key={item.value}
                     value={item.value}
-                    onSelect={() => handleSelect(item.value)}
+                    onSelect={onSelect}
                     className="cursor-pointer"
                   >
                     <CheckIcon
@@ -151,7 +161,7 @@ export default function ComboInput({ label, className, list, value, setValue }: 
                   <CommandItem
                     key="clear-value"
                     value="clear-value"
-                    onSelect={() => handleSelect('clear-value')}
+                    onSelect={onSelect}
                     className="cursor-pointer rounded-none border-t text-muted-foreground"
                   >
                     <X className="mr-2 h-4 w-4" />

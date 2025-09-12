@@ -1,5 +1,8 @@
+import { useCallback } from 'react';
+
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { isNil } from 'es-toolkit/compat';
 import { Trash, GripVertical, BookA, UserPen, Building } from 'lucide-react';
 
 import ComboInput from '@/components/ComboInput.tsx';
@@ -7,6 +10,8 @@ import { FilterData } from '@/components/FilterUI';
 import SelectBox from '@/components/SelectBox.tsx';
 import SortButton from '@/components/SortButton.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { selectFilterSet, selectFilterSetId, setFilterSet } from '@/store/filterSlice.ts';
+import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
 
@@ -28,11 +33,13 @@ type Props = {
   id: string;
   books: Array<Schema['Book']['type']>;
   item: FilterData;
-  onChange: <Property extends keyof FilterData>(property: Property, value: FilterData[Property]) => void;
-  onDelete: () => void;
+  index?: number;
 }
 
-export default function FilterItem({ id, books, item, onChange, onDelete }: Props) {
+export default function FilterItem({ id, books, item, index }: Props) {
+  const dispatch = useAppDispatch();
+  const filterSetId = useAppSelector(selectFilterSetId);
+  const filterSet = useAppSelector(selectFilterSet);
   const {
     attributes,
     listeners,
@@ -61,6 +68,34 @@ export default function FilterItem({ id, books, item, onChange, onDelete }: Prop
     .filter((value, index, self): value is string => Boolean(value) && (self.findIndex(v => v === value) === index))
     .map(value => ({ label: value, value }));
 
+  const onChange = useCallback(<Property extends keyof FilterData>(property: Property, value: FilterData[Property]) => {
+    if (isNil(index)) return;
+    const newFilterSet = structuredClone(filterSet);
+    const newItem = { ...item, [property]: value };
+    if (property === 'type') newItem.value = '';
+    newFilterSet.splice(index, 1, newItem);
+    dispatch(setFilterSet({ id: filterSetId, filterSet: newFilterSet }));
+  }, [dispatch, filterSet, filterSetId, index, item]);
+
+  const onChangeType = useCallback((value: FilterData['type']) => {
+    onChange('type', value);
+  }, [onChange]);
+
+  const onChangeValue = useCallback((value: FilterData['value']) => {
+    onChange('value', value);
+  }, [onChange]);
+
+  const onChangeSortOrder = useCallback((value: FilterData['sortOrder']) => {
+    onChange('sortOrder', value);
+  }, [onChange]);
+
+  const onDelete = useCallback(() => {
+    if (isNil(index)) return;
+    const newFilterSet = structuredClone(filterSet);
+    newFilterSet.splice(index, 1);
+    dispatch(setFilterSet({ id: filterSetId, filterSet: newFilterSet }));
+  }, [dispatch, filterSet, filterSetId, index]);
+
   return (
     <div 
       ref={setNodeRef}
@@ -78,16 +113,16 @@ export default function FilterItem({ id, books, item, onChange, onDelete }: Prop
         className="w-auto"
         options={TYPE_OPTIONS}
         value={item.type}
-        onChange={(v) => onChange('type', v)}
+        onChange={onChangeType}
       />
-      <SortButton sortOrder={item.sortOrder} setSortOrder={(v) => onChange('sortOrder', v)} />
+      <SortButton sortOrder={item.sortOrder} setSortOrder={onChangeSortOrder} />
       {item.type !== 'pubdate' ? (
         <ComboInput
           label={TypeMap[item.type]}
           className="flex-1 text-left truncate bg-foreground text-background"
           list={comboOptions}
           value={item.value}
-          setValue={(v) => onChange('value', v)}
+          setValue={onChangeValue}
         />
       ) : <div className="flex-1"></div>}
       <Button variant="destructive" size="icon" onClick={onDelete}><Trash /></Button>

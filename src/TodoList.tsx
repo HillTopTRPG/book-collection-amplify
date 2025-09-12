@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { generateClient } from 'aws-amplify/data';
 
@@ -21,9 +21,9 @@ export default function TodoList() {
     };
   }, []);
 
-  function createTodo() {
+  const createTodo = useCallback(() => {
     client.models.Todo.create({ content: window.prompt('Todo content') });
-  }
+  }, []);
 
   return (
     <div>

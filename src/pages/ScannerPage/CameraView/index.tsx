@@ -41,10 +41,10 @@ export default function CameraView({ width, height }: Props) {
     interrupt: true
   });
 
-  const setVolume = (volume: number) => {
+  const setVolume = useCallback((volume: number) => {
     localStorage.volume = volume;
     _setVolume(volume);
-  };
+  }, []);
 
   useEffect(() => {
     if (lastFetchedBookListCount !== fetchedBookList.length && fetchedBookList.length > 0) {
@@ -186,15 +186,17 @@ export default function CameraView({ width, height }: Props) {
     };
   }, [stream, isScanning]);
 
+  const toggleVolume = useCallback(() => {
+    setVolume(volume ? 0 : 0.8);
+  }, [setVolume, volume]);
+
   return (
     <div className="flex flex-col items-center justify-normal bg-background rounded-lg shadow-lg p-1 relative">
       {error ? <div style={{ color: 'red', marginBottom: '20px' }}>
           エラー: {error}
       </div> : null}
 
-      {stream && isScanning ? <Button className="absolute bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40" size="icon" variant="outline" onClick={() => {
-        setVolume(volume ? 0 : 0.8);
-      }}>
+      {stream && isScanning ? <Button className="absolute bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40" size="icon" variant="outline" onClick={toggleVolume}>
         {volume ? <Volume2 /> : <VolumeOff />}
       </Button> : null}
 

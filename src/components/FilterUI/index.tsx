@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import {
   DndContext,
@@ -62,11 +62,11 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-  };
+  }, []);
 
-  const handleDragEnd = (event: DragEndEvent)=> {
+  const handleDragEnd = useCallback((event: DragEndEvent)=> {
     const { active, over } = event;
 
     if (active.id !== over?.id) {
@@ -80,17 +80,17 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
     }
 
     setActiveId(null);
-  };
+  }, [dispatch, filterSet, filterSetId]);
 
   const activeItem = activeId ? filterSet[parseInt(activeId.replace('filter-', ''))] : null;
 
-  const onAddFilter = () => {
+  const onAddFilter = useCallback(() => {
     const newFilterSet = structuredClone(filterSet);
     newFilterSet.push({ type: 'title', value: '', sortOrder: 'asc' });
     dispatch(setFilterSet({ id: filterSetId, filterSet: newFilterSet }));
-  };
+  }, [dispatch, filterSet, filterSetId]);
 
-  const onSaveFilter = () => {
+  const onSaveFilter = useCallback(() => {
     if (filterSetId) {
       // 更新
       userPoolClient.models.FilterSet.update({
@@ -106,13 +106,22 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
       } as const satisfies Parameters<typeof userPoolClient.models.FilterSet.create>[0];
       dispatch(setCreateFilterSet(newFilterSet));
     }
-  };
+  }, [dbFilters.length, dispatch, filterSet, filterSetId]);
 
-  const onDeleteFilter = () => {
+  const onDeleteFilter = useCallback(() => {
     if (!filterSetId) return;
     userPoolClient.models.FilterSet.delete({ id: filterSetId });
     dispatch(resetFilterSet());
-  };
+  }, [dispatch, filterSetId]);
+
+  const onChangeFilterSetId = useCallback((id: string) => {
+    const filter = dbFilters.find(filter => filter.id === id) ?? null;
+    if (filter) {
+      dispatch(setFilterSet({ id, filterSet: JSON.parse(filter.filters) }));
+    } else {
+      dispatch(resetFilterSet());
+    }
+  }, [dbFilters, dispatch]);
 
   return (
     <DndContext
@@ -132,14 +141,7 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
               { value: '', label: '新規作成' },
             ]}
             value={filterSetId ?? ''}
-            setValue={(id) => {
-              const filter = dbFilters.find(filter => filter.id === id) ?? null;
-              if (filter) {
-                dispatch(setFilterSet({ id, filterSet: JSON.parse(filter.filters) }));
-              } else {
-                dispatch(resetFilterSet());
-              }
-            }}
+            setValue={onChangeFilterSetId}
           />
           <Button onClick={onSaveFilter}>
             <CloudUpload />
@@ -154,24 +156,11 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
           items={filterSet.map((_, idx) => `filter-${idx}`)}
           strategy={verticalListSortingStrategy}
         >
-          {filterSet.map((item, idx) => (
+          {filterSet.map((item, index) => (
             <FilterItem
-              key={`filter-${idx}`}
-              id={`filter-${idx}`}
-              books={books}
-              item={item}
-              onChange={(property, value) => {
-                const newFilterSet = structuredClone(filterSet);
-                const newItem = { ...item, [property]: value };
-                if (property === 'type') newItem.value = '';
-                newFilterSet.splice(idx, 1, newItem);
-                dispatch(setFilterSet({ id: filterSetId, filterSet: newFilterSet }));
-              }}
-              onDelete={() => {
-                const newFilterSet = structuredClone(filterSet);
-                newFilterSet.splice(idx, 1);
-                dispatch(setFilterSet({ id: filterSetId, filterSet: newFilterSet }));
-              }}
+              key={`filter-${index}`}
+              id={`filter-${index}`}
+              {...{ books, item, index }}
             />
           ))}
         </SortableContext>
@@ -189,13 +178,7 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
 
       <DragOverlay dropAnimation={null}>
         {activeItem ? (
-          <FilterItem
-            id="overlay"
-            books={books}
-            item={activeItem}
-            onChange={() => {}}
-            onDelete={() => {}}
-          />
+          <FilterItem id="overlay" books={books} item={activeItem} />
         ) : null}
       </DragOverlay>
     </DndContext>
