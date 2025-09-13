@@ -9,14 +9,14 @@ import type { BookData } from '../types/book';
 
 export type ScannedItem = { isbn: string; data: BookData | null };
 
-interface ScannerState {
+type State = {
   scannedItems: ScannedItem[];
   isScanning: boolean;
   stream: MediaStream | null;
   error: string | null;
-}
+};
 
-const initialState: ScannerState = {
+const initialState: State = {
   scannedItems: [],
   isScanning: false,
   stream: null,

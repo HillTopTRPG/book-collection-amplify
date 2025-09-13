@@ -11,12 +11,12 @@ const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
 });
 
-interface State {
+type State = {
   collections: Array<Schema['Collection']['type']>;
   books: Array<Schema['Book']['type']>;
   filterSets: Array<Schema['FilterSet']['type']>;
   createFilterSet: Parameters<typeof userPoolClient.models.FilterSet.create>[0] | null;
-}
+};
 
 const initialState: State = {
   collections: [],

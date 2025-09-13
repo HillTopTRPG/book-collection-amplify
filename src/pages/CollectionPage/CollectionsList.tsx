@@ -79,7 +79,10 @@ export default function CollectionsList({ isAddSearch }: Props) {
       {viewBooks.map((book, index) => (
         <Fragment key={index}>
           {index > 0 && <Separator className="my-1" />}
-          <BookCard book={book} isNoHave={!myBooks.some(b => b.isbn === book.isbn)} />
+          <BookCard
+            book={book}
+            isNoHave={!myBooks.some(b => b.isbn === book.isbn)}
+          />
         </Fragment>
       ))}
       {!viewBooks.length && '表示する書籍がありません。'}

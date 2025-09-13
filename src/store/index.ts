@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 
+import bookDetailReducer from './bookDetailSlice';
 import filterReducer from './filterSlice';
 import scannerReducer from './scannerSlice';
 import subscriptionDataReducer from './subscriptionDataSlice';
@@ -9,6 +10,7 @@ export const store = configureStore({
     scanner: scannerReducer,
     filter: filterReducer,
     subscriptionData: subscriptionDataReducer,
+    bookDetail: bookDetailReducer,
   },
   // 開発時のミドルウェア設定
   middleware: (getDefaultMiddleware) =>

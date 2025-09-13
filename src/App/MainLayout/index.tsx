@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { Fragment } from 'react';
 
+import BookDetailDrawer from '@/pages/CollectionPage/BookDetailDrawer.tsx';
+
 import BottomNavigation from './BottomNavigation';
 import MenuBar from './MenuBar';
 
@@ -21,6 +23,9 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
       {/* ボトムナビゲーション */}
       <BottomNavigation />
+
+      {/* ドロワー */}
+      <BookDetailDrawer />
     </Fragment>
   );
 }

@@ -11,7 +11,7 @@ export const convertPubdate = (pubdate: string | null | undefined) => {
   return (new Date(pubdate)).toLocaleDateString('sv-SE');
 };
 
-export const filterMatch = <Conditions extends Record<string, unknown>>(conditions: Conditions): (obj: Conditions) => boolean => (obj) => keys(conditions).some(key => conditions[key] !== obj[key]);
+export const filterMatch = <Conditions extends Record<string, unknown>>(conditions: Conditions): (obj: Conditions) => boolean => (obj) => keys(conditions).some(key => conditions[key] === obj[key]);
 
 type PickSameProperties<T1, T2> = Pick<T1, {
   [K in keyof T1 & keyof T2]:

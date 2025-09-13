@@ -43,16 +43,21 @@ export default function SubscribeLayer({ children }: Props) {
 
   useEffect(() => {
     const collectionSubscription = userPoolClient.models.Collection.observeQuery().subscribe({
-      next: (data) => dispatch(setCollections([...data.items])),
+      next: (data) => {
+        dispatch(setCollections(structuredClone(data.items)));
+      },
     });
     const bookSubscription = apiKeyClient.models.Book.observeQuery().subscribe({
-      next: (data) => dispatch(setBooks([...data.items])),
+      next: (data) => {
+        dispatch(setBooks(structuredClone(data.items)));
+      },
     });
     const filterSetSubscription = userPoolClient.models.FilterSet.observeQuery().subscribe({
       next: (data) => {
-        dispatch(setFilterSets([...data.items]));
+        dispatch(setFilterSets(structuredClone(data.items)));
         if (nextFilterSetNameRef.current) {
-          const item = [...data.items].reverse().find(item => item.name === nextFilterSetNameRef.current);
+          // Use slice().reverse() to avoid mutating original array
+          const item = data.items.slice().reverse().find(item => item.name === nextFilterSetNameRef.current);
           if (item) {
             dispatch(setFilterSet({ id: item.id, filterSet: JSON.parse(item.filters) }));
           }

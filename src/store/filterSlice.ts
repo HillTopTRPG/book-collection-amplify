@@ -5,12 +5,12 @@ import type { FilterData } from '@/types/filter.ts';
 import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-interface FilterState {
+type State = {
   filterSetId: string | null;
   filterSet: FilterData[];
-}
+};
 
-const initialState: FilterState = {
+const initialState: State = {
   filterSetId: null,
   filterSet: [],
 };

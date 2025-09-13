@@ -49,6 +49,7 @@ export default function ScannedResults() {
     scannedBooks
       .forEach(async ({ isbn, title }) => {
         const isHas = collections.some(filterMatch({ isbn }));
+        console.log(JSON.stringify({ isHas, isbn, isbns: collections.map(c => c.isbn).join(', ') }, null, 2));
 
         // 未登録の蔵書を登録する
         if (!isHas) {
@@ -57,7 +58,7 @@ export default function ScannedResults() {
         }
         setTimeout(() => {
           toast({
-            title: isHas ? '登録' : '登録スキップ',
+            title: isHas ? '登録スキップ' : '登録',
             description: `${title}`,
             duration: 2000,
           });
