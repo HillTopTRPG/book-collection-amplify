@@ -16,6 +16,10 @@ const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
 });
 
+const apiKeyClient = generateClient<Schema>({
+  authMode: 'apiKey'
+});
+
 export default function BookDetailDrawer() {
   const dispatch = useDispatch();
   const book = useSelector(selectSelectedBook);
@@ -33,7 +37,7 @@ export default function BookDetailDrawer() {
     if (!collection || !b) {
       return;
     }
-    userPoolClient.models.Book.delete({ id: b.id });
+    apiKeyClient.models.Book.delete({ id: b.id });
     userPoolClient.models.Collection.delete({ id: collection.id });
   }, [book, books, collections]);
 

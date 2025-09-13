@@ -22,7 +22,10 @@ const schema = a.schema({
       pubdate: a.string(),
       cover: a.string(),
     })
-    .authorization((allow) => [allow.publicApiKey()]),
+    .authorization((allow) => [
+      allow.publicApiKey(),
+      allow.authenticated().to(['delete'])
+    ]),
   Collection: a
     .model({
       isbn: a.string().required(),
