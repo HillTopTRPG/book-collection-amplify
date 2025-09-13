@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface UseDrawerAnimationProps {
   isOpen: boolean;
@@ -38,19 +38,12 @@ export const useDrawerAnimation = ({
   useEffect(() => {
     if (isOpen) {
       setShouldRender(true);
-      // Double RAF pattern for stable CSS transitions
-      let rafId2: number;
+      // Minimal delay for CSS transition to work properly
+      const timeoutId = setTimeout(() => {
+        setIsVisible(true);
+      }, 1);
 
-      const rafId1 = requestAnimationFrame(() => {
-        rafId2 = requestAnimationFrame(() => {
-          setIsVisible(true);
-        });
-      });
-
-      return () => {
-        cancelAnimationFrame(rafId1);
-        if (rafId2) cancelAnimationFrame(rafId2);
-      };
+      return () => clearTimeout(timeoutId);
     } else {
       setIsVisible(false);
       const timeoutId = setTimeout(() => {
@@ -61,16 +54,15 @@ export const useDrawerAnimation = ({
     }
   }, [isOpen, animationDuration]);
 
-  const overlayClassName = `
-    fixed inset-0 bg-black/50 z-40 transition-opacity duration-${animationDuration} ease-in-out
-    ${isVisible ? 'opacity-100' : 'opacity-0'}
-  `.trim();
+  const overlayClassName = useMemo(() =>
+    `fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`,
+  [isVisible]
+  );
 
-  const drawerClassName = `
-    fixed top-0 right-0 h-screen w-80 bg-background border-l z-50 shadow-lg
-    transition-transform duration-${animationDuration} ease-in-out
-    ${isVisible ? 'transform translate-x-0' : 'transform translate-x-full'}
-  `.trim();
+  const drawerClassName = useMemo(() =>
+    `fixed top-0 right-0 h-screen w-80 bg-background border-l z-50 shadow-lg transition-transform duration-300 ease-in-out ${isVisible ? 'transform translate-x-0' : 'transform translate-x-full'}`,
+  [isVisible]
+  );
 
   return {
     isVisible,

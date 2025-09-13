@@ -119,10 +119,10 @@ export default function CameraView({ width, height }: Props) {
           return;
         }
 
-        console.log('バーコード検出:', code);
-
         if (lastFetchIsbn.current === code) return;
         lastFetchIsbn.current = code;
+
+        console.log('バーコード検出:', code);
 
         // トーストを表示
         toast({

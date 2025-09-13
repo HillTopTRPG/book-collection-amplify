@@ -19,6 +19,14 @@ Username: amplify-admin
 - `npm run build` - TypeScriptコンパイルと本番ビルド
 - `npm run preview` - 本番ビルドをローカルでプレビュー
 - `npm run lint` - TypeScriptサポート付きでESLintを実行
+- `npm run lint:fix` - ESLintの自動修正を実行
+
+### Claude Codeの作業フロー
+**重要**: リンティングチェック時は必ず以下の順序で実行してください：
+1. `npm run lint:fix` - 自動修正可能な問題を先に修正
+2. `npm run lint` - 残りの問題を確認
+
+これによりClaude Codeの手動修正コストを軽減できます。
 
 ### Amplifyバックエンド
 - `npx ampx sandbox` - ローカルAmplifyサンドボックス環境を実行
