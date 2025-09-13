@@ -41,12 +41,11 @@ const userPoolClient = generateClient<Schema>({
 });
 
 type Props = {
-  books: Array<Schema['Book']['type']>;
   isAddSearch: boolean;
   setIsAddSearch: (flg: boolean) => void;
 };
 
-export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) {
+export default function FilterUI({ isAddSearch, setIsAddSearch }: Props) {
   const dispatch = useAppDispatch();
   const dbFilters = useAppSelector(selectFilterSets);
   const filterSetId = useAppSelector(selectFilterSetId);
@@ -156,7 +155,7 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
             <FilterItem
               key={`filter-${index}`}
               id={`filter-${index}`}
-              {...{ books, item, index }}
+              {...{ item, index }}
             />
           ))}
         </SortableContext>
@@ -174,7 +173,7 @@ export default function FilterUI({ books, isAddSearch, setIsAddSearch }: Props) 
 
       <DragOverlay dropAnimation={null}>
         {activeItem ? (
-          <FilterItem id="overlay" books={books} item={activeItem} />
+          <FilterItem id="overlay" item={activeItem} />
         ) : null}
       </DragOverlay>
     </DndContext>

@@ -1,5 +1,5 @@
 // 書籍データの型定義
-export interface BookData {
+export type BookData = {
   isbn: string;
   title?: string | null;
   subtitle?: string | null;
@@ -7,4 +7,4 @@ export interface BookData {
   publisher?: string | null;
   pubdate?: string | null;
   cover?: string | null;
-}
+};

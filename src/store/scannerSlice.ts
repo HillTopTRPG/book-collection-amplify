@@ -1,11 +1,13 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 
+import { filterMatch } from '@/utils/primitive.ts';
+
 import { fetchBookDataThunk } from './scannerThunks';
 
 import type { RootState } from './index.ts';
 import type { BookData } from '../types/book';
 
-export interface ScannedItem { isbn: string; data: BookData | null }
+export type ScannedItem = { isbn: string; data: BookData | null };
 
 interface ScannerState {
   scannedItems: ScannedItem[];
@@ -35,7 +37,7 @@ export const scannerSlice = createSlice({
         const isbn = action.meta.arg;
 
         // 既に存在する場合はスキップ
-        if (state.scannedItems.some((item) => item.isbn === isbn)) return;
+        if (state.scannedItems.some(filterMatch({ isbn }))) return;
 
         state.scannedItems.unshift({ isbn, data: null });
       })

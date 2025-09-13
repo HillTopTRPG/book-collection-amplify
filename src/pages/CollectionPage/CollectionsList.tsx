@@ -5,49 +5,26 @@ import { Button } from '@/components/ui/button.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { selectFilterSet } from '@/store/filterSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
+import { selectMyBooks } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { RakutenApiOption } from '@/utils/fetch.ts';
 import { fetchRakutenBooksApi } from '@/utils/fetch.ts';
-
-import type { Schema } from '$/amplify/data/resource.ts';
-
-const sortString = (a: string | null | undefined, b: string | null | undefined, sortOrder: 'asc' | 'desc') => {
-  if (a === b) return 0;
-  return ((a ?? '') > (b ?? '') ? 1 : -1) * (sortOrder === 'asc' ? 1 : -1);
-};
-
-const convertPubdate = (pubdate: string | null | undefined) => {
-  if (!pubdate) return '';
-  pubdate = pubdate.replace('年', '-').replace('月', '-').replace(/[日頃初中下旬]/g, '');
-  return (new Date(pubdate)).toLocaleDateString('sv-SE');
-};
+import { convertPubdate, sortString } from '@/utils/primitive.ts';
 
 type Props = {
-  myBooks: Array<Schema['Book']['type']>;
   isAddSearch: boolean;
 }
 
-export default function CollectionsList({ myBooks, isAddSearch }: Props) {
+export default function CollectionsList({ isAddSearch }: Props) {
   const filterSet = useAppSelector(selectFilterSet);
+  const myBooks = useAppSelector(selectMyBooks);
   const [searchResult, setSearchResult] = useState<BookData[]>([]);
 
   // フィルター済み蔵書リスト
   const filteredMyBooks = myBooks
-    .filter(book => 
-      // フィルターにマッチするかどうか
+    .filter(book =>
       filterSet
-        ?.flatMap(filter => {
-          if (!filter.value) return [true];
-          switch (filter.type) {
-            case 'title':
-            case 'author':
-            case 'publisher':
-            case 'pubdate':
-              return [book[filter.type]?.includes(filter.value) ?? false];
-            default:
-              return [true];
-          }
-        })
+        ?.flatMap(filter => !filter.value ? [true] : [book[filter.type]?.includes(filter.value) ?? false])
         .every(Boolean)
     )
     .sort((a, b) => filterSet?.reduce((prev, filter) => {

@@ -12,6 +12,7 @@ import type { AppDispatch } from '@/store';
 import { useAppSelector } from '@/store/hooks.ts';
 import { clearScannedItems, selectScannedItems } from '@/store/scannerSlice.ts';
 import { selectBooks, selectCollections } from '@/store/subscriptionDataSlice.ts';
+import { excludeArrayByKey, filterMatch, wait } from '@/utils/primitive.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
 
@@ -39,27 +40,28 @@ export default function ScannedResults() {
 
   const onRegister = useCallback(() => {
     const scannedBooks = scannedDataList.flatMap(({ data }) => data ? [data] : []);
+
+    // 未登録の本を登録する
+    excludeArrayByKey(scannedBooks, books, 'isbn').forEach((bookData) => {
+      apiKeyClient.models.Book.create(bookData);
+    });
+
     scannedBooks
-      .filter(({ isbn })  => !books.some(book => book.isbn === isbn))
-      .forEach((bookData) => {
-        apiKeyClient.models.Book.create(bookData);
-      });
-    scannedBooks
-      .forEach(({ isbn, title }) => {
-        if (!collections.some(book => book.isbn === isbn)) {
+      .forEach(async ({ isbn, title }) => {
+        const isHas = collections.some(filterMatch({ isbn }));
+
+        // 未登録の蔵書を登録する
+        if (!isHas) {
           userPoolClient.models.Collection.create({ isbn, meta: '', memo: '' });
-          toast({
-            title: '登録',
-            description: `${title}`,
-            duration: 2000,
-          });
-        } else {
-          toast({
-            title: '登録スキップ',
-            description: `${title}`,
-            duration: 2000,
-          });
+          await wait(100);
         }
+        setTimeout(() => {
+          toast({
+            title: isHas ? '登録' : '登録スキップ',
+            description: `${title}`,
+            duration: 2000,
+          });
+        });
       });
     onClear();
   }, [books, collections, onClear, scannedDataList, toast]);

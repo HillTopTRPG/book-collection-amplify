@@ -1,5 +1,7 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
+
+import { filterArrayByKey } from '@/utils/primitive.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { RootState } from './index.ts';
@@ -48,6 +50,7 @@ export const {
 
 export const selectCollections = (state: RootState) => state.subscriptionData.collections;
 export const selectBooks = (state: RootState) => state.subscriptionData.books;
+export const selectMyBooks = createSelector([selectCollections, selectBooks], (collections, books) => filterArrayByKey(books, collections, 'isbn'));
 export const selectFilterSets = (state: RootState) => state.subscriptionData.filterSets;
 export const selectCreateFilterSet = (state: RootState) => state.subscriptionData.createFilterSet;
 

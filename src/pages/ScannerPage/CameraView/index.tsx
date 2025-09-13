@@ -14,6 +14,7 @@ import type { AppDispatch } from '@/store';
 import { useAppSelector } from '@/store/hooks.ts';
 import { selectFetchedBookList } from '@/store/scannerSlice.ts';
 import { fetchBookDataThunk } from '@/store/scannerThunks.ts';
+import { wait } from '@/utils/primitive.ts';
 import { checkIsdnCode } from '@/utils/validate.ts';
 
 import CornerFrame from './CornerFrame.tsx';
@@ -64,7 +65,7 @@ export default function CameraView({ width, height }: Props) {
     setError(null);
 
     // DOMの準備を待つ
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await wait(300);
 
     if (!scannerRef.current) {
       console.error('scannerRef.currentが存在しません');

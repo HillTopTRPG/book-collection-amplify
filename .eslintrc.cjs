@@ -14,7 +14,7 @@ module.exports = {
   parserOptions: {
     project: './tsconfig.json'
   },
-  plugins: ['react-refresh', 'import', 'react'],
+  plugins: ['react-refresh', 'import', 'react', 'unused-imports'],
   settings: {
     react: {
       version: 'detect'
@@ -155,6 +155,18 @@ module.exports = {
         'prefer': 'type-imports',
         'fixStyle': 'separate-type-imports'
       }
-    ]
+    ],
+    '@typescript-eslint/no-unused-vars': 'off',
+    'unused-imports/no-unused-imports': 'error',
+    'unused-imports/no-unused-vars': [
+      'error',
+      {
+        'argsIgnorePattern': '^_',
+        'varsIgnorePattern': '^_',
+        'ignoreRestSiblings': true
+      }
+    ],
+    'import/no-unresolved': 'error',
+    'no-unused-vars': 'off'
   },
 }

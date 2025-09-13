@@ -11,15 +11,14 @@ import SortButton from '@/components/SortButton.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { selectFilterSet, selectFilterSetId, setFilterSet } from '@/store/filterSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { selectMyBooks } from '@/store/subscriptionDataSlice.ts';
 import type { FilterData } from '@/types/filter.ts';
-
-import type { Schema } from '$/amplify/data/resource.ts';
 
 const TYPE_OPTIONS = {
   title: <BookA />,
   author: <UserPen />,
   publisher: <Building />,
-  pubdate: <div className="flex gap-2">発売日</div>,
+  pubdate: <div className="flex">発売日</div>,
 } as const;
 
 const TypeMap = {
@@ -31,15 +30,15 @@ const TypeMap = {
 
 type Props = {
   id: string;
-  books: Array<Schema['Book']['type']>;
   item: FilterData;
   index?: number;
 }
 
-export default function FilterItem({ id, books, item, index }: Props) {
+export default function FilterItem({ id, item, index }: Props) {
   const dispatch = useAppDispatch();
   const filterSetId = useAppSelector(selectFilterSetId);
   const filterSet = useAppSelector(selectFilterSet);
+  const books = useAppSelector(selectMyBooks);
   const {
     attributes,
     listeners,
@@ -56,15 +55,7 @@ export default function FilterItem({ id, books, item, index }: Props) {
   };
 
   const comboOptions = books
-    .flatMap(book => {
-      switch (item.type) {
-        case 'title':
-        case 'author':
-        case 'publisher':
-        case 'pubdate':
-          return book[item.type]?.split(',');
-      }
-    })
+    .flatMap(book => book[item.type]?.split(','))
     .filter((value, index, self): value is string => Boolean(value) && (self.findIndex(v => v === value) === index))
     .map(value => ({ label: value, value }));
 
