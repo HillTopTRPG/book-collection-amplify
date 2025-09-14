@@ -7,25 +7,25 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 type State = {
   filterSetId: string | null;
-  filterSet: FilterData[];
+  filters: FilterData[];
 };
 
 const initialState: State = {
   filterSetId: null,
-  filterSet: [],
+  filters: [],
 };
 
-export const filterSlice = createSlice({
+export const editFilterSlice = createSlice({
   name: 'filter',
   initialState,
   reducers: {
-    setFilterSet: (state, action: PayloadAction<{ id: string | null; filterSet: FilterData[]; }>) => {
+    setFilterSet: (state, action: PayloadAction<{ id: string | null; filters: FilterData[]; }>) => {
       state.filterSetId = action.payload.id;
-      state.filterSet = action.payload.filterSet;
+      state.filters = action.payload.filters;
     },
     resetFilterSet: (state) => {
       state.filterSetId = null;
-      state.filterSet = [];
+      state.filters = [];
     },
   },
 });
@@ -33,9 +33,9 @@ export const filterSlice = createSlice({
 export const {
   setFilterSet,
   resetFilterSet,
-} = filterSlice.actions;
+} = editFilterSlice.actions;
 
-export const selectFilterSetId = (state: RootState) => state.filter.filterSetId;
-export const selectFilterSet = (state: RootState) => state.filter.filterSet;
+export const selectEditFilterSetId = (state: RootState) => state.editFilter.filterSetId;
+export const selectEditFilters = (state: RootState) => state.editFilter.filters;
 
-export default filterSlice.reducer;
+export default editFilterSlice.reducer;

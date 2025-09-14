@@ -9,7 +9,7 @@ import ComboInput from '@/components/ComboInput.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
 import SortButton from '@/components/SortButton.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { selectFilterSet, selectFilterSetId, setFilterSet } from '@/store/filterSlice.ts';
+import { selectEditFilters, selectEditFilterSetId, setFilterSet } from '@/store/editFilterSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectMyBooks } from '@/store/subscriptionDataSlice.ts';
 import type { FilterData } from '@/types/filter.ts';
@@ -36,8 +36,8 @@ type Props = {
 
 export default function FilterItem({ id, item, index }: Props) {
   const dispatch = useAppDispatch();
-  const filterSetId = useAppSelector(selectFilterSetId);
-  const filterSet = useAppSelector(selectFilterSet);
+  const filterSetId = useAppSelector(selectEditFilterSetId);
+  const filters = useAppSelector(selectEditFilters);
   const books = useAppSelector(selectMyBooks);
   const {
     attributes,
@@ -61,12 +61,12 @@ export default function FilterItem({ id, item, index }: Props) {
 
   const onChange = useCallback(<Property extends keyof FilterData>(property: Property, value: FilterData[Property]) => {
     if (isNil(index)) return;
-    const newFilterSet = structuredClone(filterSet);
+    const newFilters = structuredClone(filters);
     const newItem = { ...item, [property]: value };
     if (property === 'type') newItem.value = '';
-    newFilterSet.splice(index, 1, newItem);
-    dispatch(setFilterSet({ id: filterSetId, filterSet: newFilterSet }));
-  }, [dispatch, filterSet, filterSetId, index, item]);
+    newFilters.splice(index, 1, newItem);
+    dispatch(setFilterSet({ id: filterSetId, filters: newFilters }));
+  }, [dispatch, filters, filterSetId, index, item]);
 
   const onChangeType = useCallback((value: FilterData['type']) => {
     onChange('type', value);
@@ -82,10 +82,10 @@ export default function FilterItem({ id, item, index }: Props) {
 
   const onDelete = useCallback(() => {
     if (isNil(index)) return;
-    const newFilterSet = structuredClone(filterSet);
-    newFilterSet.splice(index, 1);
-    dispatch(setFilterSet({ id: filterSetId, filterSet: newFilterSet }));
-  }, [dispatch, filterSet, filterSetId, index]);
+    const newFilters = structuredClone(filters);
+    newFilters.splice(index, 1);
+    dispatch(setFilterSet({ id: filterSetId, filters: newFilters }));
+  }, [dispatch, filters, filterSetId, index]);
 
   return (
     <div 

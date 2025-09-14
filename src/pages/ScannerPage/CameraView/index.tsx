@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 
 import Quagga from '@ericblade/quagga2';
 import { Volume2, VolumeOff } from 'lucide-react';
-import { useDispatch } from 'react-redux';
 // eslint-disable-next-line import/no-named-as-default
 import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
@@ -10,11 +9,16 @@ import { useInterval } from 'usehooks-ts';
 import se01 from '@/assets/se01.mp3';
 import { Button } from '@/components/ui/button.tsx';
 import { useToast } from '@/hooks/use-toast';
-import type { AppDispatch } from '@/store';
-import { useAppSelector } from '@/store/hooks.ts';
-import { selectFetchedBookList } from '@/store/scannerSlice.ts';
-import { fetchBookDataThunk } from '@/store/scannerThunks.ts';
-import { wait } from '@/utils/primitive.ts';
+import useFetchBookData from '@/hooks/useFetchBookData.ts';
+import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import {
+  addScannedIsbn,
+  rejectFetchBookData,
+  selectFetchedBookList,
+  selectScannedItems,
+  setFetchedBookData
+} from '@/store/scannerSlice.ts';
+import { filterMatch, wait } from '@/utils/primitive.ts';
 import { checkIsdnCode } from '@/utils/validate.ts';
 
 import CornerFrame from './CornerFrame.tsx';
@@ -25,8 +29,9 @@ type Props = {
 };
 
 export default function CameraView({ width, height }: Props) {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const { toast } = useToast();
+  const scannedItems = useAppSelector(selectScannedItems);
   const fetchedBookList = useAppSelector(selectFetchedBookList);
   const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState(fetchedBookList.length);
   const scannerRef = useRef<HTMLDivElement>(null);
@@ -41,6 +46,7 @@ export default function CameraView({ width, height }: Props) {
     volume,
     interrupt: true
   });
+  const { fetchBookData } = useFetchBookData();
 
   const setVolume = useCallback((volume: number) => {
     localStorage.volume = volume;
@@ -48,12 +54,17 @@ export default function CameraView({ width, height }: Props) {
   }, []);
 
   useEffect(() => {
-    if (lastFetchedBookListCount !== fetchedBookList.length && fetchedBookList.length > 0) {
-      // SEを再生
-      try {
-        play();
-      } catch {
-        console.error('音声再生エラー');
+    if (lastFetchedBookListCount !== fetchedBookList.length) {
+      if (fetchedBookList.length > 0) {
+        // fetch済みリストの件数が変化するたびに音を鳴らす
+        try {
+          play();
+        } catch {
+          console.error('音声再生エラー');
+        }
+      } else {
+        // 0件になったらリセットする
+        lastFetchIsbn.current = null;
       }
     }
     setLastFetchedBookListCount(fetchedBookList.length);
@@ -113,25 +124,38 @@ export default function CameraView({ width, height }: Props) {
 
       // イベントリスナーを設定
       Quagga.onDetected(async (result) => {
-        const code = result.codeResult.code;
+        const isbn = result.codeResult.code;
 
-        if (!code || !checkIsdnCode(code)) {
+        if (!isbn || !checkIsdnCode(isbn)) {
           return;
         }
 
-        if (lastFetchIsbn.current === code) return;
-        lastFetchIsbn.current = code;
+        if (lastFetchIsbn.current === isbn) return;
+        lastFetchIsbn.current = isbn;
 
-        console.log('バーコード検出:', code);
+        console.log('バーコード検出:', isbn);
 
         // トーストを表示
         toast({
           title: 'ISBN検出',
-          description: `${code}`,
+          description: `${isbn}`,
           duration: 2000,
         });
 
-        dispatch(fetchBookDataThunk(code));
+        // 既に存在する場合はスキップ
+        if (scannedItems.some(filterMatch({ isbn }))) return;
+
+        dispatch(addScannedIsbn(isbn));
+
+        setTimeout(async () => {
+          const { bookDetail, filterSets } = await fetchBookData(isbn);
+          if (!filterSets.length) {
+            console.log('書籍データ取得失敗');
+            dispatch(rejectFetchBookData(isbn));
+            return;
+          }
+          dispatch(setFetchedBookData({ isbn, bookDetail, filterSets }));
+        });
       });
       setError(null);
       setIsScanning(true);
@@ -140,7 +164,7 @@ export default function CameraView({ width, height }: Props) {
       setError(`スキャナーの開始に失敗しました: ${error}`);
       setIsScanning(false);
     }
-  }, [dispatch, toast]);
+  }, [dispatch, fetchBookData, scannedItems, toast]);
 
   const startCamera = useCallback(async () => {
     setIsFirst(false);

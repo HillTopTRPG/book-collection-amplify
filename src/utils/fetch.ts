@@ -1,5 +1,7 @@
 import * as _ from 'es-toolkit/compat';
 
+import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+
 import type { BookData } from '../types/book.ts';
 
 // 楽天 Books APIの認証情報（ローカル環境では .env ファイルから取得）
@@ -107,4 +109,30 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
         cover: item.mediumImageUrl ?? null,
       } as const satisfies BookData];
     });
+};
+
+export const fetchBooksByFilterSet = async (filterSet: FilterSet) => {
+  const option: RakutenApiOption = {};
+  filterSet.filters.forEach(({ type, value }) => {
+    if (!value) return;
+    let property: keyof RakutenApiOption;
+    switch (type) {
+      case 'title':
+      case 'author':
+        property = type;
+        break;
+      case 'publisher':
+        property = 'publisherName';
+        break;
+      default:
+        return;
+    }
+    if (option[property]) return;
+    option[property] = value;
+  });
+  if (!option.sort) {
+    const filter = filterSet.filters.find((filter) => filter.type === 'pubdate');
+    option.sort = filter?.sortOrder === 'desc' ? '+releaseDate' : '-releaseDate';
+  }
+  return fetchRakutenBooksApi(option);
 };

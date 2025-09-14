@@ -1,16 +1,20 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import bookDetailReducer from './bookDetailSlice';
-import filterReducer from './filterSlice';
+import bookDetailDrawerReducer from './bookDetailDrawerSlice.ts';
+import editFilterReducer from './editFilterSlice.ts';
+import fetchResultReducer from './fetchResultSlice';
+import filterDetailDrawerReducer from './filterDetailDrawerSlice.ts';
 import scannerReducer from './scannerSlice';
 import subscriptionDataReducer from './subscriptionDataSlice';
 
 export const store = configureStore({
   reducer: {
     scanner: scannerReducer,
-    filter: filterReducer,
+    editFilter: editFilterReducer,
     subscriptionData: subscriptionDataReducer,
-    bookDetail: bookDetailReducer,
+    bookDetailDrawer: bookDetailDrawerReducer,
+    filterDetailDrawer: filterDetailDrawerReducer,
+    fetchResult: fetchResultReducer,
   },
   // 開発時のミドルウェア設定
   middleware: (getDefaultMiddleware) =>

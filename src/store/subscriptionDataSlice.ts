@@ -1,6 +1,8 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
 
+import type { BookData } from '@/types/book.ts';
+import type { FilterData } from '@/types/filter.ts';
 import { filterArrayByKey } from '@/utils/primitive.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
@@ -11,10 +13,22 @@ const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
 });
 
+export type Collection = Omit<Schema['Collection']['type'], 'meta'> & {
+  meta: {
+    overwrite?: Partial<BookData>;
+    isWant?: boolean;
+  }
+};
+
+export type FilterSet = Omit<Schema['FilterSet']['type'], 'filters' | 'meta'> & {
+  filters: FilterData[];
+  meta: unknown;
+};
+
 type State = {
-  collections: Array<Schema['Collection']['type']>;
+  collections: Array<Collection>;
   books: Array<Schema['Book']['type']>;
-  filterSets: Array<Schema['FilterSet']['type']>;
+  filterSets: Array<FilterSet>;
   createFilterSet: Parameters<typeof userPoolClient.models.FilterSet.create>[0] | null;
 };
 

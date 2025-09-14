@@ -24,10 +24,10 @@ import { CloudUpload, FunnelPlus } from 'lucide-react';
 
 import ComboBox from '@/components/ComboBox.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { Switch } from '@/components/ui/switch.tsx';
-import { resetFilterSet, selectFilterSet, selectFilterSetId, setFilterSet } from '@/store/filterSlice.ts';
+import { resetFilterSet, selectEditFilters, selectEditFilterSetId, setFilterSet } from '@/store/editFilterSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectFilterSets, setCreateFilterSet } from '@/store/subscriptionDataSlice.ts';
+import { filterMatch } from '@/utils/primitive.ts';
 
 import FilterItem from './FilterItem.tsx';
 
@@ -40,16 +40,11 @@ const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
 });
 
-type Props = {
-  isAddSearch: boolean;
-  setIsAddSearch: (flg: boolean) => void;
-};
-
-export default function FilterUI({ isAddSearch, setIsAddSearch }: Props) {
+export default function FilterUI() {
   const dispatch = useAppDispatch();
   const dbFilters = useAppSelector(selectFilterSets);
-  const filterSetId = useAppSelector(selectFilterSetId);
-  const filterSet = useAppSelector(selectFilterSet);
+  const editFilterSetId = useAppSelector(selectEditFilterSetId);
+  const editFilters = useAppSelector(selectEditFilters);
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -65,54 +60,54 @@ export default function FilterUI({ isAddSearch, setIsAddSearch }: Props) {
     const { active, over } = event;
 
     if (active.id !== over?.id) {
-      const oldIndex = filterSet.findIndex((_, idx) => `filter-${idx}` === active.id);
-      const newIndex = filterSet.findIndex((_, idx) => `filter-${idx}` === over?.id);
+      const oldIndex = editFilters.findIndex((_, idx) => `filter-${idx}` === active.id);
+      const newIndex = editFilters.findIndex((_, idx) => `filter-${idx}` === over?.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        const newFilterSet = arrayMove(filterSet, oldIndex, newIndex);
-        dispatch(setFilterSet({ id: filterSetId, filterSet: newFilterSet }));
+        const newFilterSet = arrayMove(editFilters, oldIndex, newIndex);
+        dispatch(setFilterSet({ id: editFilterSetId, filters: newFilterSet }));
       }
     }
 
     setActiveId(null);
-  }, [dispatch, filterSet, filterSetId]);
+  }, [dispatch, editFilters, editFilterSetId]);
 
-  const activeItem = activeId ? filterSet[parseInt(activeId.replace('filter-', ''))] : null;
+  const activeItem = activeId ? editFilters[parseInt(activeId.replace('filter-', ''))] : null;
 
   const onAddFilter = useCallback(() => {
-    const newFilterSet = structuredClone(filterSet);
+    const newFilterSet = structuredClone(editFilters);
     newFilterSet.push({ type: 'title', value: '', sortOrder: 'asc' });
-    dispatch(setFilterSet({ id: filterSetId, filterSet: newFilterSet }));
-  }, [dispatch, filterSet, filterSetId]);
+    dispatch(setFilterSet({ id: editFilterSetId, filters: newFilterSet }));
+  }, [dispatch, editFilters, editFilterSetId]);
 
   const onSaveFilter = useCallback(() => {
-    if (filterSetId) {
+    if (editFilterSetId) {
       // 更新
       userPoolClient.models.FilterSet.update({
-        id: filterSetId,
-        filters: JSON.stringify(filterSet),
+        id: editFilterSetId,
+        filters: JSON.stringify(editFilters),
       });
     } else {
       const nextFilterSetName = `Filter${dbFilters.length + 1}`;
       const newFilterSet = {
         name: nextFilterSetName,
-        filters: JSON.stringify(filterSet),
+        filters: JSON.stringify(editFilters),
         meta: '',
       } as const satisfies Parameters<typeof userPoolClient.models.FilterSet.create>[0];
       dispatch(setCreateFilterSet(newFilterSet));
     }
-  }, [dbFilters.length, dispatch, filterSet, filterSetId]);
+  }, [dbFilters.length, dispatch, editFilters, editFilterSetId]);
 
   const onDeleteFilter = useCallback(() => {
-    if (!filterSetId) return;
-    userPoolClient.models.FilterSet.delete({ id: filterSetId });
+    if (!editFilterSetId) return;
+    userPoolClient.models.FilterSet.delete({ id: editFilterSetId });
     dispatch(resetFilterSet());
-  }, [dispatch, filterSetId]);
+  }, [dispatch, editFilterSetId]);
 
   const onChangeFilterSetId = useCallback((id: string) => {
-    const filter = dbFilters.find(filter => filter.id === id) ?? null;
-    if (filter) {
-      dispatch(setFilterSet({ id, filterSet: JSON.parse(filter.filters) }));
+    const filterSet = dbFilters.find(filterMatch({ id }));
+    if (filterSet) {
+      dispatch(setFilterSet({ id, filters: filterSet.filters }));
     } else {
       dispatch(resetFilterSet());
     }
@@ -135,7 +130,7 @@ export default function FilterUI({ isAddSearch, setIsAddSearch }: Props) {
               ...dbFilters.map(filter => ({ value: filter.id, label: filter.name ?? '無名' })),
               { value: '', label: '新規作成' },
             ]}
-            value={filterSetId ?? ''}
+            value={editFilterSetId ?? ''}
             setValue={onChangeFilterSetId}
           />
           <Button onClick={onSaveFilter}>
@@ -148,10 +143,10 @@ export default function FilterUI({ isAddSearch, setIsAddSearch }: Props) {
           </Button>
         </div>
         <SortableContext
-          items={filterSet.map((_, idx) => `filter-${idx}`)}
+          items={editFilters.map((_, idx) => `filter-${idx}`)}
           strategy={verticalListSortingStrategy}
         >
-          {filterSet.map((item, index) => (
+          {editFilters.map((item, index) => (
             <FilterItem
               key={`filter-${index}`}
               id={`filter-${index}`}
@@ -164,10 +159,6 @@ export default function FilterUI({ isAddSearch, setIsAddSearch }: Props) {
             <FunnelPlus />
             条件追加
           </Button>
-          <div className="flex items-center flex-1 gap-2">
-            <Switch id="airplane-mode" checked={isAddSearch} onCheckedChange={setIsAddSearch} />
-            <label htmlFor="airplane-mode">未所持検索</label>
-          </div>
         </div>
       </div>
 

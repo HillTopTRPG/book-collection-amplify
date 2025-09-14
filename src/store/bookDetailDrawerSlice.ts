@@ -1,5 +1,6 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 
+import { selectFetchedBookList } from '@/store/scannerSlice.ts';
 import { filterMatch } from '@/utils/primitive.ts';
 
 import { selectBooks } from './subscriptionDataSlice';
@@ -15,8 +16,8 @@ const initialState: State = {
   selectedBookIsbn: null,
 };
 
-export const bookDetailSlice = createSlice({
-  name: 'bookDetail',
+export const bookDetailDrawerSlice = createSlice({
+  name: 'scannerPageDrawer',
   initialState,
   reducers: {
     openDrawer: (state, action: PayloadAction<string>) => {
@@ -28,15 +29,15 @@ export const bookDetailSlice = createSlice({
   },
 });
 
-export const { openDrawer, closeDrawer } = bookDetailSlice.actions;
+export const { openDrawer, closeDrawer } = bookDetailDrawerSlice.actions;
 
-export const selectSelectedBookIsbn = (state: RootState) => state.bookDetail.selectedBookIsbn;
+const selectSelectedBookIsbn = (state: RootState) => state.bookDetailDrawer.selectedBookIsbn;
 export const selectSelectedBook = createSelector(
-  [selectBooks, selectSelectedBookIsbn],
-  (books, isbn) => {
+  [selectBooks, selectFetchedBookList, selectSelectedBookIsbn],
+  (dbBooks, fetchedBooks, isbn) => {
     if (!isbn) return null;
-    return books.find(filterMatch({ isbn })) ?? null;
+    return dbBooks.find(filterMatch({ isbn })) ?? fetchedBooks.find(filterMatch({ isbn }))?.bookDetail?.book ?? null;
   }
 );
 
-export default bookDetailSlice.reducer;
+export default bookDetailDrawerSlice.reducer;

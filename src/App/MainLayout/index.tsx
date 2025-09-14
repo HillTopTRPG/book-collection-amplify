@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
 import { Fragment } from 'react';
 
-import BookDetailDrawer from '@/pages/CollectionPage/BookDetailDrawer.tsx';
+import BookDetailDrawer from '@/components/Drawer/BookDetailDrawer';
+import FilterDetailDrawer from '@/components/Drawer/FilterDetailDrawer';
 
 import BottomNavigation from './BottomNavigation';
 import MenuBar from './MenuBar';
@@ -26,6 +27,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
 
       {/* ドロワー */}
       <BookDetailDrawer />
+      <FilterDetailDrawer />
     </Fragment>
   );
 }

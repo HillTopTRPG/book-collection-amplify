@@ -29,7 +29,7 @@ const schema = a.schema({
   Collection: a
     .model({
       isbn: a.string().required(),
-      meta: a.string(),
+      meta: a.string().required(),
       memo: a.string(),
       owner: a.string(),
     })
@@ -38,7 +38,7 @@ const schema = a.schema({
     .model({
       name: a.string().required(),
       filters: a.string().required(),
-      meta: a.string(),
+      meta: a.string().required(),
       owner: a.string(),
     })
     .authorization((allow) => [allow.owner()]),
