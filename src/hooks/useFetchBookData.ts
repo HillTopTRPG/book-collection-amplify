@@ -28,6 +28,7 @@ export default function useFetchBookData() {
   const dbFilterSets = useAppSelector(selectFilterSets);
 
   const fetchBookData = useCallback(async (isbn: string) => {
+    console.log('fetchBookData', isbn);
     const bookData = await _fetchBookData(isbn);
     const bookDetail = bookDataToBookDetail(collections, bookData);
     const filterSets: FilterSet[] = bookDataToFilterSets(dbFilterSets, bookData);

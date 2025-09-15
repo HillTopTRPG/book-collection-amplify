@@ -3,6 +3,7 @@ import { Fragment, useCallback, useState } from 'react';
 import { Button } from '@aws-amplify/ui-react';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { generateClient } from 'aws-amplify/data';
+import { keys } from 'es-toolkit/compat';
 import { useDispatch } from 'react-redux';
 
 import BookCard from '@/components/Card/BookCard';
@@ -10,7 +11,7 @@ import { Separator } from '@/components/ui/separator.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import type { AppDispatch } from '@/store';
 import { useAppSelector } from '@/store/hooks.ts';
-import { clearScannedItems, selectScannedItems } from '@/store/scannerSlice.ts';
+import { clearScannedItems, selectScannedItemMap } from '@/store/scannerSlice.ts';
 import { wait } from '@/utils/primitive.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
@@ -21,12 +22,12 @@ const userPoolClient = generateClient<Schema>({
 
 export default function ScannedResults() {
   const dispatch = useDispatch<AppDispatch>();
-  const scannedDataList = useAppSelector(selectScannedItems);
+  const scannedItemMap = useAppSelector(selectScannedItemMap);
   const { toast } = useToast();
   const [registing, setRegisting] = useState(false);
 
-  const clearDisable = !scannedDataList.length;
-  const registerDisable = clearDisable || scannedDataList.some(({ bookDetail }) => !bookDetail) || registing;
+  const clearDisable = !keys(scannedItemMap).length;
+  const registerDisable = clearDisable || keys(scannedItemMap).some((isbn) => !scannedItemMap[isbn].bookDetail) || registing;
 
   const onClear = useCallback(() => {
     dispatch(clearScannedItems());
@@ -34,10 +35,11 @@ export default function ScannedResults() {
 
   const onRegister = useCallback(async () => {
     setRegisting(true);
-    for (const scannedItem of scannedDataList) {
+    for (const isbn of keys(scannedItemMap)) {
+      const scannedItem = scannedItemMap[isbn];
       if (!scannedItem.bookDetail?.book) return;
       const isHave = scannedItem.bookDetail.isHave;
-      const { isbn, title } = scannedItem.bookDetail.book;
+      const { title } = scannedItem.bookDetail.book;
 
       // 未登録の蔵書を登録する
       if (!isHave) {
@@ -66,11 +68,11 @@ export default function ScannedResults() {
     }
     onClear();
     setRegisting(false);
-  }, [onClear, scannedDataList, toast]);
+  }, [onClear, scannedItemMap, toast]);
 
   return (
     <div className="flex-1 flex flex-col gap-3 w-full bg-background rounded-lg shadow-lg p-2">
-      {scannedDataList.length > 0 && (
+      {keys(scannedItemMap).length > 0 && (
         <Fragment>
           <div className="flex gap-3 justify-end">
             <Button variation="primary" className="rounded-full flex-1" onClick={onRegister} disabled={registerDisable}>
@@ -84,13 +86,13 @@ export default function ScannedResults() {
         </Fragment>
       )}
       <ScrollArea className="w-full max-h-max px-1">
-        {scannedDataList.map(({ bookDetail }, index) => (
+        {keys(scannedItemMap).map((isbn, index) => (
           <Fragment key={index}>
             {index > 0 && <Separator className="my-2" />}
-            <BookCard bookDetail={bookDetail} />
+            <BookCard bookDetail={scannedItemMap[isbn].bookDetail} />
           </Fragment>
         ))}
-        {!scannedDataList.length && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}
+        {!keys(scannedItemMap).length && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}
       </ScrollArea>
     </div>
   );

@@ -15,10 +15,10 @@ import {
   addScannedIsbn,
   rejectFetchBookData,
   selectFetchedBookList,
-  selectScannedItems,
+  selectScannedItemMap,
   setFetchedBookData
 } from '@/store/scannerSlice.ts';
-import { filterMatch, wait } from '@/utils/primitive.ts';
+import { wait } from '@/utils/primitive.ts';
 import { checkIsdnCode } from '@/utils/validate.ts';
 
 import CornerFrame from './CornerFrame.tsx';
@@ -31,7 +31,7 @@ type Props = {
 export default function CameraView({ width, height }: Props) {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
-  const scannedItems = useAppSelector(selectScannedItems);
+  const scannedItemMap = useAppSelector(selectScannedItemMap);
   const fetchedBookList = useAppSelector(selectFetchedBookList);
   const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState(fetchedBookList.length);
   const scannerRef = useRef<HTMLDivElement>(null);
@@ -143,7 +143,7 @@ export default function CameraView({ width, height }: Props) {
         });
 
         // 既に存在する場合はスキップ
-        if (scannedItems.some(filterMatch({ isbn }))) return;
+        if (scannedItemMap[isbn]) return;
 
         dispatch(addScannedIsbn(isbn));
 
@@ -154,7 +154,7 @@ export default function CameraView({ width, height }: Props) {
             dispatch(rejectFetchBookData(isbn));
             return;
           }
-          dispatch(setFetchedBookData({ isbn, bookDetail, filterSets }));
+          dispatch(setFetchedBookData({ [isbn]: { isbn, bookDetail, filterSets } }));
         });
       });
       setError(null);
@@ -164,7 +164,7 @@ export default function CameraView({ width, height }: Props) {
       setError(`スキャナーの開始に失敗しました: ${error}`);
       setIsScanning(false);
     }
-  }, [dispatch, fetchBookData, scannedItems, toast]);
+  }, [dispatch, fetchBookData, scannedItemMap, toast]);
 
   const startCamera = useCallback(async () => {
     setIsFirst(false);

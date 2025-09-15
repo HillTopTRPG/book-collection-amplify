@@ -9,7 +9,9 @@
     "lint": "eslint . && tsc",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
-    "prepare": "husky"
+    "prepare": "husky",
+    "sandbox": "npx ampx sandbox",
+    "sandbox:delete": "npx ampx sandbox delete"
   },
   "dependencies": {
     "@aws-amplify/data-schema-types": "^1.2.0",

@@ -11,6 +11,8 @@ type Props = {
 export default function DrawerContent({ filterSet, bookDetails }: Props) {
   if (!filterSet) return null;
 
+  console.log(JSON.stringify(bookDetails, null, 2));
+
   return (
     <div className="space-y-4">
       <FilterCard filterSet={filterSet} />
