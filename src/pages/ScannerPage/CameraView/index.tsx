@@ -148,6 +148,7 @@ export default function CameraView({ width, height }: Props) {
         dispatch(addScannedIsbn(isbn));
 
         setTimeout(async () => {
+          console.log('000');
           const { bookDetail, filterSets } = await fetchBookData(isbn);
           if (!filterSets.length) {
             console.log('書籍データ取得失敗');

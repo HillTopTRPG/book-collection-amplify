@@ -4,6 +4,7 @@ import { Amplify } from 'aws-amplify';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import config from '$/amplify_outputs';
+import QueueProcessLayer from '@/App/QueueProcessLayer.tsx';
 import { Toaster } from '@/components/ui/toaster';
 import CollectionPage from '@/pages/CollectionPage';
 import Home from '@/pages/Home';
@@ -22,18 +23,20 @@ export default function App() {
       <Authenticator.Provider>
         <AuthWrapper>
           <LoginPage>
-            <SubscribeLayer>
-              <Router>
-                <MainLayout>
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/scanner" element={<ScannerPage />} />
-                    <Route path="/collection" element={<CollectionPage />} />
-                  </Routes>
-                  <Toaster />
-                </MainLayout>
-              </Router>
-            </SubscribeLayer>
+            <QueueProcessLayer>
+              <SubscribeLayer>
+                <Router>
+                  <MainLayout>
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/scanner" element={<ScannerPage />} />
+                      <Route path="/collection" element={<CollectionPage />} />
+                    </Routes>
+                    <Toaster />
+                  </MainLayout>
+                </Router>
+              </SubscribeLayer>
+            </QueueProcessLayer>
           </LoginPage>
         </AuthWrapper>
       </Authenticator.Provider>

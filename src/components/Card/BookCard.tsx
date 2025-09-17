@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 
+import BookImage from '@/components/BookImage.tsx';
 import CardFrame from '@/components/Card/CardFrame.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { openDrawer } from '@/store/bookDetailDrawerSlice.ts';
@@ -25,7 +26,7 @@ export default function BookCard({ bookDetail }: Props) {
       {
         !bookDetail?.book ? <Spinner variant="bars" /> : (
           <>
-            <img src={bookDetail.book.cover || `https://ndlsearch.ndl.go.jp/thumbnail/${bookDetail.book.isbn}.jpg`} alt="表紙" className="w-[50px] h-[75px] rounded border" style={{ objectFit: 'cover' }} />
+            <BookImage isbn={isbn} defaultUrl={bookDetail?.book?.cover} />
             <div className="flex-1">
               <h5 className="text-[14px] mb-1">{bookDetail.book.title}</h5>
               <h5 className="text-[13px] mb-1">{bookDetail.book.subtitle}</h5>

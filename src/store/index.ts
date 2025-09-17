@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import bookDetailDrawerReducer from './bookDetailDrawerSlice.ts';
 import editFilterReducer from './editFilterSlice.ts';
+import fetchApiQueueReducer from './fetchApiQueueSlice';
 import fetchResultReducer from './fetchResultSlice';
 import filterDetailDrawerReducer from './filterDetailDrawerSlice.ts';
 import scannerReducer from './scannerSlice';
@@ -15,6 +16,7 @@ export const store = configureStore({
     bookDetailDrawer: bookDetailDrawerReducer,
     filterDetailDrawer: filterDetailDrawerReducer,
     fetchResult: fetchResultReducer,
+    fetchApiQueue: fetchApiQueueReducer,
   },
   // 開発時のミドルウェア設定
   middleware: (getDefaultMiddleware) =>
@@ -23,7 +25,11 @@ export const store = configureStore({
         // MediaStreamは非シリアル化可能なので除外
         ignoredActions: [],
         ignoredActionsPaths: ['payload.stream'],
-        ignoredPaths: ['scanner.stream'],
+        ignoredPaths: [
+          'scanner.stream',
+          'fetchApiQueue.bookImageQueue',
+          'fetchApiQueue.bookImageResults'
+        ],
       },
     }),
 });
