@@ -29,4 +29,4 @@ amplify_outputs*
 amplifyconfiguration*
 
 .env
-.tmp
+tmp

@@ -36,7 +36,7 @@ export default function IsbnForm() {
   });
 
   const onSubmit = useCallback((data: z.infer<typeof FormSchema>)=> {
-    const isbn = data.isbn;
+    const isbn = data.isbn.replaceAll('-', '');
 
     // 既に存在する場合はスキップ
     if (scannedItemMap[isbn]) {
@@ -56,14 +56,12 @@ export default function IsbnForm() {
     form.setValue('isbn', '');
 
     setTimeout(async () => {
-      console.log('001');
       const { bookDetail, filterSets } = await fetchBookData(isbn);
       if (!filterSets.length) {
         console.log('書籍データ取得失敗');
         dispatch(rejectFetchBookData(isbn));
         return;
       }
-      console.log(JSON.stringify(bookDetail, null, 2));
       dispatch(setFetchedBookData({ [isbn]: { isbn, bookDetail, filterSets } }));
     });
   }, [dispatch, fetchBookData, form, scannedItemMap, toast]);

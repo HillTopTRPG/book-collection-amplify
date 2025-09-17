@@ -1,16 +1,19 @@
 type Props = {
   value: string;
-  subStr: string;
+  subStr: string | null | undefined;
   className?: string;
   subClassName?: string;
 }
 
 export default function HighLightText({ value, subStr, className, subClassName }: Props) {
+  if (!subStr) return value;
+
   const sp = value.split(subStr);
   if (sp.length <= 1) {
     if (!className) return value;
     return <span className={className}>{ value }</span>;
   }
+
   return (
     <span className={className}>
       {sp[0]}

@@ -16,11 +16,11 @@ const _fetchBookData = async (isbn: string): Promise<BookData> => {
   if (ndlBooksApiResult) {
     return {
       isbn,
-      title: ndlBooksApiResult?.title,
+      title: ndlBooksApiResult.title,
       subtitle: null,
-      author: ndlBooksApiResult?.creator.join(', '),
-      publisher: ndlBooksApiResult?.publisher,
-      pubdate: ndlBooksApiResult?.date,
+      author: ndlBooksApiResult.creator.join(', '),
+      publisher: ndlBooksApiResult.publisher,
+      pubdate: ndlBooksApiResult.date,
       cover: `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`,
     } as const satisfies BookData;
   }

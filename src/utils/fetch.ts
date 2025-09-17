@@ -1,9 +1,17 @@
 import * as _ from 'es-toolkit/compat';
 import { keys } from 'es-toolkit/compat';
 
+import ndc8Map from '@/assets/ndc8.json';
+import ndc9Map from '@/assets/ndc9.json';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import { getKeys } from '@/utils/type.ts';
 
 import type { BookData } from '../types/book.ts';
+
+const NDC_MAPS = {
+  ndc8: ndc8Map,
+  ndc9: ndc9Map,
+} as const;
 
 // 楽天 Books APIの認証情報（ローカル環境では .env ファイルから取得）
 const RAKUTEN_API_APPLICATION_ID: string = import.meta.env.VITE_RAKUTEN_API_APPLICATION_ID;
@@ -215,8 +223,26 @@ const getNdlBookFromDocument = (recordElm: Element) => {
   const ndc = Array.from(resourceElm?.querySelectorAll('subject') ?? []).flatMap(subjectElm => {
     const resource = subjectElm.getAttribute('rdf:resource') ?? '';
     const sp = resource.split('/');
+    const rawNdcType = sp.at(-2);
+    const ndcCode = sp.at(-1);
 
-    return sp.at(-2)?.startsWith('ndc') ? [`${sp.at(-2)}/${sp.at(-1)}`] : [];
+    if (!rawNdcType?.startsWith('ndc') || !ndcCode) return [];
+
+    const ndcType = rawNdcType === 'ndc8' ? 'ndc8' : 'ndc9';
+
+    const dataMap = NDC_MAPS[ndcType];
+    const ndc = `${ndcType}:${ndcCode}`;
+    let label = getKeys(dataMap).some(v => v === ndc) ? dataMap[ndc as keyof typeof dataMap] : null;
+
+    if (!label && rawNdcType !== ndcType) {
+      for (let i = 1; i < ndcCode.length; i++) {
+        const ndc = `${ndcType}:${ndcCode.substring(0, ndcCode.length - i)}`;
+        label = getKeys(dataMap).some(v => v === ndc) ? dataMap[ndc as keyof typeof dataMap] : null;
+        if (label) break;
+      }
+    }
+
+    return label ? [label] : [`${rawNdcType}:${ndcCode}`];
   }).at(0) ?? null;
 
   return {
@@ -225,7 +251,7 @@ const getNdlBookFromDocument = (recordElm: Element) => {
 };
 
 export const fetchNdlSearch = async (options: NdlOptions) => {
-  const BASE_URL = 'https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&version=1.2&recordPacking=xml&recordSchema=dcndl&startRecord=1&maximumRecords=100&query=';
+  const BASE_URL = 'https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&version=1.2&recordPacking=xml&recordSchema=dcndl&startRecord=1&maximumRecords=200&query=';
   const query = getNdlQuery(options);
   console.log(query);
   const response = await fetch(`${BASE_URL}${encodeURIComponent(query)}`);

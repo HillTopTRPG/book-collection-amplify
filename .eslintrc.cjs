@@ -9,7 +9,7 @@ module.exports = {
     'plugin:import/recommended',
     'plugin:import/typescript',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs', 'amplify', 'vite.config.ts', 'tailwind.config.js', 'postcss.config.js'],
+  ignorePatterns: ['dist', '.eslintrc.cjs', 'amplify', 'vite.config.ts', 'tailwind.config.js', 'postcss.config.js', 'scripts'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: './tsconfig.json'

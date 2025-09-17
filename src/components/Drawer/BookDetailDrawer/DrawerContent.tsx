@@ -1,13 +1,13 @@
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 
 import BookCard from '@/components/Card/BookCard.tsx';
 import NdlCard from '@/components/Card/NdlCard';
 import NdlOptionsForm from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
-import SearchTagsSelect from '@/components/Drawer/BookDetailDrawer/SearchTagsSelect.tsx';
+import SearchConditionsForm from '@/components/Drawer/BookDetailDrawer/SearchConditionsForm.tsx';
+import { Separator } from '@/components/ui/separator.tsx';
 import type { BookData } from '@/types/book.ts';
 import type { NdlOptions, NdlResponse } from '@/utils/fetch.ts';
 import { fetchNdlSearch } from '@/utils/fetch.ts';
-import { getKeys } from '@/utils/type.ts';
 
 export type SearchTags = {
   title?: string[];
@@ -17,23 +17,25 @@ export type SearchTags = {
   volumeTitle?: string[];
 };
 
-const getResultByTags = (ndlResponse: NdlResponse[] | null, tags: SearchTags): Partial<NdlResponse>[] => ndlResponse?.filter(r => {
-  const tagTypes = getKeys(tags);
+const getResultByTags = (ndlResponse: NdlResponse[] | null, anywhere: string): Partial<NdlResponse>[] => ndlResponse?.filter(r => {
+  if (anywhere && !JSON.stringify(r).includes(anywhere)) return false;
+  return true;
 
-  return tagTypes.every(tagType => {
-    const resultValue = r[tagType];
-    if (!resultValue) return false;
-    switch (tagType) {
-      case 'title':
-        return tags[tagType]?.some(tv => resultValue?.includes(tv));
-      case 'edition':
-      case 'volume':
-      case 'volumeTitle':
-        return tags[tagType]?.some(tv => resultValue.includes(tv));
-      case 'seriesTitle':
-        return (r.seriesTitle?.split(';').map(v => v.trim()) ?? []).some(rv => tags[tagType]?.some(v => rv.includes(v)));
-    }
-  });
+  // const tagTypes = getKeys(tags);
+  // return tagTypes.every(tagType => {
+  //   const resultValue = r[tagType];
+  //   if (!resultValue) return false;
+  //   switch (tagType) {
+  //     case 'title':
+  //       return tags[tagType]?.some(tv => resultValue?.includes(tv));
+  //     case 'edition':
+  //     case 'volume':
+  //     case 'volumeTitle':
+  //       return tags[tagType]?.some(tv => resultValue.includes(tv));
+  //     case 'seriesTitle':
+  //       return (r.seriesTitle?.split(';').map(v => v.trim()) ?? []).some(rv => tags[tagType]?.some(v => rv.includes(v)));
+  //   }
+  // });
 }) ?? [];
 
 type Props = {
@@ -44,22 +46,23 @@ export default function DrawerContent({ book }: Props) {
   const [initState, setInitState] = useState<'yet' | 'ready' | 'done'>('yet');
   const [ndlResponse, setNdlResponse] = useState<NdlResponse[]>([]);
   const [ndlOptions, setNdlOptions] = useState<NdlOptions>({});
-  const [searchTags, setSearchTags] = useState<SearchTags>({});
+  // const [searchTags, setSearchTags] = useState<SearchTags>({});
   const [filteredNdl, setFilteredNdl] = useState<Partial<NdlResponse>[]>([]);
   const bufferNdlResult = useRef<NdlResponse | null>(null);
+  const [anywhere, setAnywhere] = useState('');
 
-  const switchSearchTags = useCallback((tagType: keyof SearchTags, value: string) => {
-    const next = structuredClone(searchTags);
-    const idx = next[tagType]?.findIndex(v => v === value) ?? -1;
-    if (idx < 0) {
-      if (!next[tagType]) next[tagType] = [];
-      next[tagType].push(value);
-    } else {
-      next[tagType]?.splice(idx, 1);
-      if (!next[tagType]?.length) delete next[tagType];
-    }
-    setSearchTags(next);
-  }, [searchTags]);
+  // const switchSearchTags = useCallback((tagType: keyof SearchTags, value: string) => {
+  //   const next = structuredClone(searchTags);
+  //   const idx = next[tagType]?.findIndex(v => v === value) ?? -1;
+  //   if (idx < 0) {
+  //     if (!next[tagType]) next[tagType] = [];
+  //     next[tagType].push(value);
+  //   } else {
+  //     next[tagType]?.splice(idx, 1);
+  //     if (!next[tagType]?.length) delete next[tagType];
+  //   }
+  //   setSearchTags(next);
+  // }, [searchTags]);
 
   // book が変わるたびに APIの条件をリセット
   useEffect(() => {
@@ -88,10 +91,10 @@ export default function DrawerContent({ book }: Props) {
 
   // APIを叩き終わったり、検索条件が変わったら表示する内容を反映する
   useEffect(() => {
-    const filteredNdl = getResultByTags(ndlResponse, searchTags);
+    const filteredNdl = getResultByTags(ndlResponse, anywhere);
 
     setFilteredNdl(filteredNdl);
-  }, [ndlResponse, searchTags]);
+  }, [ndlResponse, anywhere]);
 
   return (
     <Fragment>
@@ -114,11 +117,16 @@ export default function DrawerContent({ book }: Props) {
               });
             }}
           />
-          <SearchTagsSelect {...{ ndlResponse, searchTags, switchSearchTags }} />
+          <SearchConditionsForm {...{ ndlResponse, anywhere, setAnywhere }} />
+          {/*<SearchTagsSelect {...{ ndlResponse, searchTags, switchSearchTags }} />*/}
         </>
       ) : null}
+      <Separator className="my-2" />
+      <span>{filteredNdl.length}件</span>
       <div className="flex flex-col justify-center">
-        {filteredNdl.map((ndl, idx) => <NdlCard ndl={ndl} options={ndlOptions} key={idx} />)}
+        {filteredNdl.map((ndl, idx) => (
+          <NdlCard key={idx} ndl={ndl} options={ndlOptions} anywhere={anywhere} />
+        ))}
       </div>
     </Fragment>
   );

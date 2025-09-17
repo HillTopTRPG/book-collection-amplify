@@ -158,7 +158,7 @@ export default function ComboInput({ label, className, list, value, setValue }: 
                     {item.label}
                   </CommandItem>
                 ))}
-                {(inputValue.length > 0 || list.length > 0) && (
+                {(inputValue.length > 0) && (
                   <CommandItem
                     key="clear-value"
                     value="clear-value"
