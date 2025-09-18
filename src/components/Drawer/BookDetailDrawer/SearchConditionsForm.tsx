@@ -1,11 +1,16 @@
 import { useMemo } from 'react';
 
+import { useDispatch } from 'react-redux';
+
 import ComboInput from '@/components/ComboInput.tsx';
-import type { NdlResponse } from '@/utils/fetch.ts';
+import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import { updateFetchedFilterAnywhere } from '@/store/scannerSlice.ts';
+import type { BookData } from '@/types/book.ts';
+import type { PickRequired } from '@/utils/type.ts';
 
-const convert = (v: string | null) => v?.trim().replace(/^[0-9()[\]a-zA-Z-.]+$/, '').replace(/^[0-9[(. ]+/, '').replace(/[0-9.)\] ]+$/, '').trim() ?? '';
+const convert = (v: string | null | undefined) => v?.trim().replace(/^[0-9()[\]a-zA-Z-.]+$/, '').replace(/^[0-9[(. ]+/, '').replace(/[0-9.)\] ]+$/, '').trim() ?? '';
 
-const setAllTag = (acc: string[], cur: NdlResponse, property: keyof Pick<NdlResponse, 'title' | 'volume' | 'volumeTitle' | 'edition'>) => {
+const setAllTag = (acc: string[], cur: BookData, property: keyof Pick<BookData, 'title' | 'volume' | 'volumeTitle' | 'edition'>) => {
   const value = convert(cur[property]);
   if (value && !acc.some(v => v === value)) {
     acc.push(value);
@@ -13,18 +18,20 @@ const setAllTag = (acc: string[], cur: NdlResponse, property: keyof Pick<NdlResp
 };
 
 type Props = {
-  ndlResponse: NdlResponse[];
-  anywhere: string;
-  setAnywhere: (value: string) => void;
+  scannedItemMapValue: PickRequired<ScanFinishedItemMapValue, 'bookDetail'>;
+  fetchedResults: BookData[];
 }
 
-export default function SearchConditionsForm({ ndlResponse, anywhere, setAnywhere }: Props) {
-  const options: string[] = useMemo(() => ndlResponse.reduce<string[]>((acc, cur) => {
+export default function SearchConditionsForm({ scannedItemMapValue, fetchedResults }: Props) {
+  const dispatch = useDispatch();
+  const options: string[] = useMemo(() => fetchedResults.reduce<string[]>((acc, cur) => {
     setAllTag(acc, cur, 'volume');
     setAllTag(acc, cur, 'volumeTitle');
     setAllTag(acc, cur, 'edition');
-    if (cur.ndc && !acc.includes(cur.ndc)) {
-      acc.push(cur.ndc);
+    if (cur.ndcLabel) {
+      if (!acc.includes(cur.ndcLabel)) acc.push(cur.ndcLabel);
+    } else if (cur.ndc) {
+      if (!acc.includes(cur.ndc)) acc.push(cur.ndc);
     }
     if (cur.seriesTitle) {
       acc.push(...cur.seriesTitle
@@ -37,9 +44,14 @@ export default function SearchConditionsForm({ ndlResponse, anywhere, setAnywher
         .filter((v, idx, self) => self.findIndex(s => s === v) === idx && !acc.includes(v)));
     }
     return acc;
-  }, []), [ndlResponse]);
+  }, []), [fetchedResults]);
+
+  const condition = scannedItemMapValue.filterSets.at(0)?.filters.at(0)?.at(0);
+  const updateAnywhere = (anywhere: string) => {
+    dispatch(updateFetchedFilterAnywhere({ isbn: scannedItemMapValue.isbn, index: 0, anywhere }));
+  };
 
   return (
-    <ComboInput label="キーワード検索" list={options.map(o => ({ label: o, value: o }))} value={anywhere} setValue={setAnywhere} />
+    <ComboInput label="キーワード検索" list={options.map(o => ({ label: o, value: o }))} value={condition?.anywhere || ''} setValue={updateAnywhere} />
   );
 }

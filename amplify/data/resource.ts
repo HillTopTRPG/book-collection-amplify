@@ -7,25 +7,6 @@ specifies that any user authenticated via an API key can "create", "read",
 "update", and "delete" any "Todo" records.
 =========================================================================*/
 const schema = a.schema({
-  Todo: a
-    .model({
-      content: a.string(),
-    })
-    .authorization((allow) => [allow.publicApiKey()]),
-  Book: a
-    .model({
-      isbn: a.string().required(),
-      title: a.string(),
-      subtitle: a.string(),
-      author: a.string(),
-      publisher: a.string(),
-      pubdate: a.string(),
-      cover: a.string(),
-    })
-    .authorization((allow) => [
-      allow.publicApiKey(),
-      allow.authenticated().to(['delete'])
-    ]),
   Collection: a
     .model({
       isbn: a.string().required(),
@@ -37,8 +18,8 @@ const schema = a.schema({
   FilterSet: a
     .model({
       name: a.string().required(),
+      fetch: a.string().required(),
       filters: a.string().required(),
-      meta: a.string().required(),
       owner: a.string(),
     })
     .authorization((allow) => [allow.owner()]),

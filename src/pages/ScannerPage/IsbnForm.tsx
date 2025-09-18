@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast.ts';
 import useFetchBookData from '@/hooks/useFetchBookData.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { addScannedIsbn, rejectFetchBookData, selectScannedItemMap, setFetchedBookData } from '@/store/scannerSlice.ts';
+import { addScannedIsbn, rejectFetchBookData, selectScanningItemMap, setFetchedBookData } from '@/store/scannerSlice.ts';
 import { checkIsdnCode } from '@/utils/validate.ts';
 
 const FormSchema = z.object({
@@ -25,7 +25,7 @@ export default function IsbnForm() {
   const dispatch = useAppDispatch();
   const { fetchBookData } = useFetchBookData();
   const { toast } = useToast();
-  const scannedItemMap = useAppSelector(selectScannedItemMap);
+  const scannedItemMap = useAppSelector(selectScanningItemMap);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -39,7 +39,7 @@ export default function IsbnForm() {
     const isbn = data.isbn.replaceAll('-', '');
 
     // 既に存在する場合はスキップ
-    if (scannedItemMap[isbn]) {
+    if (scannedItemMap.has(isbn)) {
       toast({
         title: 'You submitted the following values',
         description: (
@@ -56,13 +56,13 @@ export default function IsbnForm() {
     form.setValue('isbn', '');
 
     setTimeout(async () => {
-      const { bookDetail, filterSets } = await fetchBookData(isbn);
-      if (!filterSets.length) {
+      const scannedItemMapValue = await fetchBookData(isbn);
+      if (!scannedItemMapValue.filterSets.length) {
         console.log('書籍データ取得失敗');
         dispatch(rejectFetchBookData(isbn));
         return;
       }
-      dispatch(setFetchedBookData({ [isbn]: { isbn, bookDetail, filterSets } }));
+      dispatch(setFetchedBookData({ [isbn]: scannedItemMapValue }));
     });
   }, [dispatch, fetchBookData, form, scannedItemMap, toast]);
 

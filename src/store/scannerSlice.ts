@@ -1,26 +1,35 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { keys } from 'es-toolkit/compat';
 
+import type { NdlOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { PickRequired } from '@/utils/type.ts';
 
 import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-export type ScannedItemMap = Record<string, { isbn: string; bookDetail: BookDetail | null, filterSets: FilterSet[] }>;
+export type ScanningItemMapValue = {
+  isbn: string;
+  status: 'loading' | 'new' | 'collection';
+  collectionId: string | null;
+  bookDetail: BookDetail | null;
+  filterSets: FilterSet[];
+};
+export type ScanFinishedItemMapValue = Omit<ScanningItemMapValue, 'bookDetail'> & {
+  bookDetail: PickRequired<BookDetail, 'book'> | null;
+};
+
+export type ScanningItemMap = Map<string, ScanningItemMapValue>;
 
 type State = {
-  scannedItemMap: ScannedItemMap;
-  isScanning: boolean;
-  stream: MediaStream | null;
-  error: string | null;
+  scanningItemMap: ScanningItemMap;
+  selectedIsbn: string | null;
 };
 
 const initialState: State = {
-  scannedItemMap: {},
-  isScanning: false,
-  stream: null,
-  error: null,
+  scanningItemMap: new Map<string, ScanningItemMapValue>(),
+  selectedIsbn: null,
 };
 
 export const scannerSlice = createSlice({
@@ -29,23 +38,59 @@ export const scannerSlice = createSlice({
   reducers: {
     addScannedIsbn: (state, action: PayloadAction<string>) => {
       const isbn = action.payload;
-      state.scannedItemMap[isbn] = { isbn, bookDetail: null, filterSets: [] };
+      state.scanningItemMap.set(
+        isbn,
+        {
+          isbn,
+          status: 'loading',
+          collectionId: null,
+          bookDetail: null,
+          filterSets: [],
+        }
+      );
     },
-    setFetchedBookData: (state, action: PayloadAction<ScannedItemMap>) => {
+    setFetchedBookData: (state, action: PayloadAction<Record<string, ScanFinishedItemMapValue>>) => {
+      console.log('$$$ setFetchedBookData');
       for (const isbn of keys(action.payload)) {
-        const item = state.scannedItemMap[isbn];
+        const item = state.scanningItemMap.get(isbn);
         if (!item) continue;
-        item.bookDetail = action.payload[isbn].bookDetail;
-        item.filterSets = action.payload[isbn].filterSets;
+        const value: ScanFinishedItemMapValue = action.payload[isbn];
+        item.status = value.status;
+        item.collectionId = value.collectionId;
+        item.bookDetail = value.bookDetail;
+        item.filterSets = value.filterSets;
       }
+    },
+    updateFetchedFetchOption: (state, action: PayloadAction<{ isbn: string; index: number, fetch: NdlOptions & { creator: string; publisher: string } }>) => {
+      console.log('updateFetchedFetchOption', JSON.stringify(action.payload, null, 2));
+      const scanningItemMapValue = state.scanningItemMap.get(action.payload.isbn);
+      console.log('####', JSON.stringify(scanningItemMapValue, null, 2), JSON.stringify(state.scanningItemMap, null, 2));
+      if (!scanningItemMapValue) return;
+      if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
+      const filterSet = scanningItemMapValue.filterSets[action.payload.index];
+      filterSet.fetch = action.payload.fetch;
+      scanningItemMapValue.filterSets.splice(action.payload.index, 1, filterSet);
+    },
+    updateFetchedFilterAnywhere: (state, action: PayloadAction<{ isbn: string; index: number, anywhere: string }>) => {
+      const scanningItemMapValue = state.scanningItemMap.get(action.payload.isbn);
+      if (!scanningItemMapValue) return;
+      if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
+      const filterSet = scanningItemMapValue.filterSets[action.payload.index];
+      const anywhere = action.payload.anywhere;
+      const addFilter = { anywhere };
+      if (!filterSet.filters.length) filterSet.filters.push([]);
+      filterSet.filters[0].splice(0, 1, addFilter);
     },
     rejectFetchBookData: (state, action: PayloadAction<string>) => {
       const isbn = action.payload;
-      delete state.scannedItemMap[isbn];
+      state.scanningItemMap.delete(isbn);
     },
     clearScannedItems: (state) => {
-      state.scannedItemMap = {};
+      state.scanningItemMap.clear();
     },
+    updateSelectedScanIsbn: (state, action: PayloadAction<string | null>) => {
+      state.selectedIsbn = action.payload;
+    }
   },
 });
 
@@ -54,9 +99,31 @@ export const {
   setFetchedBookData,
   rejectFetchBookData,
   clearScannedItems,
+  updateSelectedScanIsbn,
+  updateFetchedFetchOption,
+  updateFetchedFilterAnywhere,
 } = scannerSlice.actions;
 
-export const selectScannedItemMap = (state: RootState) => state.scanner.scannedItemMap;
-export const selectFetchedBookList = createSelector(selectScannedItemMap, ((scannedItemMap) => keys(scannedItemMap).map(isbm => scannedItemMap[isbm]).flatMap((item) => item.bookDetail ? [item] : [])));
+const selectSelectedIsbn = (state: RootState) => state.scanner.selectedIsbn;
+export const selectScanningItemMap = (state: RootState) => state.scanner.scanningItemMap;
+export const selectScannedBookDetails = createSelector(
+  [selectScanningItemMap],
+  (scanningItemMap): Map<string, PickRequired<ScanFinishedItemMapValue, 'bookDetail'>> => {
+    const result = new Map<string, PickRequired<ScanFinishedItemMapValue, 'bookDetail'>>();
+    Array.from(scanningItemMap.entries()).forEach(([isbn, scanningItemMapValue]) => {
+      if (scanningItemMapValue?.bookDetail?.book) result.set(isbn, scanningItemMapValue as PickRequired<ScanFinishedItemMapValue, 'bookDetail'>);
+    });
+    return result;
+  },
+);
+export const selectSelectedScannedItemMapValue = createSelector(
+  [selectScannedBookDetails, selectSelectedIsbn],
+  (fetchedBookDetails, selectedIsbn): PickRequired<ScanFinishedItemMapValue, 'bookDetail'> | null => {
+    console.log(selectedIsbn);
+    console.log(JSON.stringify(fetchedBookDetails, null, 2));
+    if (!selectedIsbn) return null;
+    return fetchedBookDetails.get(selectedIsbn) ?? null;
+  }
+);
 
 export default scannerSlice.reducer;

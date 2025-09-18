@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 
-import bookDetailDrawerReducer from './bookDetailDrawerSlice.ts';
+// import bookDetailDrawerReducer from './bookDetailDrawerSlice.ts';
 import editFilterReducer from './editFilterSlice.ts';
 import fetchApiQueueReducer from './fetchApiQueueSlice';
 import fetchResultReducer from './fetchResultSlice';
@@ -13,7 +13,7 @@ export const store = configureStore({
     scanner: scannerReducer,
     editFilter: editFilterReducer,
     subscriptionData: subscriptionDataReducer,
-    bookDetailDrawer: bookDetailDrawerReducer,
+    // bookDetailDrawer: bookDetailDrawerReducer,
     filterDetailDrawer: filterDetailDrawerReducer,
     fetchResult: fetchResultReducer,
     fetchApiQueue: fetchApiQueueReducer,
@@ -24,11 +24,13 @@ export const store = configureStore({
       serializableCheck: {
         // MediaStreamは非シリアル化可能なので除外
         ignoredActions: [],
-        ignoredActionsPaths: ['payload.stream'],
+        ignoredActionsPaths: [],
         ignoredPaths: [
-          'scanner.stream',
           'fetchApiQueue.bookImageQueue',
-          'fetchApiQueue.bookImageResults'
+          'fetchApiQueue.bookImageResults',
+          'fetchApiQueue.filterQueue',
+          'fetchApiQueue.filterQueueResults',
+          'scanner.scanningItemMap',
         ],
       },
     }),

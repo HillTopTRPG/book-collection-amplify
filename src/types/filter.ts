@@ -1,5 +1,8 @@
+import type { NdlOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
+
 export type FilterData = {
-  type: 'title' | 'author' | 'publisher' | 'pubdate';
-  value: string;
-  sortOrder: 'asc' | 'desc';
+  fetch: NdlOptions;
+  filter: {
+    anywhere: string;
+  };
 };

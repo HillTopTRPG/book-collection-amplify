@@ -3,7 +3,6 @@ import { keys } from 'es-toolkit/compat';
 
 import ndc8Map from '@/assets/ndc8.json';
 import ndc9Map from '@/assets/ndc9.json';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import { getKeys } from '@/utils/type.ts';
 
 import type { BookData } from '../types/book.ts';
@@ -30,12 +29,12 @@ export const fetchOpenBdApi = async (isbn: string): Promise<BookData> => {
 
     return {
       isbn,
-      title: book.title || null,
-      subtitle: book.subtitle || null,
-      author: book.author || null,
-      publisher: book.publisher || null,
-      pubdate: book.pubdate || null,
-      cover: book.cover || null
+      title: book.title,
+      volume: book.subtitle,
+      creator: book.author ? [book.author] : [],
+      publisher: book.publisher,
+      date: book.pubdate,
+      cover: book.cover,
     } as const satisfies BookData;
   } catch (error) {
     console.error('openBD API エラー:', error);
@@ -53,12 +52,12 @@ export const fetchGoogleBooksApi = async (isbn: string): Promise<BookData> => {
     }
     return {
       isbn,
-      title: data.items[0].volumeInfo?.title || null,
-      subtitle: data.items[0].volumeInfo?.subtitle || null,
-      author: data.items[0].volumeInfo?.authors?.join(',') || null,
-      publisher: data.items[0].volumeInfo?.publisher || null,
-      pubdate: data.items[0].volumeInfo?.publishedDate || null,
-      cover: data.items[0].volumeInfo?.imageLinks?.thumbnail ?? null,
+      title: data.items[0].volumeInfo?.title,
+      volume: data.items[0].volumeInfo?.subtitle,
+      creator: data.items[0].volumeInfo?.authors,
+      publisher: data.items[0].volumeInfo?.publisher,
+      date: data.items[0].volumeInfo?.publishedDate,
+      cover: data.items[0].volumeInfo?.imageLinks?.thumbnail,
     } as const satisfies BookData;
   } catch (error) {
     console.error('Google Books API エラー:', error);
@@ -113,45 +112,19 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
         if (item.booksGenreId?.startsWith('001025')) return [];
 
         return [{
-          isbn: item.isbn,
-          title: item.title ?? null,
-          subtitle: item.subTitle ?? null,
-          author: item.author ?? null,
-          publisher: item.publisherName ?? null,
-          pubdate: item.salesDate ?? null,
-          cover: item.mediumImageUrl ?? null,
+          isbn: item.isbn.replaceAll('-', ''),
+          title: item.title,
+          volume: item.subTitle,
+          creator: item.author ? [item.author] : [],
+          publisher: item.publisherName,
+          date: item.salesDate,
+          cover: item.mediumImageUrl,
         } as const satisfies BookData];
       });
   } catch (error) {
     console.error('Rakuten Books API エラー:', error);
     return [];
   }
-};
-
-export const fetchBooksByFilterSet = async (filterSet: FilterSet) => {
-  const option: RakutenApiOption = {};
-  filterSet.filters.forEach(({ type, value }) => {
-    if (!value) return;
-    let property: keyof RakutenApiOption;
-    switch (type) {
-      case 'title':
-      case 'author':
-        property = type;
-        break;
-      case 'publisher':
-        property = 'publisherName';
-        break;
-      default:
-        return;
-    }
-    if (option[property]) return;
-    option[property] = value;
-  });
-  if (!option.sort) {
-    const filter = filterSet.filters.find((filter) => filter.type === 'pubdate');
-    option.sort = filter?.sortOrder === 'desc' ? '+releaseDate' : '-releaseDate';
-  }
-  return fetchRakutenBooksApi(option);
 };
 
 export type NdlOptions = {
@@ -189,23 +162,12 @@ const getNdlQuery = (options: NdlOptions) => {
     .join(' and ') + ' and sortBy=issued_date/sort.ascending';
 };
 
-export type NdlResponse = {
-  isbn: string | null;
-  title: string | null;
-  volume: string | null;
-  volumeTitle: string | null;
-  creator: string[];
-  publisher: string | null;
-  seriesTitle: string | null;
-  edition: string | null;
-  date: string | null;
-  ndc: string | null;
-};
-
 const parser = new DOMParser();
 const getNdlBookFromDocument = (recordElm: Element) => {
   const resourceElm = recordElm.querySelector('recordData > RDF > BibResource');
-  const isbn = Array.from(resourceElm?.querySelectorAll('identifier') ?? []).find(isbnElm => isbnElm.getAttribute('rdf:datatype') === 'http://ndl.go.jp/dcndl/terms/ISBN')?.textContent ?? null;
+  const isbn = Array.from(resourceElm?.querySelectorAll('identifier') ?? []).find(isbnElm => isbnElm.getAttribute('rdf:datatype') === 'http://ndl.go.jp/dcndl/terms/ISBN')?.textContent?.replaceAll('-', '') ?? null;
+  if (!isbn) return null;
+
   const title = resourceElm?.querySelector('title > Description > value')?.textContent ?? null;
   const publisher = resourceElm?.querySelector('publisher > Agent > name')?.textContent ?? null;
   const creator = Array.from(resourceElm?.querySelectorAll('creator > Agent > name') ?? []).map(creatorElm => creatorElm?.textContent ?? '');
@@ -220,19 +182,29 @@ const getNdlBookFromDocument = (recordElm: Element) => {
   const volumeTitle = resourceElm?.querySelector('volumeTitle > Description > value')?.textContent ?? null;
   const seriesTitle = resourceElm?.querySelector('seriesTitle > Description > value')?.textContent ?? null;
   const edition = resourceElm?.querySelector('edition')?.textContent ?? null;
-  const ndc = Array.from(resourceElm?.querySelectorAll('subject') ?? []).flatMap(subjectElm => {
+  const ndcInfo = Array.from(resourceElm?.querySelectorAll('subject') ?? []).flatMap(subjectElm => {
     const resource = subjectElm.getAttribute('rdf:resource') ?? '';
     const sp = resource.split('/');
     const rawNdcType = sp.at(-2);
     const ndcCode = sp.at(-1);
-
+    const ndcType: 'ndc8' | 'ndc9' = rawNdcType === 'ndc8' ? 'ndc8' : 'ndc9';
     if (!rawNdcType?.startsWith('ndc') || !ndcCode) return [];
 
-    const ndcType = rawNdcType === 'ndc8' ? 'ndc8' : 'ndc9';
+    return [{
+      rawNdcType,
+      ndcCode,
+      ndcType,
+    }];
+  }).at(0) ?? null;
 
+  const ndc = ndcInfo ? `${ndcInfo.rawNdcType}:${ndcInfo.ndcCode}` : null;
+  const ndcLabel = ((): string | null => {
+    if (!ndcInfo) return null;
+    const { ndcType, ndcCode, rawNdcType } = ndcInfo;
     const dataMap = NDC_MAPS[ndcType];
     const ndc = `${ndcType}:${ndcCode}`;
-    let label = getKeys(dataMap).some(v => v === ndc) ? dataMap[ndc as keyof typeof dataMap] : null;
+
+    let label: string | null = getKeys(dataMap).some(v => v === ndc) ? dataMap[ndc as keyof typeof dataMap] : null;
 
     if (!label && rawNdcType !== ndcType) {
       for (let i = 1; i < ndcCode.length; i++) {
@@ -241,13 +213,23 @@ const getNdlBookFromDocument = (recordElm: Element) => {
         if (label) break;
       }
     }
-
-    return label ? [label] : [`${rawNdcType}:${ndcCode}`];
-  }).at(0) ?? null;
+    return label;
+  })();
 
   return {
-    isbn, title, volume, volumeTitle, creator, publisher, seriesTitle, edition, date, ndc,
-  } as const satisfies NdlResponse;
+    isbn,
+    title,
+    volume,
+    volumeTitle,
+    creator,
+    publisher,
+    seriesTitle,
+    edition,
+    date,
+    ndc,
+    ndcLabel,
+    cover: isbn ? `https://ndlsearch.ndl.go.jp/thumbnail/${isbn.replaceAll('-', '')}.jpg` : null,
+  } as const satisfies BookData;
 };
 
 export const fetchNdlSearch = async (options: NdlOptions) => {
@@ -262,7 +244,7 @@ export const fetchNdlSearch = async (options: NdlOptions) => {
     .flatMap(recordElm => {
       const book = getNdlBookFromDocument(recordElm);
 
-      return book.isbn && book.title ? [book] : [];
+      return book ? [book] : [];
     });
 };
 
@@ -278,12 +260,12 @@ export const checkIfImageExists = (url: string | null | undefined) => new Promis
 export const getBookImageUrl = async (props: { defaultUrl: string; isbn: string }): Promise<string | null> => {
   const isbn = props.isbn.replaceAll('-', '');
 
-  const wrapImageCheck = async (label: string, url: string | null | undefined) => {
-    console.log(label, 'start', url);
+  const wrapImageCheck = async (_: string, url: string | null | undefined) => {
     if (!url) return null;
     if (url) {
       const result = await checkIfImageExists(url);
-      console.log(label, result);
+      // console.log(label, result);
+
       return result;
     } else {
       // console.log(isbn, label, '失敗', url);

@@ -1,23 +1,23 @@
 import BookCard from '@/components/Card/BookCard.tsx';
 import FilterCard from '@/components/Card/FilterCard';
-import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
+import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 
 type Props = {
   filterSet: FilterSet | null;
-  bookDetails: BookDetail[];
+  scannedItemMapValues: ScanFinishedItemMapValue[];
 }
 
-export default function DrawerContent({ filterSet, bookDetails }: Props) {
+export default function DrawerContent({ filterSet, scannedItemMapValues }: Props) {
   if (!filterSet) return null;
 
-  console.log(JSON.stringify(bookDetails, null, 2));
+  console.log(JSON.stringify(scannedItemMapValues, null, 2));
 
   return (
     <div className="space-y-4">
       <FilterCard filterSet={filterSet} />
-      {bookDetails.map((bookDetail) => (
-        <BookCard key={bookDetail.book?.isbn ?? ''} bookDetail={bookDetail} />
+      {scannedItemMapValues.map((scannedItemMapValue) => (
+        <BookCard key={scannedItemMapValue.isbn} bookDetail={scannedItemMapValue.bookDetail} />
       ))}
     </div>
   );

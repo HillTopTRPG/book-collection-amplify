@@ -5,12 +5,13 @@ import { Button } from '@/components/ui/button.tsx';
 
 type Props = {
   isVisible: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   header: ReactNode;
   children: ReactNode;
+  useFooter?: boolean;
 };
 
-export default function DrawerFrame({ isVisible, onClose, header, children }: Props) {
+export default function DrawerFrame({ isVisible, onClose, header, children, useFooter }: Props) {
   const overlayClassName = useMemo(() =>
     `fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`,
   [isVisible]
@@ -27,7 +28,7 @@ export default function DrawerFrame({ isVisible, onClose, header, children }: Pr
       <div className={drawerClassName}>
         <div className="flex flex-col h-full">
           {/* Header */}
-          <div className="border-b p-4">
+          <div className="border-b p-4 flex items-center gap-3">
             {header}
           </div>
 
@@ -37,11 +38,13 @@ export default function DrawerFrame({ isVisible, onClose, header, children }: Pr
           </div>
 
           {/* Footer */}
-          <div className="border-t p-4">
-            <Button variant="outline" onClick={onClose} className="w-full">
-              閉じる
-            </Button>
-          </div>
+          { useFooter ? (
+            <div className="border-t p-4">
+              <Button variant="outline" onClick={onClose} className="w-full">
+                閉じる
+              </Button>
+            </div>
+          ) : null}
         </div>
       </div>
     </Fragment>

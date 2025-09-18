@@ -8,28 +8,27 @@ import DrawerFrame from '@/components/Drawer/DrawerFrame.tsx';
 import { Button } from '@/components/ui/button';
 import { useDrawerAnimation } from '@/hooks/useDrawerAnimation';
 import { updateFetchResult } from '@/store/fetchResultSlice.ts';
-import type {
-  BookDetail } from '@/store/filterDetailDrawerSlice.ts';
 import {
-  closeDrawer, selectFilterResults,
+  closeDrawer, selectScannedItemMapValueBySelectedFilterSet,
   selectSelectedFilterSet,
 } from '@/store/filterDetailDrawerSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
+import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import { fetchBooksByFilterSet } from '@/utils/fetch.ts';
+import { fetchNdlSearch } from '@/utils/fetch.ts';
 
 import DrawerContent from './DrawerContent.tsx';
 
 export default function FilterDetailDrawer() {
   const dispatch = useDispatch();
   const filterSet = useAppSelector(selectSelectedFilterSet);
-  const filterResults = useAppSelector(selectFilterResults);
+  const scannedItemMapValueBySelectedFilterSet = useAppSelector(selectScannedItemMapValueBySelectedFilterSet);
 
   const filterSetId = filterSet?.id;
 
   useEffect(() => {
     if (!filterSet) return;
-    fetchBooksByFilterSet(filterSet).then((fetchResult) => {
+    fetchNdlSearch(filterSet.fetch).then((fetchResult) => {
       dispatch(updateFetchResult({ [filterSet.id]: fetchResult }));
     });
   }, [dispatch, filterSet, filterSetId]);
@@ -49,16 +48,16 @@ export default function FilterDetailDrawer() {
   });
 
   const [bufferedFilterSet, setBufferedFilterSet] = useState<FilterSet | null>(null);
-  const [bufferedFilterResults, setBufferedFilterResults] = useState<BookDetail[]>([]);
+  const [bufferedScannedItemMapValues, setBufferedScannedItemMapValues] = useState<ScanFinishedItemMapValue[]>([]);
   useEffect(() => {
     if (filterSet) {
       setBufferedFilterSet(structuredClone(filterSet));
-      setBufferedFilterResults(structuredClone(filterResults));
+      setBufferedScannedItemMapValues(structuredClone(scannedItemMapValueBySelectedFilterSet));
     } else if (!shouldRender) {
       setBufferedFilterSet(null);
-      setBufferedFilterResults([]);
+      setBufferedScannedItemMapValues([]);
     }
-  }, [filterResults, filterSet, shouldRender]);
+  }, [scannedItemMapValueBySelectedFilterSet, filterSet, shouldRender]);
 
   if (!shouldRender || !bufferedFilterSet) return null;
 
@@ -75,7 +74,7 @@ export default function FilterDetailDrawer() {
 
   const drawerContent = (
     <DrawerFrame isVisible={isVisible} header={header} onClose={handleClose}>
-      <DrawerContent filterSet={bufferedFilterSet} bookDetails={bufferedFilterResults} />
+      <DrawerContent filterSet={bufferedFilterSet} scannedItemMapValues={bufferedScannedItemMapValues} />
     </DrawerFrame>
   );
 

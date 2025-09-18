@@ -1,29 +1,21 @@
 import { useCallback } from 'react';
 
+import { pick } from 'es-toolkit';
+import { omit } from 'es-toolkit/compat';
+
+import { selectFilterQueueResults } from '@/store/fetchApiQueueSlice.ts';
 import { useAppSelector } from '@/store/hooks';
+import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice';
 import { selectFilterSets , selectCollections } from '@/store/subscriptionDataSlice';
 import type { BookData } from '@/types/book.ts';
-import { bookDataToBookDetail, bookDataToFilterSets } from '@/utils/data.ts';
+import { getScannedItemMapValueByBookData } from '@/utils/data.ts';
 import { fetchGoogleBooksApi, fetchNdlSearch, fetchOpenBdApi, fetchRakutenBooksApi } from '@/utils/fetch.ts';
 import { getKeys } from '@/utils/type.ts';
 
 const _fetchBookData = async (isbn: string): Promise<BookData> => {
   const ndlBooksApiResult = (await fetchNdlSearch({ isbn }))?.at(0);
-
-  console.log(JSON.stringify(ndlBooksApiResult, null, 2));
-
-  if (ndlBooksApiResult) {
-    return {
-      isbn,
-      title: ndlBooksApiResult.title,
-      subtitle: null,
-      author: ndlBooksApiResult.creator.join(', '),
-      publisher: ndlBooksApiResult.publisher,
-      pubdate: ndlBooksApiResult.date,
-      cover: `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`,
-    } as const satisfies BookData;
-  }
+  if (ndlBooksApiResult) return ndlBooksApiResult;
 
   return [
     await fetchOpenBdApi(isbn),
@@ -31,7 +23,11 @@ const _fetchBookData = async (isbn: string): Promise<BookData> => {
     (await fetchRakutenBooksApi({ isbn })).at(0),
   ].reduce<BookData>((acc, cur) => {
     if (!cur) return acc;
-    getKeys(cur).forEach(property => {
+    const listProperty = ['creator'] as const;
+    getKeys(omit(cur, listProperty)).forEach(property => {
+      if (!acc[property] && cur[property]) acc[property] = cur[property];
+    });
+    getKeys(pick(cur, listProperty)).forEach(property => {
       if (!acc[property] && cur[property]) acc[property] = cur[property];
     });
     return acc;
@@ -41,15 +37,34 @@ const _fetchBookData = async (isbn: string): Promise<BookData> => {
 export default function useFetchBookData() {
   const collections = useAppSelector(selectCollections);
   const dbFilterSets = useAppSelector(selectFilterSets);
+  const filterQueueResults = useAppSelector(selectFilterQueueResults);
 
-  const fetchBookData = useCallback(async (isbn: string) => {
+  const fetchBookData = useCallback(async (isbn: string): Promise<ScanFinishedItemMapValue> => {
     console.log('fetchBookData', isbn);
-    const bookData = await _fetchBookData(isbn);
-    const bookDetail = bookDataToBookDetail(collections, bookData);
-    const filterSets: FilterSet[] = bookDataToFilterSets(dbFilterSets, bookData);
+    const book = await _fetchBookData(isbn);
+    const scannedItemMapValue = getScannedItemMapValueByBookData(collections, book);
+    const _filterSets: FilterSet[] = dbFilterSets.filter(filterSet => filterQueueResults.get(JSON.stringify(filterSet.fetch)));
+    const wrappedFilterSets = _filterSets.length > 0 ? _filterSets : [{
+      id: '',
+      name: book.title ?? '無名のフィルター',
+      fetch: {
+        title: book.title ?? '無名',
+        publisher: book.publisher ?? '',
+        creator: book.creator?.at(0) ?? '',
+        usePublisher: true,
+        useCreator: true,
+      },
+      filters: [],
+      createdAt: '',
+      updatedAt: '',
+      owner: '',
+    } as const satisfies FilterSet];
+    if (!scannedItemMapValue.filterSets.length) {
+      scannedItemMapValue.filterSets.push(...wrappedFilterSets);
+    }
 
-    return { bookDetail, filterSets };
-  }, [collections, dbFilterSets]);
+    return scannedItemMapValue;
+  }, [collections, dbFilterSets, filterQueueResults]);
 
   return {
     fetchBookData

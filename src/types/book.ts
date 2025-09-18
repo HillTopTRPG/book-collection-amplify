@@ -2,9 +2,14 @@
 export type BookData = {
   isbn: string;
   title?: string | null;
-  subtitle?: string | null;
-  author?: string | null;
+  volume?: string | null;
+  volumeTitle?: string | null;
+  creator?: string[];
+  seriesTitle?: string | null;
+  edition?: string | null;
   publisher?: string | null;
-  pubdate?: string | null;
+  date?: string | null;
+  ndc?: string | null;
+  ndcLabel?: string | null;
   cover?: string | null;
 };

@@ -1,40 +1,23 @@
-import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
-import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { Collection } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import { filterMatch } from '@/utils/primitive.ts';
+import type { PickRequired } from '@/utils/type.ts';
 
-export const bookDataToBookDetail = (collections: Collection[], book: BookData): BookDetail => {
-  const result: BookDetail = { book, isHave: false, isWant: false };
+export const getScannedItemMapValueByBookData = (collections: Collection[], book: BookData): ScanFinishedItemMapValue => {
   const isbn = book.isbn;
+  const result: PickRequired<ScanFinishedItemMapValue, 'bookDetail'> = {
+    isbn,
+    status: 'loading',
+    collectionId: null,
+    bookDetail: { book, isHave: false, isWant: false },
+    filterSets: [],
+  };
   const collection = collections.find(filterMatch({ isbn }));
   if (collection) {
-    result.isHave = true;
-    result.isWant = collection.meta.isWant ?? false;
-    result.book = { ...book, ...collection.meta.overwrite };
+    result.bookDetail.book = { ...book, ...collection.meta.overwrite };
+    result.bookDetail.isHave = collection.meta.isHave ?? false;
+    result.bookDetail.isWant = collection.meta.isWant ?? false;
   }
   return result;
-};
-
-export const bookDataToFilterSets = (filterSets: FilterSet[], book: BookData | null): FilterSet[] => {
-  if (!book?.title) return [];
-
-  const list = filterSets.filter(filterSet => {
-    filterSet.filters.every((filter) => !filter.value ? true : book[filter.type]?.includes(filter.value));
-  });
-
-  return list.length > 0 ? list : [{
-    id: '',
-    name: book.title,
-    filters: [
-      {
-        type: 'title',
-        value: book.title,
-        sortOrder: 'asc',
-      }
-    ],
-    meta: {},
-    createdAt: '',
-    updatedAt: '',
-    owner: '',
-  } as const satisfies FilterSet];
 };

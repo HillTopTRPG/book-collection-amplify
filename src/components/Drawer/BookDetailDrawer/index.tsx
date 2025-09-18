@@ -1,89 +1,72 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 
-import { generateClient } from 'aws-amplify/data';
-import { CircleChevronLeft, Trash } from 'lucide-react';
+import { CircleChevronLeft } from 'lucide-react';
 import { createPortal } from 'react-dom';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 
 import DrawerFrame from '@/components/Drawer/DrawerFrame.tsx';
 import { Button } from '@/components/ui/button';
 import { useDrawerAnimation } from '@/hooks/useDrawerAnimation';
-import { closeDrawer, selectSelectedBook } from '@/store/bookDetailDrawerSlice.ts';
-import { selectBooks, selectCollections } from '@/store/subscriptionDataSlice.ts';
-import type { BookData } from '@/types/book.ts';
+import { useAppSelector } from '@/store/hooks.ts';
+import { updateSelectedScanIsbn, selectSelectedScannedItemMapValue } from '@/store/scannerSlice.ts';
 
 import DrawerContent from './DrawerContent.tsx';
 
-import type { Schema } from '$/amplify/data/resource.ts';
-
-const userPoolClient = generateClient<Schema>({
-  authMode: 'userPool'
-});
-
-const apiKeyClient = generateClient<Schema>({
-  authMode: 'apiKey'
-});
+// import type { Schema } from '$/amplify/data/resource.ts';
+//
+// const userPoolClient = generateClient<Schema>({
+//   authMode: 'userPool'
+// });
+//
+// const apiKeyClient = generateClient<Schema>({
+//   authMode: 'apiKey'
+// });
 
 export default function BookDetailDrawer() {
   const dispatch = useDispatch();
-  const book = useSelector(selectSelectedBook);
-  const books = useSelector(selectBooks);
-  const collections = useSelector(selectCollections);
+  const selectedScannedItemMapValue = useAppSelector(selectSelectedScannedItemMapValue);
 
-  const onDeleteBook = useCallback(() => {
-    if (!book) return;
-    const b = books.find(c => c.isbn === book.isbn);
-    const collection = collections.find(c => c.isbn === book.isbn);
-    if (!collection || !b) {
-      return;
-    }
-    apiKeyClient.models.Book.delete({ id: b.id });
-    userPoolClient.models.Collection.delete({ id: collection.id });
-  }, [book, books, collections]);
+  useEffect(() => {
+    console.log('BookDetailDrawer/index selectedScannedItemMapValue:', JSON.stringify(selectedScannedItemMapValue, null, 2));
+  }, [selectedScannedItemMapValue]);
 
   const {
     isVisible,
     shouldRender,
     handleClose,
   } = useDrawerAnimation({
-    isOpen: Boolean(book),
-    onClose: () => { dispatch(closeDrawer()); },
+    isOpen: Boolean(selectedScannedItemMapValue),
+    onClose: () => { dispatch(updateSelectedScanIsbn(null)); },
     animationDuration: 300
   });
 
-  const [bufferedBook, setBufferedBook] = useState<BookData | null>(null);
+  const [bufferedValue, setBufferedValue] = useState<typeof selectedScannedItemMapValue>(null);
   useEffect(() => {
-    if (book) {
-      setBufferedBook(structuredClone(book));
+    if (selectedScannedItemMapValue) {
+      setBufferedValue(structuredClone(selectedScannedItemMapValue));
     } else if (!shouldRender) {
-      setBufferedBook(null);
+      setBufferedValue(null);
     }
-  }, [book, shouldRender]);
+  }, [selectedScannedItemMapValue, shouldRender]);
 
-  if (!shouldRender || !bufferedBook) return null;
+  if (!shouldRender || !bufferedValue) return null;
 
   const header = (
     <>
       <Button onClick={handleClose} size="icon" variant="ghost" className="size-8">
         <CircleChevronLeft />
       </Button>
-      <h2 className="text-lg font-semibold leading-none tracking-tight text-left">
-        {bufferedBook.title}
-      </h2>
-      {bufferedBook.subtitle ? (
-        <p className="text-sm text-muted-foreground text-left mt-1">
-          {bufferedBook.subtitle}
-        </p>
-      ) : null}
-      <Button onClick={onDeleteBook} size="icon" variant="ghost" className="size-8">
-        <Trash />
-      </Button>
+      <div className="flex flex-col flex-1">
+        <h2 className="text-lg font-semibold leading-none tracking-tight text-left truncate">
+          グループ本の絞り込み
+        </h2>
+      </div>
     </>
   );
 
   const drawerContent = (
     <DrawerFrame isVisible={isVisible} header={header} onClose={handleClose}>
-      <DrawerContent book={bufferedBook} />
+      <DrawerContent scannedItemMapValue={bufferedValue} />
     </DrawerFrame>
   );
 

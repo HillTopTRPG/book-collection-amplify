@@ -5,22 +5,17 @@ import { generateClient } from 'aws-amplify/data';
 
 import { setFilterSet } from '@/store/editFilterSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import {
   selectCreateFilterSet,
-  setBooks,
   setCollections, setCreateFilterSet,
   setFilterSets,
 } from '@/store/subscriptionDataSlice.ts';
-import type { FilterData } from '@/types/filter.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool'
-});
-
-const apiKeyClient = generateClient<Schema>({
-  authMode: 'apiKey'
 });
 
 type Props = {
@@ -51,17 +46,12 @@ export default function SubscribeLayer({ children }: Props) {
         }))));
       },
     });
-    const bookSubscription = apiKeyClient.models.Book.observeQuery().subscribe({
-      next: (data) => {
-        dispatch(setBooks(structuredClone(data.items)));
-      },
-    });
     const filterSetSubscription = userPoolClient.models.FilterSet.observeQuery().subscribe({
       next: (data) => {
         dispatch(setFilterSets(structuredClone(data.items).map(item => ({
           ...item,
-          filters: JSON.parse(item.filters?.trim() || '[]') as FilterData[],
-          meta: JSON.parse(item.meta?.trim() || '{}'),
+          fetch: JSON.parse(item.fetch?.trim() || '{}') as FilterSet['fetch'],
+          filters: JSON.parse(item.filters?.trim() || '[]') as FilterSet['filters'],
         }))));
         if (nextFilterSetNameRef.current) {
           // Use slice().reverse() to avoid mutating original array
@@ -76,7 +66,6 @@ export default function SubscribeLayer({ children }: Props) {
 
     return () => {
       collectionSubscription.unsubscribe();
-      bookSubscription.unsubscribe();
       filterSetSubscription.unsubscribe();
     };
   }, [dispatch]);

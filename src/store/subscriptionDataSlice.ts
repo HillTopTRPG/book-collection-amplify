@@ -1,9 +1,9 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
 
+import type { NdlOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
+import { selectFilterQueueResults } from '@/store/fetchApiQueueSlice.ts';
 import type { BookData } from '@/types/book.ts';
-import type { FilterData } from '@/types/filter.ts';
-import { filterArrayByKey } from '@/utils/primitive.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { RootState } from './index.ts';
@@ -17,24 +17,26 @@ export type Collection = Omit<Schema['Collection']['type'], 'meta'> & {
   meta: {
     overwrite?: Partial<BookData>;
     isWant?: boolean;
+    isHave?: boolean;
   }
 };
 
-export type FilterSet = Omit<Schema['FilterSet']['type'], 'filters' | 'meta'> & {
-  filters: FilterData[];
-  meta: unknown;
+export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters'> & {
+  fetch: NdlOptions & {
+    creator: string;
+    publisher: string;
+  };
+  filters: { anywhere: string }[][];
 };
 
 type State = {
   collections: Array<Collection>;
-  books: Array<Schema['Book']['type']>;
   filterSets: Array<FilterSet>;
   createFilterSet: Parameters<typeof userPoolClient.models.FilterSet.create>[0] | null;
 };
 
 const initialState: State = {
   collections: [],
-  books: [],
   filterSets: [],
   createFilterSet: null,
 };
@@ -46,9 +48,6 @@ export const subscriptionDataSlice = createSlice({
     setCollections: (state, action: PayloadAction<State['collections']>) => {
       state.collections = action.payload;
     },
-    setBooks: (state, action: PayloadAction<State['books']>) => {
-      state.books = action.payload;
-    },
     setFilterSets: (state, action: PayloadAction<State['filterSets']>) => {
       state.filterSets = action.payload;
     },
@@ -59,13 +58,24 @@ export const subscriptionDataSlice = createSlice({
 });
 
 export const {
-  setCollections, setBooks, setFilterSets, setCreateFilterSet
+  setCollections, setFilterSets, setCreateFilterSet
 } = subscriptionDataSlice.actions;
 
 export const selectCollections = (state: RootState) => state.subscriptionData.collections;
-export const selectBooks = (state: RootState) => state.subscriptionData.books;
-export const selectMyBooks = createSelector([selectCollections, selectBooks], (collections, books) => filterArrayByKey(books, collections, 'isbn'));
 export const selectFilterSets = (state: RootState) => state.subscriptionData.filterSets;
+/** DBのフィルター : フィルター情報に基づいてfetchした書籍データ一覧 */
+export const selectDbFilterSetsBooks = createSelector(
+  [selectFilterSets, selectFilterQueueResults],
+  (filterSets, filterQueueResults): Map<string, BookData[]> | null => {
+    const result = new Map<string, BookData[]>();
+    for (const filterSet of filterSets) {
+      const options = JSON.stringify(filterSet.fetch);
+      const results = filterQueueResults.get(options) ?? null;
+      if (!results) return null;
+      result.set(options, results);
+    }
+    return result;
+  });
 export const selectCreateFilterSet = (state: RootState) => state.subscriptionData.createFilterSet;
 
 export default subscriptionDataSlice.reducer;
