@@ -15,13 +15,13 @@ import {
   selectScanningItemMap,
   setFetchedBookData,
 } from '@/store/scannerSlice.ts';
-import { checkIsdnCode } from '@/utils/validate.ts';
+import { checkIsbnCode } from '@/utils/validate.ts';
 
 const FormSchema = z
   .object({
     isbn: z.string(),
   })
-  .refine(data => checkIsdnCode(data.isbn), {
+  .refine(data => checkIsbnCode(data.isbn), {
     message: 'ISBNコードじゃない',
     path: ['isbn'],
   });

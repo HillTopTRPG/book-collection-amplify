@@ -22,7 +22,7 @@ const _fetchBookData = async (isbn: string): Promise<BookData> => {
   ].reduce<BookData>(
     (acc, cur) => {
       if (!cur) return acc;
-      const listProperty = ['creator'] as const;
+      const listProperty = ['creator', 'ndcLabels'] as const;
       getKeys(omit(cur, listProperty)).forEach(property => {
         if (!acc[property] && cur[property]) acc[property] = cur[property];
       });
@@ -31,7 +31,7 @@ const _fetchBookData = async (isbn: string): Promise<BookData> => {
       });
       return acc;
     },
-    { isbn }
+    { isbn, ndcLabels: [] }
   );
 };
 

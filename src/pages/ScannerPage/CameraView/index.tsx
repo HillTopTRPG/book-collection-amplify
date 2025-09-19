@@ -17,7 +17,7 @@ import {
   setFetchedBookData,
 } from '@/store/scannerSlice.ts';
 import { wait } from '@/utils/primitive.ts';
-import { checkIsdnCode } from '@/utils/validate.ts';
+import { checkIsbnCode } from '@/utils/validate.ts';
 import CornerFrame from './CornerFrame.tsx';
 
 type Props = {
@@ -126,7 +126,7 @@ export default function CameraView({ width, height }: Props) {
       Quagga.onDetected(async result => {
         const isbn = result.codeResult.code;
 
-        if (!isbn || !checkIsdnCode(isbn)) {
+        if (!isbn || !checkIsbnCode(isbn)) {
           return;
         }
 

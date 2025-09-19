@@ -2,7 +2,6 @@ import * as _ from 'es-toolkit/compat';
 import { keys } from 'es-toolkit/compat';
 import ndc8Map from '@/assets/ndc8.json';
 import ndc9Map from '@/assets/ndc9.json';
-import { getKeys } from '@/utils/type.ts';
 import type { BookData } from '../types/book.ts';
 
 const NDC_MAPS = {
@@ -20,7 +19,7 @@ export const fetchOpenBdApi = async (isbn: string): Promise<BookData> => {
     const data = await response.json();
 
     if (!data || !data[0] || !data[0].summary) {
-      return { isbn };
+      return { isbn, ndcLabels: [] };
     }
 
     const book = data[0].summary;
@@ -33,10 +32,11 @@ export const fetchOpenBdApi = async (isbn: string): Promise<BookData> => {
       publisher: book.publisher,
       date: book.pubdate,
       cover: book.cover,
+      ndcLabels: [],
     } as const satisfies BookData;
   } catch (error) {
     console.error('openBD API エラー:', error);
-    return { isbn };
+    return { isbn, ndcLabels: [] };
   }
 };
 
@@ -75,6 +75,7 @@ export const fetchGoogleBooksApi = async (isbn: string): Promise<BookData> => {
     publisher: data.items[0].volumeInfo?.publisher,
     date: data.items[0].volumeInfo?.publishedDate,
     cover: data.items[0].volumeInfo?.imageLinks?.thumbnail,
+    ndcLabels: [],
   } as const satisfies BookData;
 };
 
@@ -157,6 +158,7 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
           publisher: item.publisherName,
           date: item.salesDate,
           cover: item.mediumImageUrl,
+          ndcLabels: [],
         } as const satisfies BookData,
       ];
     });
@@ -251,22 +253,21 @@ const getNdlBookFromDocument = (recordElm: Element) => {
       .at(0) ?? null;
 
   const ndc = ndcInfo ? `${ndcInfo.rawNdcType}:${ndcInfo.ndcCode}` : null;
-  const ndcLabel = ((): string | null => {
-    if (!ndcInfo) return null;
-    const { ndcType, ndcCode, rawNdcType } = ndcInfo;
+  const ndcLabels = ((): string[] => {
+    if (!ndcInfo) return [];
+    const { ndcType, ndcCode } = ndcInfo;
     const dataMap = NDC_MAPS[ndcType];
     const ndc = `${ndcType}:${ndcCode}`;
 
-    let label: string | null = getKeys(dataMap).some(v => v === ndc) ? dataMap[ndc as keyof typeof dataMap] : null;
+    return [...Array(ndc.length - 5)].flatMap((_, i) => {
+      const code = ndc.slice(0, 6 + i);
+      if (code.endsWith('.')) return [];
+      console.log(code);
+      const text = dataMap[code as keyof typeof dataMap];
+      console.log(text);
 
-    if (!label && rawNdcType !== ndcType) {
-      for (let i = 1; i < ndcCode.length; i++) {
-        const ndc = `${ndcType}:${ndcCode.substring(0, ndcCode.length - i)}`;
-        label = getKeys(dataMap).some(v => v === ndc) ? dataMap[ndc as keyof typeof dataMap] : null;
-        if (label) break;
-      }
-    }
-    return label;
+      return text ? [text] : [];
+    });
   })();
 
   return {
@@ -280,7 +281,7 @@ const getNdlBookFromDocument = (recordElm: Element) => {
     edition,
     date,
     ndc,
-    ndcLabel,
+    ndcLabels,
     cover: isbn ? `https://ndlsearch.ndl.go.jp/thumbnail/${isbn.replaceAll('-', '')}.jpg` : null,
     extent,
   } as const satisfies BookData;

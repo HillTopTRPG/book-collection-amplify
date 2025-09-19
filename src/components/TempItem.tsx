@@ -9,7 +9,7 @@ type Props = {
   highLight?: string;
 };
 
-export default function NdlCardItem({ value, className, children, label, highLight }: Props) {
+export default function TempItem({ value, className, children, label, highLight }: Props) {
   if (!value) return null;
   const staticValue = label ? `${label}: ${value}` : value;
 

@@ -38,8 +38,8 @@ export default function SearchConditionsForm({ scannedItemMapValue, fetchedResul
         setAllTag(acc, cur, 'volume');
         setAllTag(acc, cur, 'volumeTitle');
         setAllTag(acc, cur, 'edition');
-        if (cur.ndcLabel) {
-          if (!acc.includes(cur.ndcLabel)) acc.push(cur.ndcLabel);
+        if (cur.ndcLabels.length) {
+          if (!acc.some(v => cur.ndcLabels.includes(v))) acc.push(...cur.ndcLabels);
         } else if (cur.ndc) {
           if (!acc.includes(cur.ndc)) acc.push(cur.ndc);
         }

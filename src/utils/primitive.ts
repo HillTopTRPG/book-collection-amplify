@@ -5,6 +5,54 @@ export const sortString = (a: string | null | undefined, b: string | null | unde
   return ((a ?? '') > (b ?? '') ? 1 : -1) * (sortOrder === 'asc' ? 1 : -1);
 };
 
+export const getIsbn10CheckDigit = (isbn10Part: string) => {
+  const checkDigit =
+    11 - (isbn10Part.split('').reduce<number>((acc, cur, idx) => acc + parseInt(cur) * (10 - idx), 0) % 11);
+  if (checkDigit === 11) return '0';
+  if (checkDigit === 10) return 'X';
+
+  return checkDigit.toString();
+};
+
+export const getIsbn13CheckDigit = (isbn13Part: string) => {
+  const checkDigit =
+    10 - (isbn13Part.split('').reduce<number>((acc, cur, i) => acc + (i % 2 ? 3 : 1) * parseInt(cur), 0) % 10);
+  if (checkDigit === 10) return '0';
+
+  return checkDigit.toString();
+};
+
+export const getIsbnWithHyphen = (isbn: string, len: 10 | 13) => {
+  const pureIsbn = isbn.replaceAll('-', '');
+  const list: string[] = [];
+  const idx = pureIsbn.length - 10;
+  if (len === 13) list.push(pureIsbn.slice(0, idx) || '978');
+  list.push(pureIsbn.slice(idx, idx + 1));
+  const num = parseInt(pureIsbn.slice(idx + 1, idx + 3));
+  const s3End = [20, 70, 85, 90, 95].findIndex(n => num < n) + idx + 3;
+  list.push(pureIsbn.slice(idx + 1, s3End));
+  list.push(pureIsbn.slice(s3End, -1));
+  list.push(len === 10 ? getIsbn10CheckDigit(list.join('')) : getIsbn13CheckDigit(list.join('')));
+
+  return list.join('-');
+};
+
+export const getIsbn13 = (isbn: string): string => {
+  const maybeIsbn10 = isbn.replaceAll('-', '');
+  if (maybeIsbn10.length === 13) return maybeIsbn10;
+  const isbn13part = `978${maybeIsbn10.slice(0, -1)}`;
+
+  return `${isbn13part}${getIsbn13CheckDigit(isbn13part)}`;
+};
+
+export const getIsbn10 = (isbn: string): string => {
+  const maybeIsbn13 = isbn.replaceAll('-', '');
+  if (maybeIsbn13.length === 10) return maybeIsbn13;
+  const isbn10part = maybeIsbn13.slice(3, -1);
+
+  return `${isbn10part}${getIsbn10CheckDigit(isbn10part)}`;
+};
+
 export const convertPubdate = (pubdate: string | null | undefined) => {
   if (!pubdate) return '';
   pubdate = pubdate

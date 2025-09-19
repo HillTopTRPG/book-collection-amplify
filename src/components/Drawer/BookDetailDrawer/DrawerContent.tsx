@@ -1,6 +1,7 @@
-import { Fragment, useEffect, useMemo } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import BookCard from '@/components/Card/BookCard.tsx';
 import NdlCard from '@/components/Card/NdlCard';
+import BookDetailDialog from '@/components/Drawer/BookDetailDrawer/BookDetailDialog.tsx';
 import NdlOptionsForm from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
 import SearchConditionsForm from '@/components/Drawer/BookDetailDrawer/SearchConditionsForm.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
@@ -19,6 +20,8 @@ type Props = {
 export default function DrawerContent({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
   const filterQueueResults = useAppSelector(selectFilterQueueResults);
+  const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
+  const [detailIsbn, setDetailIsbn] = useState<string | null>(null);
 
   const fetchOptions = useMemo(() => scannedItemMapValue.filterSets.at(0)?.fetch, [scannedItemMapValue]);
 
@@ -27,7 +30,7 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
     [scannedItemMapValue]
   );
 
-  const stringifyFetchOptions = useMemo(() => JSON.stringify(fetchOptions), [fetchOptions]);
+  const stringifyFetchOptions = useMemo(() => (fetchOptions ? JSON.stringify(fetchOptions) : ''), [fetchOptions]);
 
   const fetchedResults = useMemo(
     () => filterQueueResults.get(stringifyFetchOptions),
@@ -46,21 +49,19 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   }, [dispatch, stringifyFetchOptions]);
 
   return (
-    <Fragment>
+    <>
       <div className="flex justify-center">
         <BookCard bookDetail={scannedItemMapValue.bookDetail} />
       </div>
-      {fetchOptions && fetchedResults ? (
-        <>
-          <NdlOptionsForm
-            defaultValues={fetchOptions}
-            onChange={fetchFullOptions => {
-              dispatch(updateFetchedFetchOption({ isbn: scannedItemMapValue.isbn, index: 0, fetch: fetchFullOptions }));
-            }}
-          />
-          <SearchConditionsForm {...{ scannedItemMapValue, fetchedResults }} />
-        </>
+      {fetchOptions ? (
+        <NdlOptionsForm
+          defaultValues={fetchOptions}
+          onChange={fetchFullOptions => {
+            dispatch(updateFetchedFetchOption({ isbn: scannedItemMapValue.isbn, index: 0, fetch: fetchFullOptions }));
+          }}
+        />
       ) : null}
+      {fetchedResults ? <SearchConditionsForm {...{ scannedItemMapValue, fetchedResults }} /> : null}
       <Separator className="my-2" />
       <span>{filteredResults?.length ?? 0}件</span>
       <div className="flex flex-col justify-center">
@@ -68,7 +69,14 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
           filteredResults.map((ndl, idx) => (
             <Fragment key={idx}>
               {idx ? <Separator /> : null}
-              <NdlCard ndl={ndl} options={fetchOptions} anywhere={anywhere} />
+              <NdlCard
+                filterSets={scannedItemMapValue.filterSets}
+                {...{ ndl, selectedIsbn, setSelectedIsbn }}
+                onOpenBookDetail={isbn => {
+                  setDetailIsbn(isbn);
+                  setSelectedIsbn(null);
+                }}
+              />
             </Fragment>
           ))
         ) : (
@@ -76,6 +84,10 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
         )}
       </div>
       <span>{filteredResults?.length ?? 0}件</span>
-    </Fragment>
+      <BookDetailDialog
+        book={fetchedResults?.find(book => book.isbn === detailIsbn) ?? null}
+        onClose={() => setDetailIsbn(null)}
+      />
+    </>
   );
 }

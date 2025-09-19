@@ -7,15 +7,20 @@ import { useAppSelector } from '@/store/hooks.ts';
 
 type Props = {
   isbn: string | null | undefined;
+  size?: 'small' | 'big';
+  onClick?: () => void;
 };
 
-export default function BookImage({ isbn }: Props) {
+export default function BookImage({ isbn, size, onClick }: Props) {
   const dispatch = useDispatch();
   const bookImageResults = useAppSelector(selectBookImageResults);
   const [imageUrl, setImageUrl] = useState<{ status: 'loading' | 'retrying' | 'done'; url: string | null }>({
     status: 'loading',
     url: null,
   });
+
+  const width = size === 'big' ? 150 : 50;
+  const height = size === 'big' ? 225 : 75;
 
   useEffect(() => {
     if (!isbn) return;
@@ -36,9 +41,19 @@ export default function BookImage({ isbn }: Props) {
   }, [bookImageResults, imageUrl.status, isbn]);
 
   return imageUrl.url ? (
-    <img src={imageUrl.url} alt="表紙" className="w-[50px] h-[75px] rounded border" style={{ objectFit: 'cover' }} />
+    <img
+      src={imageUrl.url}
+      alt="表紙"
+      className="rounded border"
+      style={{ objectFit: 'cover', width, height }}
+      onClick={onClick}
+    />
   ) : (
-    <div className="min-w-[50px] min-h-[75px] rounded border flex items-center justify-center">
+    <div
+      className="min-w-[50px] min-h-[75px] rounded border flex items-center justify-center"
+      onClick={onClick}
+      style={{ minWidth: width, minHeight: height }}
+    >
       {imageUrl.status !== 'done' ? <Spinner variant="bars" /> : <ImageOff />}
     </div>
   );

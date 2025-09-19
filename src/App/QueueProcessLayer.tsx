@@ -24,9 +24,7 @@ const getBookImageQueueProcess = async (
   bookImageLastResult: MutableRefObject<{ type: 'ndl' | 'other'; url: string | null | undefined } | null>
 ) => {
   if (!queuedBookImageIsbn.length) return { list: [], retryList: [] };
-  const diffTime = performance.now() - lastEndTime.current;
-  const needWait = Math.ceil(10 - diffTime);
-  if (bookImageLastResult.current?.type !== 'ndl') console.log(diffTime);
+  const needWait = Math.ceil(10 - (performance.now() - lastEndTime.current));
   if (bookImageLastResult.current?.type !== 'ndl' && needWait > 0) {
     await wait(needWait);
   }

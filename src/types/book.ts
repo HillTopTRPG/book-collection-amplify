@@ -10,7 +10,7 @@ export type BookData = {
   publisher?: string | null;
   date?: string | null;
   ndc?: string | null;
-  ndcLabel?: string | null;
+  ndcLabels: string[];
   cover?: string | null;
   extent?: string | null;
 };

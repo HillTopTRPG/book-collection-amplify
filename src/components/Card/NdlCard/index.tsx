@@ -1,43 +1,72 @@
+import { useMemo } from 'react';
 import BookImage from '@/components/BookImage.tsx';
 import CardFrame from '@/components/Card/CardFrame.tsx';
-import NdlCardItem from '@/components/Card/NdlCard/NdlCardItem.tsx';
-import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
+import OverPanel from '@/components/Card/NdlCard/OverPanel.tsx';
+import TempItem from '@/components/TempItem.tsx';
+import { Button } from '@/components/ui/button.tsx';
+import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
 
 type Props = {
   ndl: BookData;
-  options: NdlFullOptions | null | undefined;
-  anywhere?: string;
+  filterSets: FilterSet[];
+  selectedIsbn: string | null;
+  setSelectedIsbn: (isbn: string | null) => void;
+  onOpenBookDetail: (isbn: string | null) => void;
 };
 
-export default function NdlCard({ ndl, options, anywhere }: Props) {
+export default function NdlCard({ ndl, filterSets, selectedIsbn, setSelectedIsbn, onOpenBookDetail }: Props) {
   const isbn = ndl.isbn?.replaceAll('-', '');
 
-  const isViewTitle = options?.title !== ndl.title;
-  const creatorText = ndl.creator?.join(', ') ?? '';
-  const isViewCreator = !options?.useCreator && options?.creator !== creatorText;
-  const isViewPublisher = !options?.usePublisher && options?.publisher !== ndl.publisher;
+  const options = useMemo(() => filterSets.at(0)?.fetch, [filterSets]);
+
+  const isViewTitle = useMemo(() => options?.title !== ndl.title, [ndl.title, options?.title]);
+  const creatorText = useMemo(() => ndl.creator?.join(', ') ?? '', [ndl.creator]);
+  const isViewCreator = useMemo(
+    () => !options?.useCreator && options?.creator !== creatorText,
+    [creatorText, options?.useCreator, options?.creator]
+  );
+  const isViewPublisher = useMemo(
+    () => !options?.usePublisher && options?.publisher !== ndl.publisher,
+    [ndl.publisher, options?.usePublisher, options?.publisher]
+  );
+
+  const anywhere = useMemo(() => filterSets.at(0)?.filters.at(0)?.at(0)?.anywhere, [filterSets]);
 
   return (
-    <CardFrame className="items-start">
-      <BookImage isbn={isbn} />
-      <div className="flex items-baseline flex-wrap gap-x-3 flex-1">
+    <CardFrame className="items-start gap-1.5">
+      <BookImage isbn={isbn} onClick={() => onOpenBookDetail(isbn)} />
+      <div
+        className="flex items-baseline flex-wrap gap-x-3 flex-1 pl-1.5 relative"
+        onClick={() => setSelectedIsbn(isbn)}
+      >
+        {selectedIsbn === isbn ? (
+          <OverPanel onClose={() => setSelectedIsbn(null)}>
+            <Button>登録</Button>
+            <Button>欲しい</Button>
+          </OverPanel>
+        ) : null}
         <div className="w-full flex items-baseline flex-wrap gap-x-3">
           {isViewTitle ? (
-            <NdlCardItem value={ndl.title} highLight={anywhere} className="text-lg font-bold inline-block" />
+            <TempItem value={ndl.title} highLight={anywhere} className="text-lg font-bold inline-block" />
           ) : null}
-          <NdlCardItem value={ndl.volume} highLight={anywhere} className="text-lg font-bold" />
-          <NdlCardItem value={ndl.volumeTitle} highLight={anywhere} className="text-lg font-bold" />
+          <TempItem value={ndl.volume} highLight={anywhere} className="text-lg font-bold" />
+          <TempItem value={ndl.volumeTitle} highLight={anywhere} className="text-lg font-bold" />
         </div>
         <div className="w-full flex items-baseline flex-wrap gap-x-3">
-          {isViewCreator ? <NdlCardItem value={creatorText} highLight={anywhere} className="text-xs" /> : null}
-          {isViewPublisher ? <NdlCardItem value={ndl.publisher} highLight={anywhere} className="text-xs" /> : null}
+          {isViewCreator ? <TempItem value={creatorText} highLight={anywhere} className="text-xs" /> : null}
+          {isViewPublisher ? <TempItem value={ndl.publisher} highLight={anywhere} className="text-xs" /> : null}
         </div>
-        <NdlCardItem value={ndl.edition} highLight={anywhere} className="text-xs" />
-        <NdlCardItem value={ndl.date} highLight={anywhere} label="発売日" className="text-xs" />
-        <NdlCardItem value={ndl.ndcLabel ?? ndl.ndc} highLight={anywhere} label="分類" className="text-xs" />
-        <NdlCardItem value={ndl.seriesTitle} label="シリーズ" highLight={anywhere} className="text-xs" />
-        <NdlCardItem
+        <TempItem value={ndl.edition} highLight={anywhere} className="text-xs" />
+        <TempItem value={ndl.date} highLight={anywhere} label="発売日" className="text-xs" />
+        {!ndl.ndcLabels.length && ndl.ndc ? (
+          <TempItem value={ndl.ndc} highLight={anywhere} label="分類コード" className="text-xs" />
+        ) : null}
+        {ndl.ndcLabels.map((ndcLabel, idx) => (
+          <TempItem key={idx} value={ndcLabel} highLight={anywhere} label={`分類${idx + 1}`} className="text-xs" />
+        ))}
+        <TempItem value={ndl.seriesTitle} label="シリーズ" highLight={anywhere} className="text-xs" />
+        <TempItem
           value={ndl.isbn?.replaceAll('-', '')}
           label="ISBN"
           highLight={anywhere}
