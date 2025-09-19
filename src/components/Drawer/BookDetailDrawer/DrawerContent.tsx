@@ -65,11 +65,17 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
       <span>{filteredResults?.length ?? 0}件</span>
       <div className="flex flex-col justify-center">
         {filteredResults ? (
-          filteredResults.map((ndl, idx) => <NdlCard key={idx} ndl={ndl} options={fetchOptions} anywhere={anywhere} />)
+          filteredResults.map((ndl, idx) => (
+            <Fragment key={idx}>
+              {idx ? <Separator /> : null}
+              <NdlCard ndl={ndl} options={fetchOptions} anywhere={anywhere} />
+            </Fragment>
+          ))
         ) : (
           <Spinner variant="bars" />
         )}
       </div>
+      <span>{filteredResults?.length ?? 0}件</span>
     </Fragment>
   );
 }
