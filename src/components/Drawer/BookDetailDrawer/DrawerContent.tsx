@@ -48,7 +48,6 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   }, [anywhere, fetchedResults]);
 
   useEffect(() => {
-    console.log(stringifyFetchOptions);
     dispatch(addFilterQueue(stringifyFetchOptions));
   }, [dispatch, stringifyFetchOptions]);
 

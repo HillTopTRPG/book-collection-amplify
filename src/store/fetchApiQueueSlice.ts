@@ -8,8 +8,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 
 enableMapSet();
 
-type BookImageQueueValue = { defaultUrl: string; isbn: string };
-type BookImageQueue = Map<string, BookImageQueueValue>;
+type BookImageQueue = Map<string, string>;
 type BookImageResults = Map<string, string | null>;
 
 type FilterQueue = Map<string, string>;
@@ -23,7 +22,7 @@ type State = {
 };
 
 const initialState: State = {
-  bookImageQueue: new Map<string, BookImageQueueValue>,
+  bookImageQueue: new Map<string, string>,
   bookImageResults: new Map<string, string | null>,
   filterQueue: new Map<string, string>,
   filterQueueResults: new Map<string, BookData[]>,
@@ -47,17 +46,26 @@ export const fetchApiQueueSlice = createSlice({
   name: 'fetchApiQueue',
   initialState,
   reducers: {
-    addGetImageQueue: (state, action: PayloadAction<BookImageQueueValue>) => {
-      const isbn = action.payload.isbn;
+    addGetImageQueue: (state, action: PayloadAction<string>) => {
+      const isbn = action.payload;
 
       if (checkBookImageExists(isbn, state)) return;
 
-      state.bookImageQueue.set(isbn, action.payload);
+      state.bookImageQueue.set(isbn, isbn);
+    },
+    retryGetImageQueue: (state, action: PayloadAction<string[]>) => {
+      const retryList = action.payload;
+      retryList.forEach(isbn => {
+        const existsCheck = checkBookImageExists(isbn, state);
+        if (existsCheck?.queue) return;
+
+        state.bookImageQueue.set(isbn, isbn);
+      });
     },
     completeGetImageQueues: (state, action: PayloadAction<{ isbn: string; url: string | null }[]>) => {
       action.payload.forEach(({ isbn, url }) => {
         const existsCheck = checkBookImageExists(isbn, state);
-        if (!existsCheck?.queue || existsCheck?.result) return;
+        if (!existsCheck?.queue) return;
 
         state.bookImageQueue.delete(isbn);
         state.bookImageResults.set(isbn, url);
@@ -67,19 +75,16 @@ export const fetchApiQueueSlice = createSlice({
       const option = action.payload;
 
       const checkResult = checkFilterQueueExists(option, state);
-      console.log('addFilterQueue1', JSON.stringify(checkResult, null, 2));
       if (checkResult) return;
-      console.log('addFilterQueue', option);
 
       state.filterQueue.set(option, option);
     },
     completeFilterQueues: (state, action: PayloadAction<{ option: string; books: BookData[] }[]>) => {
       action.payload.forEach(({ option, books }) => {
         const existsCheck = checkFilterQueueExists(option, state);
-        console.log('completeFilterQueue1', option, JSON.stringify(existsCheck, null, 2));
-        if (!existsCheck?.queue || existsCheck?.result) return;
+        if (!existsCheck?.queue) return;
 
-        console.log('completeFilterQueue', option, JSON.stringify(books, null, 2));
+        console.log('completeFilterQueue', option, books);
 
         state.filterQueue.delete(option);
         state.filterQueueResults.set(option, books);
@@ -90,6 +95,7 @@ export const fetchApiQueueSlice = createSlice({
 
 export const {
   addGetImageQueue,
+  retryGetImageQueue,
   completeGetImageQueues,
   addFilterQueue,
   completeFilterQueues,

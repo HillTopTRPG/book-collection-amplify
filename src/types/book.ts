@@ -12,4 +12,5 @@ export type BookData = {
   ndc?: string | null;
   ndcLabel?: string | null;
   cover?: string | null;
+  extent?: string | null;
 };

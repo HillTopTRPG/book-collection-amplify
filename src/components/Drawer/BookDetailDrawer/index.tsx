@@ -26,10 +26,6 @@ export default function BookDetailDrawer() {
   const dispatch = useDispatch();
   const selectedScannedItemMapValue = useAppSelector(selectSelectedScannedItemMapValue);
 
-  useEffect(() => {
-    console.log('BookDetailDrawer/index selectedScannedItemMapValue:', JSON.stringify(selectedScannedItemMapValue, null, 2));
-  }, [selectedScannedItemMapValue]);
-
   const {
     isVisible,
     shouldRender,

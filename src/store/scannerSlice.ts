@@ -50,7 +50,6 @@ export const scannerSlice = createSlice({
       );
     },
     setFetchedBookData: (state, action: PayloadAction<Record<string, ScanFinishedItemMapValue>>) => {
-      console.log('$$$ setFetchedBookData');
       for (const isbn of keys(action.payload)) {
         const item = state.scanningItemMap.get(isbn);
         if (!item) continue;
@@ -62,9 +61,7 @@ export const scannerSlice = createSlice({
       }
     },
     updateFetchedFetchOption: (state, action: PayloadAction<{ isbn: string; index: number, fetch: NdlOptions & { creator: string; publisher: string } }>) => {
-      console.log('updateFetchedFetchOption', JSON.stringify(action.payload, null, 2));
       const scanningItemMapValue = state.scanningItemMap.get(action.payload.isbn);
-      console.log('####', JSON.stringify(scanningItemMapValue, null, 2), JSON.stringify(state.scanningItemMap, null, 2));
       if (!scanningItemMapValue) return;
       if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
       const filterSet = scanningItemMapValue.filterSets[action.payload.index];
@@ -119,8 +116,6 @@ export const selectScannedBookDetails = createSelector(
 export const selectSelectedScannedItemMapValue = createSelector(
   [selectScannedBookDetails, selectSelectedIsbn],
   (fetchedBookDetails, selectedIsbn): PickRequired<ScanFinishedItemMapValue, 'bookDetail'> | null => {
-    console.log(selectedIsbn);
-    console.log(JSON.stringify(fetchedBookDetails, null, 2));
     if (!selectedIsbn) return null;
     return fetchedBookDetails.get(selectedIsbn) ?? null;
   }

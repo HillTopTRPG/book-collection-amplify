@@ -21,20 +21,21 @@ const userPoolClient = generateClient<Schema>({
 
 export default function ScannedResults() {
   const dispatch = useDispatch<AppDispatch>();
-  const scannedItemMap = useAppSelector(selectScanningItemMap);
+  const scanningItemMap = useAppSelector(selectScanningItemMap);
   const { toast } = useToast();
-  const [registing, setRegisting] = useState(false);
+  const [registering, setRegistering] = useState(false);
 
-  const clearDisable = !Array.from(scannedItemMap.entries()).length;
-  const registerDisable = clearDisable || Array.from(scannedItemMap.entries()).some(([_, scanningItemMapValue]) => !scanningItemMapValue.bookDetail) || registing;
+  const clearDisable = !scanningItemMap.size;
+  const registrable = !clearDisable && Array.from(scanningItemMap.entries()).some(([_, scanningItemMapValue]) => scanningItemMapValue.bookDetail);
+  const registerDisable = !registrable || registering;
 
   const onClear = useCallback(() => {
     dispatch(clearScannedItems());
   }, [dispatch]);
 
   const onRegister = useCallback(async () => {
-    setRegisting(true);
-    for (const [isbn, scanningItemMapValue] of scannedItemMap.entries()) {
+    setRegistering(true);
+    for (const [isbn, scanningItemMapValue] of scanningItemMap.entries()) {
       if (!scanningItemMapValue.bookDetail?.book) return;
       const isHave = scanningItemMapValue.bookDetail.isHave;
       const { title } = scanningItemMapValue.bookDetail.book;
@@ -64,12 +65,12 @@ export default function ScannedResults() {
       });
     }
     onClear();
-    setRegisting(false);
-  }, [onClear, scannedItemMap, toast]);
+    setRegistering(false);
+  }, [onClear, scanningItemMap, toast]);
 
   return (
     <div className="flex-1 flex flex-col gap-3 w-full bg-background rounded-lg shadow-lg p-2">
-      {scannedItemMap.size > 0 ? (
+      {registrable ? (
         <Fragment>
           <div className="flex gap-3 justify-end">
             <Button variation="primary" className="rounded-full flex-1" onClick={onRegister} disabled={registerDisable}>
@@ -83,13 +84,13 @@ export default function ScannedResults() {
         </Fragment>
       ) : null}
       <ScrollArea className="w-full max-h-max px-1">
-        {Array.from(scannedItemMap.entries()).map(([_, scanningItemMapValue], index) => (
+        {Array.from(scanningItemMap.entries()).map(([_, scanningItemMapValue], index) => (
           <Fragment key={index}>
             {index > 0 && <Separator className="my-2" />}
             <BookCard bookDetail={scanningItemMapValue.bookDetail} />
           </Fragment>
         ))}
-        {!scannedItemMap.size && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}
+        {!scanningItemMap.size && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}
       </ScrollArea>
     </div>
   );

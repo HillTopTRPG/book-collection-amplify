@@ -20,7 +20,7 @@ export default function NdlCard({ ndl, options, anywhere }: Props) {
 
   return (
     <CardFrame className="items-start">
-      <BookImage isbn={isbn} defaultUrl={null} />
+      <BookImage isbn={isbn} />
       <div className="flex items-baseline flex-wrap gap-x-3 flex-1">
         <div className="w-full flex items-baseline flex-wrap gap-x-3">
           { isViewTitle ? (

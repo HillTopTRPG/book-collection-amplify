@@ -11,8 +11,6 @@ type Props = {
 export default function DrawerContent({ filterSet, scannedItemMapValues }: Props) {
   if (!filterSet) return null;
 
-  console.log(JSON.stringify(scannedItemMapValues, null, 2));
-
   return (
     <div className="space-y-4">
       <FilterCard filterSet={filterSet} />

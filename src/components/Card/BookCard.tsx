@@ -26,7 +26,7 @@ export default function BookCard({ bookDetail }: Props) {
       {
         !bookDetail?.book ? <Spinner variant="bars" /> : (
           <>
-            <BookImage isbn={isbn} defaultUrl={bookDetail?.book?.cover} />
+            <BookImage isbn={isbn} />
             <div className="flex-1">
               <h5 className="text-[14px] mb-1">{bookDetail.book.title}</h5>
               <h5 className="text-[13px] mb-1">{bookDetail.book.volume || bookDetail.book.volumeTitle}</h5>

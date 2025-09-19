@@ -59,7 +59,9 @@ export default function useFetchBookData() {
       updatedAt: '',
       owner: '',
     } as const satisfies FilterSet];
-    if (!scannedItemMapValue.filterSets.length) {
+
+    // 書籍データが取得できたかどうかはタイトルが取得できたかで判定する
+    if (book.title && !scannedItemMapValue.filterSets.length) {
       scannedItemMapValue.filterSets.push(...wrappedFilterSets);
     }
 

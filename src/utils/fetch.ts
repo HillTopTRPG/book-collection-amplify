@@ -43,26 +43,41 @@ export const fetchOpenBdApi = async (isbn: string): Promise<BookData> => {
 };
 
 export const fetchGoogleBooksApi = async (isbn: string): Promise<BookData> => {
+  let data;
   try {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-    const data = await response.json();
-
-    if (!data?.items || !data.items[0]) {
-      return { isbn };
-    }
-    return {
-      isbn,
-      title: data.items[0].volumeInfo?.title,
-      volume: data.items[0].volumeInfo?.subtitle,
-      creator: data.items[0].volumeInfo?.authors,
-      publisher: data.items[0].volumeInfo?.publisher,
-      date: data.items[0].volumeInfo?.publishedDate,
-      cover: data.items[0].volumeInfo?.imageLinks?.thumbnail,
-    } as const satisfies BookData;
+    data = await response.json();
   } catch (error) {
-    console.error('Google Books API エラー:', error);
-    return { isbn };
+    console.log('$$ google error');
+    console.log(JSON.stringify(error, null, 2));
+    throw new Error('other');
   }
+
+  if (!data?.items?.length) {
+    if (data.totalItems === 0) {
+      throw new Error('no-exists');
+    }
+    if (data?.error?.errors?.some((error: { reason: string | null } | null) => error?.reason === 'rateLimitExceeded')) {
+      throw new Error('need-retry');
+    }
+    console.log('$$ google illegal response');
+    console.log(JSON.stringify(data, null, 2));
+    throw new Error('other');
+  }
+
+  if (!data.items[0].volumeInfo?.imageLinks?.thumbnail) {
+    console.log('google cant have image but got info: ', data.items[0].volumeInfo?.title);
+  }
+
+  return {
+    isbn,
+    title: data.items[0].volumeInfo?.title,
+    volume: data.items[0].volumeInfo?.subtitle,
+    creator: data.items[0].volumeInfo?.authors,
+    publisher: data.items[0].volumeInfo?.publisher,
+    date: data.items[0].volumeInfo?.publishedDate,
+    cover: data.items[0].volumeInfo?.imageLinks?.thumbnail,
+  } as const satisfies BookData;
 };
 
 export type RakutenApiOption = {
@@ -97,34 +112,50 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
     return value ? [`&${option}=${encodeURIComponent(value)}`] : [];
   }).join('');
 
+  let data;
   try {
     const response = await fetch(`https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404?format=json${params}`);
-    const data = await response.json();
-
-    if (!data['Items']) return [];
-
-    return data['Items']
-      .map(({ Item: item }: {Item: RakutenBook}) => item)
-      .flatMap((item: RakutenBook) => {
-        // isbnコード必須
-        if (!item.isbn) return [];
-        // まとめ売りの商品は除外
-        if (item.booksGenreId?.startsWith('001025')) return [];
-
-        return [{
-          isbn: item.isbn.replaceAll('-', ''),
-          title: item.title,
-          volume: item.subTitle,
-          creator: item.author ? [item.author] : [],
-          publisher: item.publisherName,
-          date: item.salesDate,
-          cover: item.mediumImageUrl,
-        } as const satisfies BookData];
-      });
+    data = await response.json();
   } catch (error) {
-    console.error('Rakuten Books API エラー:', error);
-    return [];
+    console.log('$$ rakuten error');
+    console.log(JSON.stringify(error, null, 2));
+    throw new Error('other');
   }
+
+  if (!data['Items']) {
+    if (data['error']) {
+      if (data['error'] === 'too_many_requests') throw new Error('need-retry');
+      console.log('$$ rakuten illegal response');
+      console.log(JSON.stringify(data, null, 2));
+      throw new Error(data['error']);
+    }
+    console.log('$$ rakuten illegal response');
+    console.log(JSON.stringify(data, null, 2));
+    throw new Error('other');
+  }
+
+  return data['Items']
+    .map(({ Item: item }: {Item: RakutenBook}) => item)
+    .flatMap((item: RakutenBook) => {
+      // isbnコード必須
+      if (!item.isbn) return [];
+      // // まとめ売りの商品は除外
+      // if (item.booksGenreId?.startsWith('001025')) return [];
+
+      if (!item.mediumImageUrl) {
+        console.log('rakuten cant have image but got info: ', item.title);
+      }
+
+      return [{
+        isbn: item.isbn.replaceAll('-', ''),
+        title: item.title,
+        volume: item.subTitle,
+        creator: item.author ? [item.author] : [],
+        publisher: item.publisherName,
+        date: item.salesDate,
+        cover: item.mediumImageUrl,
+      } as const satisfies BookData];
+    });
 };
 
 export type NdlOptions = {
@@ -182,6 +213,7 @@ const getNdlBookFromDocument = (recordElm: Element) => {
   const volumeTitle = resourceElm?.querySelector('volumeTitle > Description > value')?.textContent ?? null;
   const seriesTitle = resourceElm?.querySelector('seriesTitle > Description > value')?.textContent ?? null;
   const edition = resourceElm?.querySelector('edition')?.textContent ?? null;
+  const extent = resourceElm?.querySelector('extent')?.textContent ?? null;
   const ndcInfo = Array.from(resourceElm?.querySelectorAll('subject') ?? []).flatMap(subjectElm => {
     const resource = subjectElm.getAttribute('rdf:resource') ?? '';
     const sp = resource.split('/');
@@ -229,6 +261,7 @@ const getNdlBookFromDocument = (recordElm: Element) => {
     ndc,
     ndcLabel,
     cover: isbn ? `https://ndlsearch.ndl.go.jp/thumbnail/${isbn.replaceAll('-', '')}.jpg` : null,
+    extent,
   } as const satisfies BookData;
 };
 
@@ -248,39 +281,51 @@ export const fetchNdlSearch = async (options: NdlOptions) => {
     });
 };
 
-export const checkIfImageExists = (url: string | null | undefined) => new Promise<string | null>((resolve) => {
-  if (!url) return null;
+const checkIfImageExists = async (url: string | null | undefined) => new Promise<boolean>((resolve) => {
+  if (!url) return resolve(false);
   const img = new Image();
-  // img.crossOrigin = 'anonymous';
-  img.onload = () => resolve(url);
-  img.onerror = () => resolve(null);
+  img.onload = () => resolve(true);
+  img.onerror = () => resolve(false);
   img.src = url;
 });
 
-export const getBookImageUrl = async (props: { defaultUrl: string; isbn: string }): Promise<string | null> => {
-  const isbn = props.isbn.replaceAll('-', '');
+const getAsyncUrl = async (type: 'rakuten' | 'google', isbn: string, callback: (isbn: string) => Promise<string | null>) => new Promise<GetBookImagePromiseInfo>((resolve) => {
+  callback(isbn)
+    .then((url) => {
+      resolve({ url, type, error: null });
+    })
+    .catch((error) => {
+      console.log('$$$ getAsyncUrl catch', type, isbn, error.toString());
+      resolve({ url: null, type, error: error?.message ?? null });
+    });
+});
 
-  const wrapImageCheck = async (_: string, url: string | null | undefined) => {
-    if (!url) return null;
-    if (url) {
-      const result = await checkIfImageExists(url);
-      // console.log(label, result);
+type GetBookImagePromiseInfo = { url: string | null; type: 'ndl' | 'rakuten' | 'google'; error: string | null };
 
-      return result;
-    } else {
-      // console.log(isbn, label, '失敗', url);
-      return null;
-    }
+export const getBookImageUrl = async (isbn: string): Promise<GetBookImagePromiseInfo> => {
+  const ndlUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`;
+  if (await checkIfImageExists(ndlUrl)) {
+    return {
+      url: ndlUrl,
+      type: 'ndl',
+      error: null,
+    };
+  }
+
+  const results = await Promise.all([
+    getAsyncUrl('google', isbn, async (isbn) => (await fetchGoogleBooksApi(isbn)).cover ?? null),
+    getAsyncUrl('rakuten', isbn, async (isbn) => (await fetchRakutenBooksApi({ isbn })).find(book => book.cover)?.cover ?? null),
+  ]);
+
+  const haveUrl = results.find((result) => result.url);
+  if (haveUrl) return haveUrl;
+
+  const needRetry = results.find((result) => result.error === 'need-retry');
+  if (needRetry) return needRetry;
+
+  return {
+    url: null,
+    type: 'rakuten',
+    error: 'other',
   };
-
-  const ndlImageUrl = await wrapImageCheck('NDL', `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`);
-  if (ndlImageUrl) return ndlImageUrl;
-
-  const googleImageUrl = await wrapImageCheck('Google', (await fetchGoogleBooksApi(isbn))?.cover);
-  if (googleImageUrl) return googleImageUrl;
-
-  const rakutenImageUrl = await wrapImageCheck('楽天', (await fetchRakutenBooksApi({ isbn })).at(0)?.cover);
-  if (rakutenImageUrl) return rakutenImageUrl;
-
-  return null;
 };

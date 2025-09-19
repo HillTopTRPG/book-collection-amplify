@@ -156,6 +156,7 @@ export default function CameraView({ width, height }: Props) {
           dispatch(setFetchedBookData({ [isbn]: scannedItemMapValue }));
         });
       });
+
       setError(null);
       setIsScanning(true);
     } catch (error) {
