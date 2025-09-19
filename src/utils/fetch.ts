@@ -2,6 +2,7 @@ import * as _ from 'es-toolkit/compat';
 import { keys } from 'es-toolkit/compat';
 import ndc8Map from '@/assets/ndc8.json';
 import ndc9Map from '@/assets/ndc9.json';
+import { getIsbn13 } from '@/utils/primitive.ts';
 import type { BookData } from '../types/book.ts';
 
 const NDC_MAPS = {
@@ -204,11 +205,13 @@ const getNdlQuery = (options: NdlOptions) => {
 const parser = new DOMParser();
 const getNdlBookFromDocument = (recordElm: Element) => {
   const resourceElm = recordElm.querySelector('recordData > RDF > BibResource');
-  const isbn =
+  const maybeIsbn =
     Array.from(resourceElm?.querySelectorAll('identifier') ?? [])
       .find(isbnElm => isbnElm.getAttribute('rdf:datatype') === 'http://ndl.go.jp/dcndl/terms/ISBN')
       ?.textContent?.replaceAll('-', '') ?? null;
-  if (!isbn) return null;
+  if (!maybeIsbn || ![10, 13].includes(maybeIsbn.length)) return null;
+
+  const isbn = getIsbn13(maybeIsbn);
 
   const title = resourceElm?.querySelector('title > Description > value')?.textContent ?? null;
   const publisher = resourceElm?.querySelector('publisher > Agent > name')?.textContent ?? null;
@@ -262,9 +265,7 @@ const getNdlBookFromDocument = (recordElm: Element) => {
     return [...Array(ndc.length - 5)].flatMap((_, i) => {
       const code = ndc.slice(0, 6 + i);
       if (code.endsWith('.')) return [];
-      console.log(code);
       const text = dataMap[code as keyof typeof dataMap];
-      console.log(text);
 
       return text ? [text] : [];
     });

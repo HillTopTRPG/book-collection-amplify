@@ -16,7 +16,7 @@ import {
   selectScanningItemMap,
   setFetchedBookData,
 } from '@/store/scannerSlice.ts';
-import { wait } from '@/utils/primitive.ts';
+import { getIsbn13, wait } from '@/utils/primitive.ts';
 import { checkIsbnCode } from '@/utils/validate.ts';
 import CornerFrame from './CornerFrame.tsx';
 
@@ -124,11 +124,13 @@ export default function CameraView({ width, height }: Props) {
 
       // イベントリスナーを設定
       Quagga.onDetected(async result => {
-        const isbn = result.codeResult.code;
+        const maybeIsbn = result.codeResult.code;
 
-        if (!isbn || !checkIsbnCode(isbn)) {
+        if (!checkIsbnCode(maybeIsbn)) {
           return;
         }
+
+        const isbn = getIsbn13(maybeIsbn);
 
         if (lastFetchIsbn.current === isbn) return;
         lastFetchIsbn.current = isbn;

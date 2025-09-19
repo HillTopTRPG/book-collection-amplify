@@ -15,6 +15,7 @@ import {
   selectScanningItemMap,
   setFetchedBookData,
 } from '@/store/scannerSlice.ts';
+import { getIsbn13 } from '@/utils/primitive.ts';
 import { checkIsbnCode } from '@/utils/validate.ts';
 
 const FormSchema = z
@@ -42,7 +43,11 @@ export default function IsbnForm() {
 
   const onSubmit = useCallback(
     (data: z.infer<typeof FormSchema>) => {
-      const isbn = data.isbn.replaceAll('-', '');
+      const maybeIsbn = data.isbn.replaceAll('-', '');
+
+      if (!checkIsbnCode(maybeIsbn)) return;
+
+      const isbn = getIsbn13(maybeIsbn);
 
       // 既に存在する場合はスキップ
       if (scannedItemMap.has(isbn)) {
