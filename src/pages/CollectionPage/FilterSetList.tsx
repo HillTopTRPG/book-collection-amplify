@@ -1,5 +1,4 @@
 import { Fragment } from 'react';
-
 import FilterCard from '@/components/Card/FilterCard';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useAppSelector } from '@/store/hooks.ts';

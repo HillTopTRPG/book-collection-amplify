@@ -1,8 +1,6 @@
 import { useCallback } from 'react';
-
 import { pick } from 'es-toolkit';
 import { omit } from 'es-toolkit/compat';
-
 import { selectFilterQueueResults } from '@/store/fetchApiQueueSlice.ts';
 import { useAppSelector } from '@/store/hooks';
 import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';

@@ -1,7 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-
 import type { FilterData } from '@/types/filter.ts';
-
 import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 

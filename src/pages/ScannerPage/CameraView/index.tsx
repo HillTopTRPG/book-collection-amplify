@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-
 import Quagga from '@ericblade/quagga2';
 import { Volume2, VolumeOff } from 'lucide-react';
 // eslint-disable-next-line import/no-named-as-default
 import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
-
 import se01 from '@/assets/se01.mp3';
 import { Button } from '@/components/ui/button.tsx';
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +18,6 @@ import {
 } from '@/store/scannerSlice.ts';
 import { wait } from '@/utils/primitive.ts';
 import { checkIsdnCode } from '@/utils/validate.ts';
-
 import CornerFrame from './CornerFrame.tsx';
 
 type Props = {

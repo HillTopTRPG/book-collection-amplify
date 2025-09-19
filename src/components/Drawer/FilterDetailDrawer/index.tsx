@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-
 import { CircleChevronLeft } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { useDispatch } from 'react-redux';
-
 import DrawerFrame from '@/components/Drawer/DrawerFrame.tsx';
 import { Button } from '@/components/ui/button';
 import { useDrawerAnimation } from '@/hooks/useDrawerAnimation';
@@ -17,7 +15,6 @@ import { useAppSelector } from '@/store/hooks.ts';
 import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import { fetchNdlSearch } from '@/utils/fetch.ts';
-
 import DrawerContent from './DrawerContent.tsx';
 
 export default function FilterDetailDrawer() {

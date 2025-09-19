@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
-
 import { ImageOff } from 'lucide-react';
 import { useDispatch } from 'react-redux';
-
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { addGetImageQueue, selectBookImageResults } from '@/store/fetchApiQueueSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';

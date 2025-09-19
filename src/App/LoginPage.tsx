@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-
 import { Authenticator, useTheme, View, Image, Text, Heading } from '@aws-amplify/ui-react';
 
 import '@aws-amplify/ui-react/styles.css';

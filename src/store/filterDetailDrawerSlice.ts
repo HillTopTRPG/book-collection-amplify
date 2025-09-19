@@ -1,13 +1,10 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
-
 import { selectFetchResultMap } from '@/store/fetchResultSlice.ts';
 import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import { getScannedItemMapValueByBookData } from '@/utils/data.ts';
 import { filterMatch } from '@/utils/primitive.ts';
-
 import { selectCollections, selectFilterSets } from './subscriptionDataSlice';
-
 import type { RootState } from './index';
 import type { Collection } from './subscriptionDataSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';

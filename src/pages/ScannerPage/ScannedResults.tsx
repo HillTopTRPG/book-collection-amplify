@@ -1,10 +1,8 @@
 import { Fragment, useCallback, useState } from 'react';
-
 import { Button } from '@aws-amplify/ui-react';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { generateClient } from 'aws-amplify/data';
 import { useDispatch } from 'react-redux';
-
 import BookCard from '@/components/Card/BookCard';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
@@ -12,7 +10,6 @@ import type { AppDispatch } from '@/store';
 import { useAppSelector } from '@/store/hooks.ts';
 import { clearScannedItems, selectScanningItemMap } from '@/store/scannerSlice.ts';
 import { wait } from '@/utils/primitive.ts';
-
 import type { Schema } from '$/amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({

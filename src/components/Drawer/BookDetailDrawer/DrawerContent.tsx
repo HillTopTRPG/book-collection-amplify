@@ -1,5 +1,4 @@
 import { Fragment, useEffect, useMemo } from 'react';
-
 import BookCard from '@/components/Card/BookCard.tsx';
 import NdlCard from '@/components/Card/NdlCard';
 import NdlOptionsForm from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';

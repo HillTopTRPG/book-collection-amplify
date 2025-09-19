@@ -1,5 +1,4 @@
 import { configureStore } from '@reduxjs/toolkit';
-
 // import bookDetailDrawerReducer from './bookDetailDrawerSlice.ts';
 import editFilterReducer from './editFilterSlice.ts';
 import fetchApiQueueReducer from './fetchApiQueueSlice';

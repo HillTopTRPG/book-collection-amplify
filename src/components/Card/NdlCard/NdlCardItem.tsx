@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-
 import HighLightText from '@/components/Card/NdlCard/HighLightText.tsx';
 
 type Props = {

@@ -1,9 +1,7 @@
 import type { ComponentPropsWithoutRef, ElementRef, HTMLAttributes } from 'react';
 import { forwardRef } from 'react';
-
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { Cross2Icon } from '@radix-ui/react-icons';
-
 import { cn } from '@/lib/utils';
 
 const Dialog = DialogPrimitive.Root;

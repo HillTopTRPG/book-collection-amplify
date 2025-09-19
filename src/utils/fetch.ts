@@ -1,10 +1,8 @@
 import * as _ from 'es-toolkit/compat';
 import { keys } from 'es-toolkit/compat';
-
 import ndc8Map from '@/assets/ndc8.json';
 import ndc9Map from '@/assets/ndc9.json';
 import { getKeys } from '@/utils/type.ts';
-
 import type { BookData } from '../types/book.ts';
 
 const NDC_MAPS = {

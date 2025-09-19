@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-
 import { useAuthenticator } from '@aws-amplify/ui-react';
 
 interface AuthWrapperProps {

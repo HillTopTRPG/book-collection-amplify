@@ -1,11 +1,9 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { keys } from 'es-toolkit/compat';
-
 import type { NdlOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { PickRequired } from '@/utils/type.ts';
-
 import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 

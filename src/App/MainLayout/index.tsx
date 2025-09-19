@@ -1,9 +1,7 @@
 import type { ReactNode } from 'react';
 import { Fragment } from 'react';
-
 import BookDetailDrawer from '@/components/Drawer/BookDetailDrawer';
 import FilterDetailDrawer from '@/components/Drawer/FilterDetailDrawer';
-
 import BottomNavigation from './BottomNavigation';
 import MenuBar from './MenuBar';
 

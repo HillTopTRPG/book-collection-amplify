@@ -1,5 +1,4 @@
 import IsbnForm from '@/pages/ScannerPage/IsbnForm.tsx';
-
 import CameraView from './CameraView';
 import ScannedResults from './ScannedResults';
 

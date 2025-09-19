@@ -1,7 +1,5 @@
 import { useMemo } from 'react';
-
 import { useDispatch } from 'react-redux';
-
 import ComboInput from '@/components/ComboInput.tsx';
 import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import { updateFetchedFilterAnywhere } from '@/store/scannerSlice.ts';

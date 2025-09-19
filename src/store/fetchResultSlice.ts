@@ -1,5 +1,4 @@
 import { createSlice } from '@reduxjs/toolkit';
-
 import type { RootState } from './index.ts';
 import type { BookData } from '../types/book';
 import type { PayloadAction } from '@reduxjs/toolkit';

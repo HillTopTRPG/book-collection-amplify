@@ -1,8 +1,6 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { enableMapSet } from 'immer';
-
 import type { BookData } from '@/types/book.ts';
-
 import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
