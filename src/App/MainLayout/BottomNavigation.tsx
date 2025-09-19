@@ -17,7 +17,7 @@ const navigationItems = [
     path: '/collection',
     icon: Search,
     label: '検索',
-  }
+  },
 ];
 
 export default function BottomNavigation() {
@@ -29,7 +29,7 @@ export default function BottomNavigation() {
       <div className="flex justify-around items-center max-w-lg mx-auto">
         {navigationItems.map(({ path, icon: Icon, label }) => {
           const isActive = location.pathname === path;
-          
+
           return (
             <Link
               key={path}
@@ -45,7 +45,7 @@ export default function BottomNavigation() {
             </Link>
           );
         })}
-        
+
         {/* ログアウトボタン */}
         <Link
           to="/"

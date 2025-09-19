@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import { useAuthenticator } from '@aws-amplify/ui-react';
 
 interface AuthWrapperProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function AuthWrapper({ children }: AuthWrapperProps) {

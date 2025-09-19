@@ -22,21 +22,23 @@ type State = {
 };
 
 const initialState: State = {
-  bookImageQueue: new Map<string, string>,
-  bookImageResults: new Map<string, string | null>,
-  filterQueue: new Map<string, string>,
-  filterQueueResults: new Map<string, BookData[]>,
+  bookImageQueue: new Map<string, string>(),
+  bookImageResults: new Map<string, string | null>(),
+  filterQueue: new Map<string, string>(),
+  filterQueueResults: new Map<string, BookData[]>(),
 };
 
-const checkQueueExistsBase = (queueMap: 'bookImageQueue' | 'filterQueue', resultMap: 'bookImageResults' | 'filterQueueResults') => (key: string, state: State) => {
-  const queueItem = state[queueMap].get(key);
-  const resultItem = state[resultMap].get(key);
+const checkQueueExistsBase =
+  (queueMap: 'bookImageQueue' | 'filterQueue', resultMap: 'bookImageResults' | 'filterQueueResults') =>
+  (key: string, state: State) => {
+    const queueItem = state[queueMap].get(key);
+    const resultItem = state[resultMap].get(key);
 
-  const queue = Boolean(queueItem);
-  const result = resultItem !== undefined;
+    const queue = Boolean(queueItem);
+    const result = resultItem !== undefined;
 
-  return (queue || result) ? { queue, result, both: queue && result } : null;
-};
+    return queue || result ? { queue, result, both: queue && result } : null;
+  };
 
 const checkBookImageExists = checkQueueExistsBase('bookImageQueue', 'bookImageResults');
 
@@ -93,27 +95,26 @@ export const fetchApiQueueSlice = createSlice({
   },
 });
 
-export const {
-  addGetImageQueue,
-  retryGetImageQueue,
-  completeGetImageQueues,
-  addFilterQueue,
-  completeFilterQueues,
-} = fetchApiQueueSlice.actions;
+export const { addGetImageQueue, retryGetImageQueue, completeGetImageQueues, addFilterQueue, completeFilterQueues } =
+  fetchApiQueueSlice.actions;
 
 const selectBookImageQueue = (state: RootState) => state.fetchApiQueue.bookImageQueue;
-export const selectQueuedBookImageIsbn = createSelector([selectBookImageQueue], (bookImageQueue) => {
+export const selectQueuedBookImageIsbn = createSelector([selectBookImageQueue], bookImageQueue => {
   const entries = bookImageQueue.entries();
 
-  return Array.from(entries).slice(0, 1).map(item => item[1]);
+  return Array.from(entries)
+    .slice(0, 1)
+    .map(item => item[1]);
 });
 export const selectBookImageResults = (state: RootState) => state.fetchApiQueue.bookImageResults;
 
 const selectFilterQueue = (state: RootState) => state.fetchApiQueue.filterQueue;
-export const selectQueuedFilterOption = createSelector([selectFilterQueue], (filterQueue) => {
+export const selectQueuedFilterOption = createSelector([selectFilterQueue], filterQueue => {
   const entries = filterQueue.entries();
 
-  return Array.from(entries).slice(0, 2).map(item => item[1]);
+  return Array.from(entries)
+    .slice(0, 2)
+    .map(item => item[1]);
 });
 /** フィルター内容 : 書籍一覧 */
 export const selectFilterQueueResults = (state: RootState) => state.fetchApiQueue.filterQueueResults;

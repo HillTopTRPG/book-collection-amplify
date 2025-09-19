@@ -28,10 +28,7 @@ export const fetchResultSlice = createSlice({
   },
 });
 
-export const {
-  updateFetchResult,
-  deleteFetchResult,
-} = fetchResultSlice.actions;
+export const { updateFetchResult, deleteFetchResult } = fetchResultSlice.actions;
 
 export const selectFetchResultMap = (state: RootState) => state.fetchResult.fetchResultMap;
 

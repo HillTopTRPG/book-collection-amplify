@@ -19,21 +19,18 @@ export const editFilterSlice = createSlice({
   name: 'filter',
   initialState,
   reducers: {
-    setFilterSet: (state, action: PayloadAction<{ id: string | null; filters: FilterData[]; }>) => {
+    setFilterSet: (state, action: PayloadAction<{ id: string | null; filters: FilterData[] }>) => {
       state.filterSetId = action.payload.id;
       state.filters = action.payload.filters;
     },
-    resetFilterSet: (state) => {
+    resetFilterSet: state => {
       state.filterSetId = null;
       state.filters = [];
     },
   },
 });
 
-export const {
-  setFilterSet,
-  resetFilterSet,
-} = editFilterSlice.actions;
+export const { setFilterSet, resetFilterSet } = editFilterSlice.actions;
 
 export const selectEditFilterSetId = (state: RootState) => state.editFilter.filterSetId;
 export const selectEditFilters = (state: RootState) => state.editFilter.filters;

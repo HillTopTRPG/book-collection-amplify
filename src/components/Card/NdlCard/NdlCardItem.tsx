@@ -15,6 +15,12 @@ export default function NdlCardItem({ value, className, children, label, highLig
   const staticValue = label ? `${label}: ${value}` : value;
 
   return (
-    <span className={className}>{ children ? children(value) : <HighLightText value={staticValue} subStr={highLight} subClassName="bg-yellow-700" /> }</span>
+    <span className={className}>
+      {children ? (
+        children(value)
+      ) : (
+        <HighLightText value={staticValue} subStr={highLight} subClassName="bg-yellow-700" />
+      )}
+    </span>
   );
 }

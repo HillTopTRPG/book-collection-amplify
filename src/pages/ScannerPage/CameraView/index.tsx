@@ -13,9 +13,10 @@ import useFetchBookData from '@/hooks/useFetchBookData.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import {
   addScannedIsbn,
-  rejectFetchBookData, selectScannedBookDetails,
+  rejectFetchBookData,
+  selectScannedBookDetails,
   selectScanningItemMap,
-  setFetchedBookData
+  setFetchedBookData,
 } from '@/store/scannerSlice.ts';
 import { wait } from '@/utils/primitive.ts';
 import { checkIsdnCode } from '@/utils/validate.ts';
@@ -43,7 +44,7 @@ export default function CameraView({ width, height }: Props) {
   const [volume, _setVolume] = useState(Number(localStorage.volume) ?? 0.8);
   const [play] = useSound(se01, {
     volume,
-    interrupt: true
+    interrupt: true,
   });
   const { fetchBookData } = useFetchBookData();
 
@@ -86,35 +87,38 @@ export default function CameraView({ width, height }: Props) {
 
     try {
       await new Promise<void>((resolve, reject) => {
-        Quagga.init({
-          inputStream: {
-            name: 'Live',
-            type: 'LiveStream',
-            target: scannerRef.current ?? undefined,
-            constraints: {
-              width: { min: 640, ideal: 1280, max: 1920 },
-              height: { min: 480, ideal: 720, max: 1080 },
-              frameRate: { ideal: 30, max: 30 },
-              facingMode: 'environment' // スマホの場合は背面カメラを優先
+        Quagga.init(
+          {
+            inputStream: {
+              name: 'Live',
+              type: 'LiveStream',
+              target: scannerRef.current ?? undefined,
+              constraints: {
+                width: { min: 640, ideal: 1280, max: 1920 },
+                height: { min: 480, ideal: 720, max: 1080 },
+                frameRate: { ideal: 30, max: 30 },
+                facingMode: 'environment', // スマホの場合は背面カメラを優先
+              },
             },
+            frequency: 10, // スキャン頻度を下げる
+            numOfWorkers: navigator.hardwareConcurrency || 2,
+            decoder: {
+              readers: ['ean_reader'],
+            },
+            locate: true,
           },
-          frequency: 10, // スキャン頻度を下げる
-          numOfWorkers: navigator.hardwareConcurrency || 2,
-          decoder: {
-            readers: ['ean_reader']
-          },
-          locate: true
-        }, (err) => {
-          if (err) {
-            console.error('Quagga初期化エラー:', err);
-            setError(`バーコードスキャナーの初期化に失敗しました: ${err.message || err}`);
-            setIsScanning(false);
-            reject(err);
-            return;
+          err => {
+            if (err) {
+              console.error('Quagga初期化エラー:', err);
+              setError(`バーコードスキャナーの初期化に失敗しました: ${err.message || err}`);
+              setIsScanning(false);
+              reject(err);
+              return;
+            }
+            console.log('Quagga初期化完了');
+            resolve();
           }
-          console.log('Quagga初期化完了');
-          resolve();
-        });
+        );
       });
 
       // 初期化が成功したらスキャンを開始
@@ -122,7 +126,7 @@ export default function CameraView({ width, height }: Props) {
       console.log('Quaggaスキャン開始');
 
       // イベントリスナーを設定
-      Quagga.onDetected(async (result) => {
+      Quagga.onDetected(async result => {
         const isbn = result.codeResult.code;
 
         if (!isbn || !checkIsdnCode(isbn)) {
@@ -170,13 +174,13 @@ export default function CameraView({ width, height }: Props) {
     setIsFirst(false);
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { width, height },
-        audio: false
+        audio: false,
       });
-      
+
       setStream(mediaStream);
 
       // カメラ起動後、DOM要素が準備されるまで待ってからバーコードスキャンを自動開始
@@ -200,14 +204,17 @@ export default function CameraView({ width, height }: Props) {
     startCamera().then();
   }, 100);
 
-  useEffect(() => () => {
-    if (isScanning) {
-      Quagga.stop().then();
-    }
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
-  }, [stream, isScanning]);
+  useEffect(
+    () => () => {
+      if (isScanning) {
+        Quagga.stop().then();
+      }
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    },
+    [stream, isScanning]
+  );
 
   const toggleVolume = useCallback(() => {
     setVolume(volume ? 0 : 0.8);
@@ -215,13 +222,18 @@ export default function CameraView({ width, height }: Props) {
 
   return (
     <div className="flex flex-col items-center justify-normal bg-background rounded-lg shadow-lg p-1 relative">
-      {error ? <div style={{ color: 'red', marginBottom: '20px' }}>
-          エラー: {error}
-      </div> : null}
+      {error ? <div style={{ color: 'red', marginBottom: '20px' }}>エラー: {error}</div> : null}
 
-      {stream && isScanning ? <Button className="absolute bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40" size="icon" variant="outline" onClick={toggleVolume}>
-        {volume ? <Volume2 /> : <VolumeOff />}
-      </Button> : null}
+      {stream && isScanning ? (
+        <Button
+          className="absolute bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40"
+          size="icon"
+          variant="outline"
+          onClick={toggleVolume}
+        >
+          {volume ? <Volume2 /> : <VolumeOff />}
+        </Button>
+      ) : null}
 
       <div
         id="scanner-container"
@@ -232,17 +244,15 @@ export default function CameraView({ width, height }: Props) {
           maxHeight: '100px',
         }}
       >
-        <h1 className="absolute top-1 left-0 right-0 text-center text-xs text-white z-40">バーコードを写してください。</h1>
+        <h1 className="absolute top-1 left-0 right-0 text-center text-xs text-white z-40">
+          バーコードを写してください。
+        </h1>
         <CornerFrame />
       </div>
 
-      {isLoading ? <p className="p-2 text-blue-400 bg-blue-50">
-          カメラ起動中...
-      </p> : null}
+      {isLoading ? <p className="p-2 text-blue-400 bg-blue-50">カメラ起動中...</p> : null}
 
-      {stream && !isScanning ? <p className="p-2 text-blue-400 bg-blue-50">
-          スキャナー準備中...
-      </p> : null}
+      {stream && !isScanning ? <p className="p-2 text-blue-400 bg-blue-50">スキャナー準備中...</p> : null}
     </div>
   );
 }

@@ -38,16 +38,13 @@ export const scannerSlice = createSlice({
   reducers: {
     addScannedIsbn: (state, action: PayloadAction<string>) => {
       const isbn = action.payload;
-      state.scanningItemMap.set(
+      state.scanningItemMap.set(isbn, {
         isbn,
-        {
-          isbn,
-          status: 'loading',
-          collectionId: null,
-          bookDetail: null,
-          filterSets: [],
-        }
-      );
+        status: 'loading',
+        collectionId: null,
+        bookDetail: null,
+        filterSets: [],
+      });
     },
     setFetchedBookData: (state, action: PayloadAction<Record<string, ScanFinishedItemMapValue>>) => {
       for (const isbn of keys(action.payload)) {
@@ -60,7 +57,10 @@ export const scannerSlice = createSlice({
         item.filterSets = value.filterSets;
       }
     },
-    updateFetchedFetchOption: (state, action: PayloadAction<{ isbn: string; index: number, fetch: NdlOptions & { creator: string; publisher: string } }>) => {
+    updateFetchedFetchOption: (
+      state,
+      action: PayloadAction<{ isbn: string; index: number; fetch: NdlOptions & { creator: string; publisher: string } }>
+    ) => {
       const scanningItemMapValue = state.scanningItemMap.get(action.payload.isbn);
       if (!scanningItemMapValue) return;
       if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
@@ -68,7 +68,7 @@ export const scannerSlice = createSlice({
       filterSet.fetch = action.payload.fetch;
       scanningItemMapValue.filterSets.splice(action.payload.index, 1, filterSet);
     },
-    updateFetchedFilterAnywhere: (state, action: PayloadAction<{ isbn: string; index: number, anywhere: string }>) => {
+    updateFetchedFilterAnywhere: (state, action: PayloadAction<{ isbn: string; index: number; anywhere: string }>) => {
       const scanningItemMapValue = state.scanningItemMap.get(action.payload.isbn);
       if (!scanningItemMapValue) return;
       if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
@@ -82,12 +82,12 @@ export const scannerSlice = createSlice({
       const isbn = action.payload;
       state.scanningItemMap.delete(isbn);
     },
-    clearScannedItems: (state) => {
+    clearScannedItems: state => {
       state.scanningItemMap.clear();
     },
     updateSelectedScanIsbn: (state, action: PayloadAction<string | null>) => {
       state.selectedIsbn = action.payload;
-    }
+    },
   },
 });
 
@@ -108,10 +108,11 @@ export const selectScannedBookDetails = createSelector(
   (scanningItemMap): Map<string, PickRequired<ScanFinishedItemMapValue, 'bookDetail'>> => {
     const result = new Map<string, PickRequired<ScanFinishedItemMapValue, 'bookDetail'>>();
     Array.from(scanningItemMap.entries()).forEach(([isbn, scanningItemMapValue]) => {
-      if (scanningItemMapValue?.bookDetail?.book) result.set(isbn, scanningItemMapValue as PickRequired<ScanFinishedItemMapValue, 'bookDetail'>);
+      if (scanningItemMapValue?.bookDetail?.book)
+        result.set(isbn, scanningItemMapValue as PickRequired<ScanFinishedItemMapValue, 'bookDetail'>);
     });
     return result;
-  },
+  }
 );
 export const selectSelectedScannedItemMapValue = createSelector(
   [selectScannedBookDetails, selectSelectedIsbn],

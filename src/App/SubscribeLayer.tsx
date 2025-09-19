@@ -8,14 +8,15 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import {
   selectCreateFilterSet,
-  setCollections, setCreateFilterSet,
+  setCollections,
+  setCreateFilterSet,
   setFilterSets,
 } from '@/store/subscriptionDataSlice.ts';
 
 import type { Schema } from '$/amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({
-  authMode: 'userPool'
+  authMode: 'userPool',
 });
 
 type Props = {
@@ -39,23 +40,34 @@ export default function SubscribeLayer({ children }: Props) {
 
   useEffect(() => {
     const collectionSubscription = userPoolClient.models.Collection.observeQuery().subscribe({
-      next: (data) => {
-        dispatch(setCollections(structuredClone(data.items).map(item => ({
-          ...item,
-          meta: JSON.parse(item.meta?.trim() || '{}'),
-        }))));
+      next: data => {
+        dispatch(
+          setCollections(
+            structuredClone(data.items).map(item => ({
+              ...item,
+              meta: JSON.parse(item.meta?.trim() || '{}'),
+            }))
+          )
+        );
       },
     });
     const filterSetSubscription = userPoolClient.models.FilterSet.observeQuery().subscribe({
-      next: (data) => {
-        dispatch(setFilterSets(structuredClone(data.items).map(item => ({
-          ...item,
-          fetch: JSON.parse(item.fetch?.trim() || '{}') as FilterSet['fetch'],
-          filters: JSON.parse(item.filters?.trim() || '[]') as FilterSet['filters'],
-        }))));
+      next: data => {
+        dispatch(
+          setFilterSets(
+            structuredClone(data.items).map(item => ({
+              ...item,
+              fetch: JSON.parse(item.fetch?.trim() || '{}') as FilterSet['fetch'],
+              filters: JSON.parse(item.filters?.trim() || '[]') as FilterSet['filters'],
+            }))
+          )
+        );
         if (nextFilterSetNameRef.current) {
           // Use slice().reverse() to avoid mutating original array
-          const item = data.items.slice().reverse().find(item => item.name === nextFilterSetNameRef.current);
+          const item = data.items
+            .slice()
+            .reverse()
+            .find(item => item.name === nextFilterSetNameRef.current);
           if (item) {
             dispatch(setFilterSet({ id: item.id, filters: JSON.parse(item.filters) }));
           }

@@ -8,131 +8,99 @@ module.exports = {
     'plugin:react-hooks/recommended',
     'plugin:import/recommended',
     'plugin:import/typescript',
+    'plugin:prettier/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs', 'amplify', 'vite.config.ts', 'tailwind.config.js', 'postcss.config.js', 'scripts'],
+  ignorePatterns: [
+    'dist',
+    '.eslintrc.cjs',
+    'amplify',
+    'vite.config.ts',
+    'tailwind.config.js',
+    'postcss.config.js',
+    'scripts',
+  ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
-    project: './tsconfig.json'
+    project: './tsconfig.json',
   },
   plugins: ['react-refresh', 'import', 'react', 'unused-imports'],
   settings: {
     react: {
-      version: 'detect'
+      version: 'detect',
     },
     'import/resolver': {
       typescript: {
         alwaysTryTypes: true,
-        project: './tsconfig.json'
+        project: './tsconfig.json',
       },
       node: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx']
-      }
-    }
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+      },
+    },
   },
   rules: {
-    "indent": [
-      "error",
-      2,
-      {
-        "SwitchCase": 1
-      }
-    ],
-    "linebreak-style": [
-      "error",
-      "unix"
-    ],
-    "quotes": [
-      "error",
-      "single"
-    ],
-    "semi": [
-      "error",
-      "always"
-    ],
     // "no-console": [
     //   "warn",
     //   {
     //     "allow": ["warn", "error"]
     //   }
     // ],
-    'react-refresh/only-export-components': [
-      'warn',
-      { allowConstantExport: true },
-    ],
+    'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
     'import/order': [
       'error',
       {
-        'groups': [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
-          'type'
-        ],
-        'pathGroups': [
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'type'],
+        pathGroups: [
           {
-            'pattern': 'react',
-            'group': 'external',
-            'position': 'before'
+            pattern: 'react',
+            group: 'external',
+            position: 'before',
           },
           {
-            'pattern': '@/**',
-            'group': 'internal'
-          }
+            pattern: '@/**',
+            group: 'internal',
+          },
         ],
-        'pathGroupsExcludedImportTypes': ['react'],
+        pathGroupsExcludedImportTypes: ['react'],
         'newlines-between': 'always',
-        'alphabetize': {
-          'order': 'asc',
-          'caseInsensitive': true
-        }
-      }
-    ],
-    'object-curly-spacing': [
-      'error',
-      'always'
-    ],
-    'array-bracket-spacing': [
-      'error',
-      'never'
+        alphabetize: {
+          order: 'asc',
+          caseInsensitive: true,
+        },
+      },
     ],
     'no-multiple-empty-lines': [
       'error',
       {
-        'max': 1,
-        'maxEOF': 0,
-        'maxBOF': 0
-      }
+        max: 1,
+        maxEOF: 0,
+        maxBOF: 0,
+      },
     ],
-    'padded-blocks': [
-      'error',
-      'never'
-    ],
+    'padded-blocks': ['error', 'never'],
     'padding-line-between-statements': [
       'error',
       {
-        'blankLine': 'always',
-        'prev': ['const', 'let', 'var'],
-        'next': 'return'
+        blankLine: 'always',
+        prev: ['const', 'let', 'var'],
+        next: 'return',
       },
       {
-        'blankLine': 'always',
-        'prev': '*',
-        'next': ['function', 'class']
+        blankLine: 'always',
+        prev: '*',
+        next: ['function', 'class'],
       },
       {
-        'blankLine': 'always',
-        'prev': ['function', 'class'],
-        'next': '*'
-      }
+        blankLine: 'always',
+        prev: ['function', 'class'],
+        next: '*',
+      },
     ],
     'react/jsx-no-leaked-render': [
       'error',
       {
-        'validStrategies': ['ternary', 'coerce']
-      }
+        validStrategies: ['ternary', 'coerce'],
+      },
     ],
     'react/react-in-jsx-scope': 'off',
     '@typescript-eslint/switch-exhaustiveness-check': 'error',
@@ -140,33 +108,34 @@ module.exports = {
     'react/jsx-no-bind': [
       'error',
       {
-        'allowArrowFunctions': true,
-        'allowBind': true,
-        'allowFunctions': false,
-        'ignoreRefs': true,
-        'ignoreDOMComponents': false
-      }
+        allowArrowFunctions: true,
+        allowBind: true,
+        allowFunctions: false,
+        ignoreRefs: true,
+        ignoreDOMComponents: false,
+      },
     ],
-    "arrow-body-style": ["error", "as-needed"],
-    "func-style": "error",
+    'arrow-body-style': ['error', 'as-needed'],
+    'func-style': 'error',
     '@typescript-eslint/consistent-type-imports': [
       'error',
       {
-        'prefer': 'type-imports',
-        'fixStyle': 'separate-type-imports'
-      }
+        prefer: 'type-imports',
+        fixStyle: 'separate-type-imports',
+      },
     ],
     '@typescript-eslint/no-unused-vars': 'off',
     'unused-imports/no-unused-imports': 'error',
     'unused-imports/no-unused-vars': [
       'error',
       {
-        'argsIgnorePattern': '^_',
-        'varsIgnorePattern': '^_',
-        'ignoreRestSiblings': true
-      }
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+      },
     ],
     'import/no-unresolved': 'error',
-    'no-unused-vars': 'off'
+    'no-unused-vars': 'off',
+    'prettier/prettier': 'off',
   },
-}
+};

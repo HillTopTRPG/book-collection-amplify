@@ -11,15 +11,22 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast.ts';
 import useFetchBookData from '@/hooks/useFetchBookData.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { addScannedIsbn, rejectFetchBookData, selectScanningItemMap, setFetchedBookData } from '@/store/scannerSlice.ts';
+import {
+  addScannedIsbn,
+  rejectFetchBookData,
+  selectScanningItemMap,
+  setFetchedBookData,
+} from '@/store/scannerSlice.ts';
 import { checkIsdnCode } from '@/utils/validate.ts';
 
-const FormSchema = z.object({
-  isbn: z.string(),
-}).refine((data) => checkIsdnCode(data.isbn), {
-  message: 'ISBNコードじゃない',
-  path: ['isbn'],
-});
+const FormSchema = z
+  .object({
+    isbn: z.string(),
+  })
+  .refine(data => checkIsdnCode(data.isbn), {
+    message: 'ISBNコードじゃない',
+    path: ['isbn'],
+  });
 
 export default function IsbnForm() {
   const dispatch = useAppDispatch();
@@ -35,36 +42,39 @@ export default function IsbnForm() {
     mode: 'onChange',
   });
 
-  const onSubmit = useCallback((data: z.infer<typeof FormSchema>)=> {
-    const isbn = data.isbn.replaceAll('-', '');
+  const onSubmit = useCallback(
+    (data: z.infer<typeof FormSchema>) => {
+      const isbn = data.isbn.replaceAll('-', '');
 
-    // 既に存在する場合はスキップ
-    if (scannedItemMap.has(isbn)) {
-      toast({
-        title: 'You submitted the following values',
-        description: (
-          <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
-            <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-          </pre>
-        )
-      });
-      form.setValue('isbn', '');
-      return;
-    }
-
-    dispatch(addScannedIsbn(isbn));
-    form.setValue('isbn', '');
-
-    setTimeout(async () => {
-      const scannedItemMapValue = await fetchBookData(isbn);
-      if (!scannedItemMapValue.filterSets.length) {
-        console.log('書籍データ取得失敗');
-        dispatch(rejectFetchBookData(isbn));
+      // 既に存在する場合はスキップ
+      if (scannedItemMap.has(isbn)) {
+        toast({
+          title: 'You submitted the following values',
+          description: (
+            <pre className="mt-2 w-[320px] rounded-md bg-neutral-950 p-4">
+              <code className="text-white">{JSON.stringify(data, null, 2)}</code>
+            </pre>
+          ),
+        });
+        form.setValue('isbn', '');
         return;
       }
-      dispatch(setFetchedBookData({ [isbn]: scannedItemMapValue }));
-    });
-  }, [dispatch, fetchBookData, form, scannedItemMap, toast]);
+
+      dispatch(addScannedIsbn(isbn));
+      form.setValue('isbn', '');
+
+      setTimeout(async () => {
+        const scannedItemMapValue = await fetchBookData(isbn);
+        if (!scannedItemMapValue.filterSets.length) {
+          console.log('書籍データ取得失敗');
+          dispatch(rejectFetchBookData(isbn));
+          return;
+        }
+        dispatch(setFetchedBookData({ [isbn]: scannedItemMapValue }));
+      });
+    },
+    [dispatch, fetchBookData, form, scannedItemMap, toast]
+  );
 
   return (
     <Form {...form}>

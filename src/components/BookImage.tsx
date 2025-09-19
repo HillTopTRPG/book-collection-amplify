@@ -14,7 +14,10 @@ type Props = {
 export default function BookImage({ isbn }: Props) {
   const dispatch = useDispatch();
   const bookImageResults = useAppSelector(selectBookImageResults);
-  const [imageUrl, setImageUrl] = useState<{ status: 'loading' | 'retrying' | 'done'; url: string | null }>({ status: 'loading', url: null });
+  const [imageUrl, setImageUrl] = useState<{ status: 'loading' | 'retrying' | 'done'; url: string | null }>({
+    status: 'loading',
+    url: null,
+  });
 
   useEffect(() => {
     if (!isbn) return;
@@ -34,9 +37,11 @@ export default function BookImage({ isbn }: Props) {
     }
   }, [bookImageResults, imageUrl.status, isbn]);
 
-  return imageUrl.url
-    ? <img src={imageUrl.url} alt="表紙" className="w-[50px] h-[75px] rounded border" style={{ objectFit: 'cover' }} />
-    : <div className="min-w-[50px] min-h-[75px] rounded border flex items-center justify-center">
+  return imageUrl.url ? (
+    <img src={imageUrl.url} alt="表紙" className="w-[50px] h-[75px] rounded border" style={{ objectFit: 'cover' }} />
+  ) : (
+    <div className="min-w-[50px] min-h-[75px] rounded border flex items-center justify-center">
       {imageUrl.status !== 'done' ? <Spinner variant="bars" /> : <ImageOff />}
-    </div>;
+    </div>
+  );
 }

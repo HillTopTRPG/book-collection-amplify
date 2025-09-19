@@ -16,7 +16,7 @@ import { wait } from '@/utils/primitive.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({
-  authMode: 'userPool'
+  authMode: 'userPool',
 });
 
 export default function ScannedResults() {
@@ -26,7 +26,9 @@ export default function ScannedResults() {
   const [registering, setRegistering] = useState(false);
 
   const clearDisable = !scanningItemMap.size;
-  const registrable = !clearDisable && Array.from(scanningItemMap.entries()).some(([_, scanningItemMapValue]) => scanningItemMapValue.bookDetail);
+  const registrable =
+    !clearDisable &&
+    Array.from(scanningItemMap.entries()).some(([_, scanningItemMapValue]) => scanningItemMapValue.bookDetail);
   const registerDisable = !registrable || registering;
 
   const onClear = useCallback(() => {
@@ -74,10 +76,16 @@ export default function ScannedResults() {
         <Fragment>
           <div className="flex gap-3 justify-end">
             <Button variation="primary" className="rounded-full flex-1" onClick={onRegister} disabled={registerDisable}>
-            登録
+              登録
             </Button>
-            <Button size="small" variation="destructive" className="rounded-full" onClick={onClear} disabled={clearDisable}>
-            クリア
+            <Button
+              size="small"
+              variation="destructive"
+              className="rounded-full"
+              onClick={onClear}
+              disabled={clearDisable}
+            >
+              クリア
             </Button>
           </div>
           <Separator />

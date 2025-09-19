@@ -6,7 +6,7 @@ import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 type Props = {
   filterSet: FilterSet | null;
   scannedItemMapValues: ScanFinishedItemMapValue[];
-}
+};
 
 export default function DrawerContent({ filterSet, scannedItemMapValues }: Props) {
   if (!filterSet) return null;
@@ -14,7 +14,7 @@ export default function DrawerContent({ filterSet, scannedItemMapValues }: Props
   return (
     <div className="space-y-4">
       <FilterCard filterSet={filterSet} />
-      {scannedItemMapValues.map((scannedItemMapValue) => (
+      {scannedItemMapValues.map(scannedItemMapValue => (
         <BookCard key={scannedItemMapValue.isbn} bookDetail={scannedItemMapValue.bookDetail} />
       ))}
     </div>

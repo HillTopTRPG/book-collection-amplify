@@ -4,7 +4,10 @@ import type { BookData } from '@/types/book.ts';
 import { filterMatch } from '@/utils/primitive.ts';
 import type { PickRequired } from '@/utils/type.ts';
 
-export const getScannedItemMapValueByBookData = (collections: Collection[], book: BookData): ScanFinishedItemMapValue => {
+export const getScannedItemMapValueByBookData = (
+  collections: Collection[],
+  book: BookData
+): ScanFinishedItemMapValue => {
   const isbn = book.isbn;
   const result: PickRequired<ScanFinishedItemMapValue, 'bookDetail'> = {
     isbn,

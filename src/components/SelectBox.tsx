@@ -9,7 +9,7 @@ import {
   SelectItem,
   SelectLabel,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/components/ui/select.tsx';
 
 const COLOR_CLASS = 'bg-foreground text-background';
@@ -20,9 +20,15 @@ type Props<Options extends Record<string, ReactNode>> = {
   options: Options;
   value: keyof Options;
   onChange: (value: keyof Options) => void;
-}
+};
 
-export default function SelectBox<Options extends Record<string, ReactNode>>({ label, className, options, value, onChange }: Props<Options>) {
+export default function SelectBox<Options extends Record<string, ReactNode>>({
+  label,
+  className,
+  options,
+  value,
+  onChange,
+}: Props<Options>) {
   return (
     <Select value={value.toString()} onValueChange={onChange}>
       <SelectTrigger className={`${COLOR_CLASS} ${className}`}>
@@ -31,8 +37,10 @@ export default function SelectBox<Options extends Record<string, ReactNode>>({ l
       <SelectContent className={COLOR_CLASS}>
         <SelectGroup>
           {label ? <SelectLabel>{label}</SelectLabel> : null}
-          {keys(options).map((key) => (
-            <SelectItem key={key} value={key} className={COLOR_CLASS}>{options[key]}</SelectItem>
+          {keys(options).map(key => (
+            <SelectItem key={key} value={key} className={COLOR_CLASS}>
+              {options[key]}
+            </SelectItem>
           ))}
         </SelectGroup>
       </SelectContent>

@@ -27,7 +27,7 @@ export const filterDetailDrawerSlice = createSlice({
     openDrawer: (state, action: PayloadAction<string>) => {
       state.selectedFilterSetId = action.payload;
     },
-    closeDrawer: (state) => {
+    closeDrawer: state => {
       state.selectedFilterSetId = null;
     },
   },
@@ -41,7 +41,7 @@ export const selectSelectedFilterSet = createSelector(
   (filterSets, id) => {
     if (!id) return null;
     return filterSets.find(filterMatch({ id })) ?? null;
-  },
+  }
 );
 export type BookDetail = {
   book: BookData | null;
@@ -53,7 +53,7 @@ export const selectScannedItemMapValueBySelectedFilterSet = createSelector(
     const books = fetchResultMap[selectedFilterSet?.id ?? ''] ?? [];
 
     return books.map(book => getScannedItemMapValueByBookData(collections, book));
-  },
+  }
 );
 
 export default filterDetailDrawerSlice.reducer;

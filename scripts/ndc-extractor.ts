@@ -62,7 +62,6 @@ export function extractNDCData(options: NDCExtractionOptions): Promise<void> {
 
       console.log(`Successfully extracted ${ndcMap.size} NDC entries to ${outputPath}`);
       resolve();
-
     } catch (error) {
       console.error('Error processing NDC data:', error);
       reject(error);

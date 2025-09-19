@@ -10,7 +10,7 @@ import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 const userPoolClient = generateClient<Schema>({
-  authMode: 'userPool'
+  authMode: 'userPool',
 });
 
 export type Collection = Omit<Schema['Collection']['type'], 'meta'> & {
@@ -18,7 +18,7 @@ export type Collection = Omit<Schema['Collection']['type'], 'meta'> & {
     overwrite?: Partial<BookData>;
     isWant?: boolean;
     isHave?: boolean;
-  }
+  };
 };
 
 export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters'> & {
@@ -57,9 +57,7 @@ export const subscriptionDataSlice = createSlice({
   },
 });
 
-export const {
-  setCollections, setFilterSets, setCreateFilterSet
-} = subscriptionDataSlice.actions;
+export const { setCollections, setFilterSets, setCreateFilterSet } = subscriptionDataSlice.actions;
 
 export const selectCollections = (state: RootState) => state.subscriptionData.collections;
 export const selectFilterSets = (state: RootState) => state.subscriptionData.filterSets;
@@ -75,7 +73,8 @@ export const selectDbFilterSetsBooks = createSelector(
       result.set(options, results);
     }
     return result;
-  });
+  }
+);
 export const selectCreateFilterSet = (state: RootState) => state.subscriptionData.createFilterSet;
 
 export default subscriptionDataSlice.reducer;

@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { useDrawerAnimation } from '@/hooks/useDrawerAnimation';
 import { updateFetchResult } from '@/store/fetchResultSlice.ts';
 import {
-  closeDrawer, selectScannedItemMapValueBySelectedFilterSet,
+  closeDrawer,
+  selectScannedItemMapValueBySelectedFilterSet,
   selectSelectedFilterSet,
 } from '@/store/filterDetailDrawerSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
@@ -28,7 +29,7 @@ export default function FilterDetailDrawer() {
 
   useEffect(() => {
     if (!filterSet) return;
-    fetchNdlSearch(filterSet.fetch).then((fetchResult) => {
+    fetchNdlSearch(filterSet.fetch).then(fetchResult => {
       dispatch(updateFetchResult({ [filterSet.id]: fetchResult }));
     });
   }, [dispatch, filterSet, filterSetId]);
@@ -37,14 +38,10 @@ export default function FilterDetailDrawer() {
     dispatch(closeDrawer());
   }, [dispatch]);
 
-  const {
-    isVisible,
-    shouldRender,
-    handleClose,
-  } = useDrawerAnimation({
+  const { isVisible, shouldRender, handleClose } = useDrawerAnimation({
     isOpen: Boolean(filterSet?.id),
     onClose,
-    animationDuration: 300
+    animationDuration: 300,
   });
 
   const [bufferedFilterSet, setBufferedFilterSet] = useState<FilterSet | null>(null);
@@ -66,9 +63,7 @@ export default function FilterDetailDrawer() {
       <Button onClick={handleClose} size="icon" variant="ghost" className="size-8">
         <CircleChevronLeft />
       </Button>
-      <h2 className="text-lg font-semibold leading-none tracking-tight text-left">
-        {bufferedFilterSet.name}
-      </h2>
+      <h2 className="text-lg font-semibold leading-none tracking-tight text-left">{bufferedFilterSet.name}</h2>
     </>
   );
 

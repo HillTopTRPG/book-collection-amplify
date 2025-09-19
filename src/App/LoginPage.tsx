@@ -19,9 +19,7 @@ const components = {
         <Heading level={3} style={{ color: '#7c3aed' }}>
           マイ書目
         </Heading>
-        <Text style={{ color: '#6b7280' }}>
-          ログインして蔵書コレクションを管理しましょう
-        </Text>
+        <Text style={{ color: '#6b7280' }}>ログインして蔵書コレクションを管理しましょう</Text>
       </View>
     );
   },
@@ -31,12 +29,10 @@ const components = {
 
     return (
       <View textAlign="center" padding={tokens.space.large}>
-        <Text style={{ color: '#6b7280', fontSize: '14px' }}>
-          アカウントをお持ちでない場合は新規登録してください
-        </Text>
+        <Text style={{ color: '#6b7280', fontSize: '14px' }}>アカウントをお持ちでない場合は新規登録してください</Text>
       </View>
     );
-  }
+  },
 };
 
 const formFields = {
@@ -56,7 +52,7 @@ const formFields = {
 };
 
 interface LoginPageProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function LoginPage({ children }: LoginPageProps) {

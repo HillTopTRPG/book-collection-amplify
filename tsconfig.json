@@ -25,7 +25,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "$/amplify_outputs": ["./amplify_outputs.json"],
-      "$/amplify/*": ["./amplify/*"],
+      "$/amplify/*": ["./amplify/*"]
     }
   },
   "include": ["src"],

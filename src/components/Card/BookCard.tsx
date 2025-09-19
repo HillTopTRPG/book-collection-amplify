@@ -23,23 +23,29 @@ export default function BookCard({ bookDetail }: Props) {
 
   return (
     <CardFrame onClick={onClick}>
-      {
-        !bookDetail?.book ? <Spinner variant="bars" /> : (
-          <>
-            <BookImage isbn={isbn} />
-            <div className="flex-1">
-              <h5 className="text-[14px] mb-1">{bookDetail.book.title}</h5>
-              <h5 className="text-[13px] mb-1">{bookDetail.book.volume || bookDetail.book.volumeTitle}</h5>
-              <p className="text-[12px] my-0.5 text-[#666]">{bookDetail.book.creator?.join(', ')} / {bookDetail.book.publisher}</p>
-              <p className="text-[10px] mt-1 text-[#999]" style={{ fontFamily: 'monospace' }}>
-                {bookDetail.book.isbn} / {bookDetail.book.date}
-              </p>
-            </div>
-            {bookDetail.isHave ? null : <div className="absolute inset-0 bg-yellow-200/50 pointer-events-none">未所持</div>}
-            {bookDetail.isWant ? <div className="absolute inset-0 bg-yellow-200/50 pointer-events-none">購入予定</div> : null}
-          </>
-        )
-      }
+      {!bookDetail?.book ? (
+        <Spinner variant="bars" />
+      ) : (
+        <>
+          <BookImage isbn={isbn} />
+          <div className="flex-1">
+            <h5 className="text-[14px] mb-1">{bookDetail.book.title}</h5>
+            <h5 className="text-[13px] mb-1">{bookDetail.book.volume || bookDetail.book.volumeTitle}</h5>
+            <p className="text-[12px] my-0.5 text-[#666]">
+              {bookDetail.book.creator?.join(', ')} / {bookDetail.book.publisher}
+            </p>
+            <p className="text-[10px] mt-1 text-[#999]" style={{ fontFamily: 'monospace' }}>
+              {bookDetail.book.isbn} / {bookDetail.book.date}
+            </p>
+          </div>
+          {bookDetail.isHave ? null : (
+            <div className="absolute inset-0 bg-yellow-200/50 pointer-events-none">未所持</div>
+          )}
+          {bookDetail.isWant ? (
+            <div className="absolute inset-0 bg-yellow-200/50 pointer-events-none">購入予定</div>
+          ) : null}
+        </>
+      )}
     </CardFrame>
   );
 }

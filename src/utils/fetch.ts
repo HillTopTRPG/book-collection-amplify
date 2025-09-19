@@ -106,15 +106,19 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
   opt.applicationId ??= RAKUTEN_API_APPLICATION_ID;
   opt.booksGenreId ??= '001';
   const keys = _.keys(opt) as (keyof RakutenApiOption)[];
-  const params = keys.flatMap((option) => {
-    const value = opt[option]?.toString();
+  const params = keys
+    .flatMap(option => {
+      const value = opt[option]?.toString();
 
-    return value ? [`&${option}=${encodeURIComponent(value)}`] : [];
-  }).join('');
+      return value ? [`&${option}=${encodeURIComponent(value)}`] : [];
+    })
+    .join('');
 
   let data;
   try {
-    const response = await fetch(`https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404?format=json${params}`);
+    const response = await fetch(
+      `https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404?format=json${params}`
+    );
     data = await response.json();
   } catch (error) {
     console.log('$$ rakuten error');
@@ -135,7 +139,7 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
   }
 
   return data['Items']
-    .map(({ Item: item }: {Item: RakutenBook}) => item)
+    .map(({ Item: item }: { Item: RakutenBook }) => item)
     .flatMap((item: RakutenBook) => {
       // isbnコード必須
       if (!item.isbn) return [];
@@ -146,15 +150,17 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
         console.log('rakuten cant have image but got info: ', item.title);
       }
 
-      return [{
-        isbn: item.isbn.replaceAll('-', ''),
-        title: item.title,
-        volume: item.subTitle,
-        creator: item.author ? [item.author] : [],
-        publisher: item.publisherName,
-        date: item.salesDate,
-        cover: item.mediumImageUrl,
-      } as const satisfies BookData];
+      return [
+        {
+          isbn: item.isbn.replaceAll('-', ''),
+          title: item.title,
+          volume: item.subTitle,
+          creator: item.author ? [item.author] : [],
+          publisher: item.publisherName,
+          date: item.salesDate,
+          cover: item.mediumImageUrl,
+        } as const satisfies BookData,
+      ];
     });
 };
 
@@ -172,62 +178,79 @@ const getNdlQuery = (options: NdlOptions) => {
   options.mediatype ||= 'books';
   const _keys = keys(options) as Array<keyof NdlOptions>;
 
-  return _keys
-    .flatMap((key) => {
-      const value = options[key];
-      if (!value) return [];
-      switch (key) {
-        case 'dpid':
-        case 'mediatype':
-        case 'title':
-        case 'creator':
-        case 'publisher':
-        case 'anywhere':
-          return [`${key}="${value}"`];
-        case 'isbn':
-          return [`${key}=${value}`];
-        default:
-          return [];
-      }
-    })
-    .join(' and ') + ' and sortBy=issued_date/sort.ascending';
+  return (
+    _keys
+      .flatMap(key => {
+        const value = options[key];
+        if (!value) return [];
+        switch (key) {
+          case 'dpid':
+          case 'mediatype':
+          case 'title':
+          case 'creator':
+          case 'publisher':
+          case 'anywhere':
+            return [`${key}="${value}"`];
+          case 'isbn':
+            return [`${key}=${value}`];
+          default:
+            return [];
+        }
+      })
+      .join(' and ') + ' and sortBy=issued_date/sort.ascending'
+  );
 };
 
 const parser = new DOMParser();
 const getNdlBookFromDocument = (recordElm: Element) => {
   const resourceElm = recordElm.querySelector('recordData > RDF > BibResource');
-  const isbn = Array.from(resourceElm?.querySelectorAll('identifier') ?? []).find(isbnElm => isbnElm.getAttribute('rdf:datatype') === 'http://ndl.go.jp/dcndl/terms/ISBN')?.textContent?.replaceAll('-', '') ?? null;
+  const isbn =
+    Array.from(resourceElm?.querySelectorAll('identifier') ?? [])
+      .find(isbnElm => isbnElm.getAttribute('rdf:datatype') === 'http://ndl.go.jp/dcndl/terms/ISBN')
+      ?.textContent?.replaceAll('-', '') ?? null;
   if (!isbn) return null;
 
   const title = resourceElm?.querySelector('title > Description > value')?.textContent ?? null;
   const publisher = resourceElm?.querySelector('publisher > Agent > name')?.textContent ?? null;
-  const creator = Array.from(resourceElm?.querySelectorAll('creator > Agent > name') ?? []).map(creatorElm => creatorElm?.textContent ?? '');
+  const creator = Array.from(resourceElm?.querySelectorAll('creator > Agent > name') ?? []).map(
+    creatorElm => creatorElm?.textContent ?? ''
+  );
   if (!creator.length) {
-    const creatorText = resourceElm?.querySelector('creator')?.textContent?.replace(/著$/, '').trim().replace(/\/$/, '').trim();
+    const creatorText = resourceElm
+      ?.querySelector('creator')
+      ?.textContent?.replace(/著$/, '')
+      .trim()
+      .replace(/\/$/, '')
+      .trim();
     if (creatorText) {
       creator.push(creatorText);
     }
   }
-  const date =  resourceElm?.querySelector('date')?.textContent ?? null;
+  const date = resourceElm?.querySelector('date')?.textContent ?? null;
   const volume = resourceElm?.querySelector('volume > Description > value')?.textContent ?? null;
   const volumeTitle = resourceElm?.querySelector('volumeTitle > Description > value')?.textContent ?? null;
   const seriesTitle = resourceElm?.querySelector('seriesTitle > Description > value')?.textContent ?? null;
   const edition = resourceElm?.querySelector('edition')?.textContent ?? null;
   const extent = resourceElm?.querySelector('extent')?.textContent ?? null;
-  const ndcInfo = Array.from(resourceElm?.querySelectorAll('subject') ?? []).flatMap(subjectElm => {
-    const resource = subjectElm.getAttribute('rdf:resource') ?? '';
-    const sp = resource.split('/');
-    const rawNdcType = sp.at(-2);
-    const ndcCode = sp.at(-1);
-    const ndcType: 'ndc8' | 'ndc9' = rawNdcType === 'ndc8' ? 'ndc8' : 'ndc9';
-    if (!rawNdcType?.startsWith('ndc') || !ndcCode) return [];
+  const ndcInfo =
+    Array.from(resourceElm?.querySelectorAll('subject') ?? [])
+      .flatMap(subjectElm => {
+        const resource = subjectElm.getAttribute('rdf:resource') ?? '';
+        const sp = resource.split('/');
+        const rawNdcType = sp.at(-2);
+        const ndcCode = sp.at(-1);
+        const ndcType: 'ndc8' | 'ndc9' = rawNdcType === 'ndc8' ? 'ndc8' : 'ndc9';
+        if (!rawNdcType?.startsWith('ndc') || !ndcCode) return [];
 
-    return [{
-      rawNdcType,
-      ndcCode,
-      ndcType,
-    }];
-  }).at(0) ?? null;
+        return [
+          {
+            rawNdcType,
+            ndcCode,
+            ndcType,
+          },
+        ];
+      })
+      .at(0) ?? null;
 
   const ndc = ndcInfo ? `${ndcInfo.rawNdcType}:${ndcInfo.ndcCode}` : null;
   const ndcLabel = ((): string | null => {
@@ -266,39 +289,46 @@ const getNdlBookFromDocument = (recordElm: Element) => {
 };
 
 export const fetchNdlSearch = async (options: NdlOptions) => {
-  const BASE_URL = 'https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&version=1.2&recordPacking=xml&recordSchema=dcndl&startRecord=1&maximumRecords=200&query=';
+  const BASE_URL =
+    'https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&version=1.2&recordPacking=xml&recordSchema=dcndl&startRecord=1&maximumRecords=200&query=';
   const query = getNdlQuery(options);
   console.log(query);
   const response = await fetch(`${BASE_URL}${encodeURIComponent(query)}`);
   const text = await response.text();
 
-  return Array
-    .from(parser.parseFromString(text, 'text/xml').querySelectorAll('records > record'))
-    .flatMap(recordElm => {
+  return Array.from(parser.parseFromString(text, 'text/xml').querySelectorAll('records > record')).flatMap(
+    recordElm => {
       const book = getNdlBookFromDocument(recordElm);
 
       return book ? [book] : [];
-    });
+    }
+  );
 };
 
-const checkIfImageExists = async (url: string | null | undefined) => new Promise<boolean>((resolve) => {
-  if (!url) return resolve(false);
-  const img = new Image();
-  img.onload = () => resolve(true);
-  img.onerror = () => resolve(false);
-  img.src = url;
-});
+const checkIfImageExists = async (url: string | null | undefined) =>
+  new Promise<boolean>(resolve => {
+    if (!url) return resolve(false);
+    const img = new Image();
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(false);
+    img.src = url;
+  });
 
-const getAsyncUrl = async (type: 'rakuten' | 'google', isbn: string, callback: (isbn: string) => Promise<string | null>) => new Promise<GetBookImagePromiseInfo>((resolve) => {
-  callback(isbn)
-    .then((url) => {
-      resolve({ url, type, error: null });
-    })
-    .catch((error) => {
-      console.log('$$$ getAsyncUrl catch', type, isbn, error.toString());
-      resolve({ url: null, type, error: error?.message ?? null });
-    });
-});
+const getAsyncUrl = async (
+  type: 'rakuten' | 'google',
+  isbn: string,
+  callback: (isbn: string) => Promise<string | null>
+) =>
+  new Promise<GetBookImagePromiseInfo>(resolve => {
+    callback(isbn)
+      .then(url => {
+        resolve({ url, type, error: null });
+      })
+      .catch(error => {
+        console.log('$$$ getAsyncUrl catch', type, isbn, error.toString());
+        resolve({ url: null, type, error: error?.message ?? null });
+      });
+  });
 
 type GetBookImagePromiseInfo = { url: string | null; type: 'ndl' | 'rakuten' | 'google'; error: string | null };
 
@@ -313,14 +343,18 @@ export const getBookImageUrl = async (isbn: string): Promise<GetBookImagePromise
   }
 
   const results = await Promise.all([
-    getAsyncUrl('google', isbn, async (isbn) => (await fetchGoogleBooksApi(isbn)).cover ?? null),
-    getAsyncUrl('rakuten', isbn, async (isbn) => (await fetchRakutenBooksApi({ isbn })).find(book => book.cover)?.cover ?? null),
+    getAsyncUrl('google', isbn, async isbn => (await fetchGoogleBooksApi(isbn)).cover ?? null),
+    getAsyncUrl(
+      'rakuten',
+      isbn,
+      async isbn => (await fetchRakutenBooksApi({ isbn })).find(book => book.cover)?.cover ?? null
+    ),
   ]);
 
-  const haveUrl = results.find((result) => result.url);
+  const haveUrl = results.find(result => result.url);
   if (haveUrl) return haveUrl;
 
-  const needRetry = results.find((result) => result.error === 'need-retry');
+  const needRetry = results.find(result => result.error === 'need-retry');
   if (needRetry) return needRetry;
 
   return {

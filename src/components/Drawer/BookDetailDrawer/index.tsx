@@ -26,14 +26,12 @@ export default function BookDetailDrawer() {
   const dispatch = useDispatch();
   const selectedScannedItemMapValue = useAppSelector(selectSelectedScannedItemMapValue);
 
-  const {
-    isVisible,
-    shouldRender,
-    handleClose,
-  } = useDrawerAnimation({
+  const { isVisible, shouldRender, handleClose } = useDrawerAnimation({
     isOpen: Boolean(selectedScannedItemMapValue),
-    onClose: () => { dispatch(updateSelectedScanIsbn(null)); },
-    animationDuration: 300
+    onClose: () => {
+      dispatch(updateSelectedScanIsbn(null));
+    },
+    animationDuration: 300,
   });
 
   const [bufferedValue, setBufferedValue] = useState<typeof selectedScannedItemMapValue>(null);
@@ -53,9 +51,7 @@ export default function BookDetailDrawer() {
         <CircleChevronLeft />
       </Button>
       <div className="flex flex-col flex-1">
-        <h2 className="text-lg font-semibold leading-none tracking-tight text-left truncate">
-          グループ本の絞り込み
-        </h2>
+        <h2 className="text-lg font-semibold leading-none tracking-tight text-left truncate">グループ本の絞り込み</h2>
       </div>
     </>
   );

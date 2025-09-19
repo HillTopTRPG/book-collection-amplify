@@ -8,7 +8,7 @@ import BottomNavigation from './BottomNavigation';
 import MenuBar from './MenuBar';
 
 interface MainLayoutProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 export default function MainLayout({ children }: MainLayoutProps) {
@@ -18,9 +18,7 @@ export default function MainLayout({ children }: MainLayoutProps) {
       <MenuBar />
 
       {/* メインコンテンツ - ボトムナビの高さ分をpaddingで確保 */}
-      <div className="mt-12 mb-20 w-full md:w-[32rem] flex-1 flex flex-col">
-        {children}
-      </div>
+      <div className="mt-12 mb-20 w-full md:w-[32rem] flex-1 flex flex-col">{children}</div>
 
       {/* ボトムナビゲーション */}
       <BottomNavigation />

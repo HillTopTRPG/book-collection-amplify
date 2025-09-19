@@ -19,7 +19,7 @@ export const store = configureStore({
     fetchApiQueue: fetchApiQueueReducer,
   },
   // 開発時のミドルウェア設定
-  middleware: (getDefaultMiddleware) =>
+  middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
       serializableCheck: {
         // MediaStreamは非シリアル化可能なので除外

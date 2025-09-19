@@ -23,21 +23,26 @@ export default function NdlCard({ ndl, options, anywhere }: Props) {
       <BookImage isbn={isbn} />
       <div className="flex items-baseline flex-wrap gap-x-3 flex-1">
         <div className="w-full flex items-baseline flex-wrap gap-x-3">
-          { isViewTitle ? (
+          {isViewTitle ? (
             <NdlCardItem value={ndl.title} highLight={anywhere} className="text-lg font-bold inline-block" />
-          ) : null }
+          ) : null}
           <NdlCardItem value={ndl.volume} highLight={anywhere} className="text-lg font-bold" />
           <NdlCardItem value={ndl.volumeTitle} highLight={anywhere} className="text-lg font-bold" />
         </div>
         <div className="w-full flex items-baseline flex-wrap gap-x-3">
-          { isViewCreator ? <NdlCardItem value={creatorText} highLight={anywhere} className="text-xs" /> : null }
-          { isViewPublisher ? <NdlCardItem value={ndl.publisher} highLight={anywhere} className="text-xs" /> : null }
+          {isViewCreator ? <NdlCardItem value={creatorText} highLight={anywhere} className="text-xs" /> : null}
+          {isViewPublisher ? <NdlCardItem value={ndl.publisher} highLight={anywhere} className="text-xs" /> : null}
         </div>
         <NdlCardItem value={ndl.edition} highLight={anywhere} className="text-xs" />
         <NdlCardItem value={ndl.date} highLight={anywhere} label="発売日" className="text-xs" />
         <NdlCardItem value={ndl.ndcLabel ?? ndl.ndc} highLight={anywhere} label="分類" className="text-xs" />
         <NdlCardItem value={ndl.seriesTitle} label="シリーズ" highLight={anywhere} className="text-xs" />
-        <NdlCardItem value={ndl.isbn?.replaceAll('-', '')} label="ISBN" highLight={anywhere} className="w-full text-xs text-gray-400" />
+        <NdlCardItem
+          value={ndl.isbn?.replaceAll('-', '')}
+          label="ISBN"
+          highLight={anywhere}
+          className="w-full text-xs text-gray-400"
+        />
       </div>
     </CardFrame>
   );

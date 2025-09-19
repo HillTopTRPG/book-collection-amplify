@@ -8,10 +8,8 @@ import { Separator } from '@/components/ui/separator.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { addFilterQueue, selectFilterQueueResults } from '@/store/fetchApiQueueSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import type {
-  ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
-import { updateFetchedFetchOption
-} from '@/store/scannerSlice.ts';
+import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import { updateFetchedFetchOption } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { PickRequired } from '@/utils/type.ts';
 
@@ -23,21 +21,18 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
   const filterQueueResults = useAppSelector(selectFilterQueueResults);
 
-  const fetchOptions = useMemo(
-    () => scannedItemMapValue.filterSets.at(0)?.fetch,
-    [scannedItemMapValue],
-  );
+  const fetchOptions = useMemo(() => scannedItemMapValue.filterSets.at(0)?.fetch, [scannedItemMapValue]);
 
   const anywhere = useMemo(
     () => scannedItemMapValue.filterSets.at(0)?.filters.at(0)?.at(0)?.anywhere,
-    [scannedItemMapValue],
+    [scannedItemMapValue]
   );
 
   const stringifyFetchOptions = useMemo(() => JSON.stringify(fetchOptions), [fetchOptions]);
 
   const fetchedResults = useMemo(
     () => filterQueueResults.get(stringifyFetchOptions),
-    [filterQueueResults, stringifyFetchOptions],
+    [filterQueueResults, stringifyFetchOptions]
   );
 
   const filteredResults = useMemo((): BookData[] => {
@@ -60,7 +55,7 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
         <>
           <NdlOptionsForm
             defaultValues={fetchOptions}
-            onChange={(fetchFullOptions) => {
+            onChange={fetchFullOptions => {
               dispatch(updateFetchedFetchOption({ isbn: scannedItemMapValue.isbn, index: 0, fetch: fetchFullOptions }));
             }}
           />
@@ -70,9 +65,11 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
       <Separator className="my-2" />
       <span>{filteredResults?.length ?? 0}件</span>
       <div className="flex flex-col justify-center">
-        {filteredResults ? filteredResults.map((ndl, idx) => (
-          <NdlCard key={idx} ndl={ndl} options={fetchOptions} anywhere={anywhere} />
-        )) : <Spinner variant="bars" />}
+        {filteredResults ? (
+          filteredResults.map((ndl, idx) => <NdlCard key={idx} ndl={ndl} options={fetchOptions} anywhere={anywhere} />)
+        ) : (
+          <Spinner variant="bars" />
+        )}
       </div>
     </Fragment>
   );

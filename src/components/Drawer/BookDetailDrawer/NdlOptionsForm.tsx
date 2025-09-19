@@ -31,13 +31,19 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
     mode: 'onChange',
   });
 
-  const onSubmit = useCallback((data: NdlOptions)=> {
-    onChange({ ...defaultValues, ...data });
-  }, [defaultValues, onChange]);
+  const onSubmit = useCallback(
+    (data: NdlOptions) => {
+      onChange({ ...defaultValues, ...data });
+    },
+    [defaultValues, onChange]
+  );
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-background rounded-xl p-3 flex flex-col items-center gap-1">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="bg-background rounded-xl p-3 flex flex-col items-center gap-1"
+      >
         <FormField
           control={form.control}
           name="title"
@@ -62,10 +68,7 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
                 <FormItem className="flex items-center gap-3 space-y-0 flex-1">
                   <div className="flex flex-col">
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked)}
-                      />
+                      <Checkbox checked={field.value} onCheckedChange={checked => field.onChange(checked)} />
                     </FormControl>
                     <FormMessage />
                   </div>
@@ -80,10 +83,7 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
                 <FormItem className="flex items-center gap-3 space-y-0 flex-1">
                   <div className="flex flex-col">
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={(checked) => field.onChange(checked)}
-                      />
+                      <Checkbox checked={field.value} onCheckedChange={checked => field.onChange(checked)} />
                     </FormControl>
                     <FormMessage />
                   </div>
