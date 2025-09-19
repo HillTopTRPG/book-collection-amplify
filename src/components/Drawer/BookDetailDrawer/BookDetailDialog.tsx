@@ -2,7 +2,15 @@ import Barcode from 'react-barcode';
 import BookImage from '@/components/BookImage.tsx';
 import IsbnTable from '@/components/Drawer/BookDetailDrawer/IsbnTable.tsx';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import type { BookData } from '@/types/book.ts';
 import { getIsbn13 } from '@/utils/primitive.ts';
 
@@ -25,6 +33,7 @@ export default function BookDetailDialog({ book, onClose }: Props) {
           <DialogTitle>
             {book?.title} {book?.volume || book?.volumeTitle}
           </DialogTitle>
+          <DialogDescription>書籍の詳細情報を表示します</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center">
           <BookImage isbn={book?.isbn} size="big" />
