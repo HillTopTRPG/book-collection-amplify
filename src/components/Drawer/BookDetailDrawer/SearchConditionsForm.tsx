@@ -32,6 +32,7 @@ type Props = {
 
 export default function SearchConditionsForm({ scannedItemMapValue, fetchedResults }: Props) {
   const dispatch = useDispatch();
+
   const options: string[] = useMemo(
     () =>
       fetchedResults.reduce<string[]>((acc, cur) => {
@@ -60,17 +61,32 @@ export default function SearchConditionsForm({ scannedItemMapValue, fetchedResul
     [fetchedResults]
   );
 
+  const anywhere = useMemo(
+    () => scannedItemMapValue.filterSets.at(0)?.filters.at(0)?.at(0)?.anywhere,
+    [scannedItemMapValue]
+  );
+
+  const filteredResults = useMemo((): BookData[] => {
+    if (!fetchedResults?.length) return [];
+    if (!anywhere) return fetchedResults;
+
+    return fetchedResults.filter(book => JSON.stringify(book).includes(anywhere));
+  }, [anywhere, fetchedResults]);
+
   const condition = scannedItemMapValue.filterSets.at(0)?.filters.at(0)?.at(0);
   const updateAnywhere = (anywhere: string) => {
     dispatch(updateFetchedFilterAnywhere({ isbn: scannedItemMapValue.isbn, index: 0, anywhere }));
   };
 
   return (
-    <ComboInput
-      label="キーワード検索"
-      list={options.map(o => ({ label: o, value: o }))}
-      value={condition?.anywhere || ''}
-      setValue={updateAnywhere}
-    />
+    <div className="sticky top-0 flex z-50 items-center gap-2 bg-background">
+      <ComboInput
+        label="キーワード検索"
+        list={options.map(o => ({ label: o, value: o }))}
+        value={condition?.anywhere || ''}
+        setValue={updateAnywhere}
+      />
+      <span>{filteredResults?.length ?? 0}件</span>
+    </div>
   );
 }

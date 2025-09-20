@@ -19,7 +19,7 @@ export default function DrawerFrame({ isVisible, onClose, header, children, useF
 
   const drawerClassName = useMemo(
     () =>
-      `fixed top-0 right-0 h-screen w-full md:w-[32rem] bg-background border-l z-50 shadow-lg transition-transform duration-300 ease-in-out ${isVisible ? 'transform translate-x-0' : 'transform translate-x-full'}`,
+      `fixed top-0 right-0 bottom-0 w-full md:w-[32rem] bg-background border-l z-50 shadow-lg transition-transform duration-300 ease-in-out ${isVisible ? 'transform translate-x-0' : 'transform translate-x-full'}`,
     [isVisible]
   );
 
@@ -32,7 +32,7 @@ export default function DrawerFrame({ isVisible, onClose, header, children, useF
           <div className="border-b p-4 flex items-center gap-3">{header}</div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto w-full h-full p-4">{children}</div>
+          <div className="flex-1 overflow-y-auto w-full h-full px-2 py-1">{children}</div>
 
           {/* Footer */}
           {useFooter ? (

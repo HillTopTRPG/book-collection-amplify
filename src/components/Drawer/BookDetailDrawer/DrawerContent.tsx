@@ -61,9 +61,8 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
           }}
         />
       ) : null}
-      {fetchedResults ? <SearchConditionsForm {...{ scannedItemMapValue, fetchedResults }} /> : null}
       <Separator className="my-2" />
-      <span>{filteredResults?.length ?? 0}件</span>
+      {fetchedResults ? <SearchConditionsForm {...{ scannedItemMapValue, fetchedResults }} /> : null}
       <div className="flex flex-col justify-center">
         {filteredResults ? (
           filteredResults.map((ndl, idx) => (
