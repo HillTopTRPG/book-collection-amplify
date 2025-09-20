@@ -68,7 +68,7 @@ export const selectDbFilterSetsBooks = createSelector(
     const result = new Map<string, BookData[]>();
     for (const filterSet of filterSets) {
       const options = JSON.stringify(filterSet.fetch);
-      const results = filterQueueResults.get(options) ?? null;
+      const results = filterQueueResults[options] ?? null;
       if (!results) return null;
       result.set(options, results);
     }

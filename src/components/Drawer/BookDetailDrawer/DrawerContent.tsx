@@ -33,7 +33,7 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   const stringifyFetchOptions = useMemo(() => (fetchOptions ? JSON.stringify(fetchOptions) : ''), [fetchOptions]);
 
   const fetchedResults = useMemo(
-    () => filterQueueResults.get(stringifyFetchOptions),
+    () => filterQueueResults[stringifyFetchOptions],
     [filterQueueResults, stringifyFetchOptions]
   );
 
@@ -45,7 +45,7 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   }, [anywhere, fetchedResults]);
 
   useEffect(() => {
-    dispatch(addFilterQueue(stringifyFetchOptions));
+    dispatch(addFilterQueue({ options: [stringifyFetchOptions], type: 'priority' }));
   }, [dispatch, stringifyFetchOptions]);
 
   return (

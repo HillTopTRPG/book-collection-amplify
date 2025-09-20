@@ -6,7 +6,6 @@ import {
   addGetImageQueue,
   completeFilterQueues,
   completeGetImageQueues,
-  retryGetImageQueue,
   selectQueuedBookImageIsbn,
   selectQueuedFilterOption,
 } from '@/store/fetchApiQueueSlice.ts';
@@ -80,7 +79,7 @@ export default function QueueProcessLayer({ children }: Props) {
       dispatch(completeGetImageQueues(list));
       if (retryList.length) {
         setTimeout(() => {
-          dispatch(retryGetImageQueue(retryList));
+          dispatch(addGetImageQueue({ isbnList: retryList, type: 'retry' }));
         }, 10000);
       }
     });
@@ -89,7 +88,7 @@ export default function QueueProcessLayer({ children }: Props) {
   // 蔵書のグループ本を全て検索する
   useEffect(() => {
     filterSets.forEach(filterSet => {
-      dispatch(addFilterQueue(JSON.stringify(filterSet)));
+      dispatch(addFilterQueue({ options: [JSON.stringify(filterSet.fetch)], type: 'priority' }));
     });
   }, [dispatch, filterSets]);
 
@@ -97,9 +96,9 @@ export default function QueueProcessLayer({ children }: Props) {
   useEffect(() => {
     console.log('scanningItemMapが更新された！');
     Array.from(scanningItemMap.entries()).forEach(([_, scanningItemMapValue]) => {
-      const options = scanningItemMapValue.filterSets.at(0)?.fetch;
-      if (!options) return;
-      dispatch(addFilterQueue(JSON.stringify(options)));
+      const option = scanningItemMapValue.filterSets.at(0)?.fetch;
+      if (!option) return;
+      dispatch(addFilterQueue({ options: [JSON.stringify(option)], type: 'priority' }));
     });
   }, [dispatch, scanningItemMap]);
 
@@ -117,9 +116,7 @@ export default function QueueProcessLayer({ children }: Props) {
               publisher: options.usePublisher ? options.publisher : undefined,
             };
             fetchNdlSearch(requestOptions).then(books => {
-              books.forEach(({ isbn }) => {
-                dispatch(addGetImageQueue(isbn));
-              });
+              dispatch(addGetImageQueue({ isbnList: books.map(({ isbn }) => isbn), type: 'new' }));
               resolve({ option: optionsStr, books });
             });
           })

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ImageOff } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
-import { addGetImageQueue, selectBookImageResults } from '@/store/fetchApiQueueSlice.ts';
+import { addGetImageQueue, selectBookImageQueueResults } from '@/store/fetchApiQueueSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
 import type { Isbn13 } from '@/store/scannerSlice.ts';
 
@@ -14,7 +14,7 @@ type Props = {
 
 export default function BookImage({ isbn, size, onClick }: Props) {
   const dispatch = useDispatch();
-  const bookImageResults = useAppSelector(selectBookImageResults);
+  const bookImageQueueResults = useAppSelector(selectBookImageQueueResults);
   const [imageUrl, setImageUrl] = useState<{ status: 'loading' | 'retrying' | 'done'; url: string | null }>({
     status: 'loading',
     url: null,
@@ -26,12 +26,12 @@ export default function BookImage({ isbn, size, onClick }: Props) {
   useEffect(() => {
     if (!isbn) return;
     setImageUrl({ status: 'loading', url: null });
-    dispatch(addGetImageQueue(isbn));
+    dispatch(addGetImageQueue({ isbnList: [isbn], type: 'priority' }));
   }, [dispatch, isbn]);
 
   useEffect(() => {
     if (!isbn) return;
-    const url = bookImageResults.get(isbn);
+    const url = bookImageQueueResults[isbn];
     if (url !== undefined && imageUrl.status !== 'done') {
       if (url === 'retrying') {
         setImageUrl({ url: null, status: 'retrying' });
@@ -39,7 +39,7 @@ export default function BookImage({ isbn, size, onClick }: Props) {
         setImageUrl({ url, status: 'done' });
       }
     }
-  }, [bookImageResults, imageUrl.status, isbn]);
+  }, [bookImageQueueResults, imageUrl.status, isbn]);
 
   return imageUrl.url ? (
     <img

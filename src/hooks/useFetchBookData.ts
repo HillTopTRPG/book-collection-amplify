@@ -50,8 +50,8 @@ export default function useFetchBookData() {
       console.log('fetchBookData', isbn);
       const book = await _fetchBookData(isbn);
       const scannedItemMapValue = getScannedItemMapValueByBookData(collections, book);
-      const _filterSets: FilterSet[] = dbFilterSets.filter(filterSet =>
-        filterQueueResults.get(JSON.stringify(filterSet.fetch))
+      const _filterSets: FilterSet[] = dbFilterSets.filter(
+        filterSet => filterQueueResults[JSON.stringify(filterSet.fetch)]
       );
       const wrappedFilterSets =
         _filterSets.length > 0

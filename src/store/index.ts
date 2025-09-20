@@ -24,13 +24,7 @@ export const store = configureStore({
         // MediaStreamは非シリアル化可能なので除外
         ignoredActions: [],
         ignoredActionsPaths: [],
-        ignoredPaths: [
-          'fetchApiQueue.bookImageQueue',
-          'fetchApiQueue.bookImageResults',
-          'fetchApiQueue.filterQueue',
-          'fetchApiQueue.filterQueueResults',
-          'scanner.scanningItemMap',
-        ],
+        ignoredPaths: ['scanner.scanningItemMap'],
       },
     }),
 });
