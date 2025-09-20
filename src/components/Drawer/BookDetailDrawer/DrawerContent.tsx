@@ -6,7 +6,7 @@ import NdlOptionsForm from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.
 import SearchConditionsForm from '@/components/Drawer/BookDetailDrawer/SearchConditionsForm.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
-import { addFilterQueue, selectFilterQueueResults } from '@/store/fetchApiQueueSlice.ts';
+import { enqueueNdlFuzzySearch, selectFilterQueueResults } from '@/store/fetchNdlFuzzySearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import { updateFetchedFetchOption } from '@/store/scannerSlice.ts';
@@ -45,7 +45,7 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   }, [anywhere, fetchedResults]);
 
   useEffect(() => {
-    dispatch(addFilterQueue({ options: [stringifyFetchOptions], type: 'priority' }));
+    dispatch(enqueueNdlFuzzySearch({ options: [stringifyFetchOptions], type: 'priority' }));
   }, [dispatch, stringifyFetchOptions]);
 
   return (

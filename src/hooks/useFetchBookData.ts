@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { pick } from 'es-toolkit';
 import { omit } from 'es-toolkit/compat';
-import { selectFilterQueueResults } from '@/store/fetchApiQueueSlice.ts';
+import { selectFilterQueueResults } from '@/store/fetchNdlFuzzySearchSlice.ts';
 import { useAppSelector } from '@/store/hooks';
 import type { Isbn13, ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice';

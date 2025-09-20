@@ -1,14 +1,12 @@
 import type { MutableRefObject, ReactNode } from 'react';
 import { useRef, useEffect } from 'react';
 import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
+import { enqueueGetBookImage, dequeueGetBookImage, selectQueuedBookImageIsbn } from '@/store/fetchBookImageSlice.ts';
 import {
-  addFilterQueue,
-  addGetImageQueue,
-  completeFilterQueues,
-  completeGetImageQueues,
-  selectQueuedBookImageIsbn,
+  enqueueNdlFuzzySearch,
+  dequeueNdlFuzzySearch,
   selectQueuedFilterOption,
-} from '@/store/fetchApiQueueSlice.ts';
+} from '@/store/fetchNdlFuzzySearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { Isbn13 } from '@/store/scannerSlice.ts';
 import { selectScanningItemMap } from '@/store/scannerSlice.ts';
@@ -76,10 +74,10 @@ export default function QueueProcessLayer({ children }: Props) {
   // 書影URL取得キューの処理
   useEffect(() => {
     getBookImageQueueProcess(queuedBookImageIsbn, lastEndTime, bookImageLastResult).then(({ list, retryList }) => {
-      dispatch(completeGetImageQueues(list));
+      dispatch(dequeueGetBookImage(list));
       if (retryList.length) {
         setTimeout(() => {
-          dispatch(addGetImageQueue({ isbnList: retryList, type: 'retry' }));
+          dispatch(enqueueGetBookImage({ isbnList: retryList, type: 'retry' }));
         }, 10000);
       }
     });
@@ -88,7 +86,7 @@ export default function QueueProcessLayer({ children }: Props) {
   // 蔵書のグループ本を全て検索する
   useEffect(() => {
     filterSets.forEach(filterSet => {
-      dispatch(addFilterQueue({ options: [JSON.stringify(filterSet.fetch)], type: 'priority' }));
+      dispatch(enqueueNdlFuzzySearch({ options: [JSON.stringify(filterSet.fetch)], type: 'priority' }));
     });
   }, [dispatch, filterSets]);
 
@@ -98,7 +96,7 @@ export default function QueueProcessLayer({ children }: Props) {
     Array.from(scanningItemMap.entries()).forEach(([_, scanningItemMapValue]) => {
       const option = scanningItemMapValue.filterSets.at(0)?.fetch;
       if (!option) return;
-      dispatch(addFilterQueue({ options: [JSON.stringify(option)], type: 'priority' }));
+      dispatch(enqueueNdlFuzzySearch({ options: [JSON.stringify(option)], type: 'priority' }));
     });
   }, [dispatch, scanningItemMap]);
 
@@ -116,14 +114,14 @@ export default function QueueProcessLayer({ children }: Props) {
               publisher: options.usePublisher ? options.publisher : undefined,
             };
             fetchNdlSearch(requestOptions).then(books => {
-              dispatch(addGetImageQueue({ isbnList: books.map(({ isbn }) => isbn), type: 'new' }));
+              dispatch(enqueueGetBookImage({ isbnList: books.map(({ isbn }) => isbn), type: 'new' }));
               resolve({ option: optionsStr, books });
             });
           })
       )
     ).then(list => {
       console.log('fetchNdlSearch done', list);
-      dispatch(completeFilterQueues(list));
+      dispatch(dequeueNdlFuzzySearch(list));
     });
   }, [dispatch, queuedFilterOption]);
 

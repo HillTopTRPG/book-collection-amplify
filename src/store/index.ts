@@ -1,7 +1,8 @@
 import { configureStore } from '@reduxjs/toolkit';
 // import bookDetailDrawerReducer from './bookDetailDrawerSlice.ts';
 import editFilterReducer from './editFilterSlice.ts';
-import fetchApiQueueReducer from './fetchApiQueueSlice';
+import fetchBookImageReducer from './fetchBookImageSlice';
+import fetchNdlFuzzySearchReducer from './fetchNdlFuzzySearchSlice';
 import fetchResultReducer from './fetchResultSlice';
 import filterDetailDrawerReducer from './filterDetailDrawerSlice.ts';
 import scannerReducer from './scannerSlice';
@@ -12,10 +13,10 @@ export const store = configureStore({
     scanner: scannerReducer,
     editFilter: editFilterReducer,
     subscriptionData: subscriptionDataReducer,
-    // bookDetailDrawer: bookDetailDrawerReducer,
     filterDetailDrawer: filterDetailDrawerReducer,
     fetchResult: fetchResultReducer,
-    fetchApiQueue: fetchApiQueueReducer,
+    fetchBookImage: fetchBookImageReducer,
+    fetchNdlFuzzySearch: fetchNdlFuzzySearchReducer,
   },
   // 開発時のミドルウェア設定
   middleware: getDefaultMiddleware =>

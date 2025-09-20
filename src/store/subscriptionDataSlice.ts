@@ -1,7 +1,6 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
 import type { NdlOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
-import { selectFilterQueueResults } from '@/store/fetchApiQueueSlice.ts';
 import type { Isbn13 } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
@@ -61,20 +60,7 @@ export const { setCollections, setFilterSets, setCreateFilterSet } = subscriptio
 
 export const selectCollections = (state: RootState) => state.subscriptionData.collections;
 export const selectFilterSets = (state: RootState) => state.subscriptionData.filterSets;
-/** DBのフィルター : フィルター情報に基づいてfetchした書籍データ一覧 */
-export const selectDbFilterSetsBooks = createSelector(
-  [selectFilterSets, selectFilterQueueResults],
-  (filterSets, filterQueueResults): Map<string, BookData[]> | null => {
-    const result = new Map<string, BookData[]>();
-    for (const filterSet of filterSets) {
-      const options = JSON.stringify(filterSet.fetch);
-      const results = filterQueueResults[options] ?? null;
-      if (!results) return null;
-      result.set(options, results);
-    }
-    return result;
-  }
-);
+/** フィルターセットをDBに登録した直後にそのIDを取得するための特別なもの */
 export const selectCreateFilterSet = (state: RootState) => state.subscriptionData.createFilterSet;
 
 export default subscriptionDataSlice.reducer;
