@@ -3,7 +3,7 @@ import { pick } from 'es-toolkit';
 import { omit } from 'es-toolkit/compat';
 import { selectFilterQueueResults } from '@/store/fetchApiQueueSlice.ts';
 import { useAppSelector } from '@/store/hooks';
-import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { Isbn13, ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice';
 import { selectFilterSets, selectCollections } from '@/store/subscriptionDataSlice';
 import type { BookData } from '@/types/book.ts';
@@ -11,7 +11,7 @@ import { getScannedItemMapValueByBookData } from '@/utils/data.ts';
 import { fetchGoogleBooksApi, fetchNdlSearch, fetchOpenBdApi, fetchRakutenBooksApi } from '@/utils/fetch.ts';
 import { getKeys } from '@/utils/type.ts';
 
-const _fetchBookData = async (isbn: string): Promise<BookData> => {
+const _fetchBookData = async (isbn: Isbn13): Promise<BookData> => {
   const ndlBooksApiResult = (await fetchNdlSearch({ isbn }))?.at(0);
   if (ndlBooksApiResult) return ndlBooksApiResult;
 
@@ -22,11 +22,16 @@ const _fetchBookData = async (isbn: string): Promise<BookData> => {
   ].reduce<BookData>(
     (acc, cur) => {
       if (!cur) return acc;
-      const listProperty = ['creator', 'ndcLabels'] as const;
+      const listProperty = ['creator', 'ndcLabels', 'isbn'] as const;
       getKeys(omit(cur, listProperty)).forEach(property => {
         if (!acc[property] && cur[property]) acc[property] = cur[property];
       });
-      getKeys(pick(cur, listProperty)).forEach(property => {
+      getKeys(
+        pick(
+          cur,
+          listProperty.filter(p => p !== 'isbn')
+        )
+      ).forEach(property => {
         if (!acc[property] && cur[property]) acc[property] = cur[property];
       });
       return acc;
@@ -41,7 +46,7 @@ export default function useFetchBookData() {
   const filterQueueResults = useAppSelector(selectFilterQueueResults);
 
   const fetchBookData = useCallback(
-    async (isbn: string): Promise<ScanFinishedItemMapValue> => {
+    async (isbn: Isbn13): Promise<ScanFinishedItemMapValue> => {
       console.log('fetchBookData', isbn);
       const book = await _fetchBookData(isbn);
       const scannedItemMapValue = getScannedItemMapValueByBookData(collections, book);

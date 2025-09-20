@@ -11,6 +11,7 @@ import {
   selectQueuedFilterOption,
 } from '@/store/fetchApiQueueSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import type { Isbn13 } from '@/store/scannerSlice.ts';
 import { selectScanningItemMap } from '@/store/scannerSlice.ts';
 import { selectFilterSets } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
@@ -19,7 +20,7 @@ import { fetchNdlSearch, getBookImageUrl } from '@/utils/fetch.ts';
 import { wait } from '@/utils/primitive.ts';
 
 const getBookImageQueueProcess = async (
-  queuedBookImageIsbn: string[],
+  queuedBookImageIsbn: Isbn13[],
   lastEndTime: MutableRefObject<number>,
   bookImageLastResult: MutableRefObject<{ type: 'ndl' | 'other'; url: string | null | undefined } | null>
 ) => {
@@ -29,12 +30,12 @@ const getBookImageQueueProcess = async (
     await wait(needWait);
   }
 
-  const retryList: string[] = [];
+  const retryList: Isbn13[] = [];
 
   const list = await Promise.all(
     queuedBookImageIsbn.map(
       isbn =>
-        new Promise<{ isbn: string; url: string | null }>(resolve => {
+        new Promise<{ isbn: Isbn13; url: string | null }>(resolve => {
           getBookImageUrl(isbn)
             .then(({ url, error }) => {
               const isRetry = error === 'need-retry';

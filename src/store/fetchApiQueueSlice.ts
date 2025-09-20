@@ -1,13 +1,14 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { enableMapSet } from 'immer';
+import type { Isbn13 } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 enableMapSet();
 
-type BookImageQueue = Map<string, string>;
-type BookImageResults = Map<string, string | null>;
+type BookImageQueue = Map<Isbn13, Isbn13>;
+type BookImageResults = Map<Isbn13, string | null>;
 
 type FilterQueue = Map<string, string>;
 type FilterQueueResults = Map<string, BookData[]>;
@@ -20,40 +21,44 @@ type State = {
 };
 
 const initialState: State = {
-  bookImageQueue: new Map<string, string>(),
-  bookImageResults: new Map<string, string | null>(),
+  bookImageQueue: new Map<Isbn13, Isbn13>(),
+  bookImageResults: new Map<Isbn13, string | null>(),
   filterQueue: new Map<string, string>(),
   filterQueueResults: new Map<string, BookData[]>(),
 };
 
-const checkQueueExistsBase =
-  (queueMap: 'bookImageQueue' | 'filterQueue', resultMap: 'bookImageResults' | 'filterQueueResults') =>
-  (key: string, state: State) => {
-    const queueItem = state[queueMap].get(key);
-    const resultItem = state[resultMap].get(key);
+const checkBookImageExists = (key: Isbn13, state: State) => {
+  const queueItem = state.bookImageQueue.get(key);
+  const resultItem = state.bookImageResults.get(key);
 
-    const queue = Boolean(queueItem);
-    const result = resultItem !== undefined;
+  const queue = Boolean(queueItem);
+  const result = resultItem !== undefined;
 
-    return queue || result ? { queue, result, both: queue && result } : null;
-  };
+  return queue || result ? { queue, result, both: queue && result } : null;
+};
 
-const checkBookImageExists = checkQueueExistsBase('bookImageQueue', 'bookImageResults');
+const checkFilterQueueExists = (key: string, state: State) => {
+  const queueItem = state.filterQueue.get(key);
+  const resultItem = state.filterQueueResults.get(key);
 
-const checkFilterQueueExists = checkQueueExistsBase('filterQueue', 'filterQueueResults');
+  const queue = Boolean(queueItem);
+  const result = resultItem !== undefined;
+
+  return queue || result ? { queue, result, both: queue && result } : null;
+};
 
 export const fetchApiQueueSlice = createSlice({
   name: 'fetchApiQueue',
   initialState,
   reducers: {
-    addGetImageQueue: (state, action: PayloadAction<string>) => {
+    addGetImageQueue: (state, action: PayloadAction<Isbn13>) => {
       const isbn = action.payload;
 
       if (checkBookImageExists(isbn, state)) return;
 
       state.bookImageQueue.set(isbn, isbn);
     },
-    retryGetImageQueue: (state, action: PayloadAction<string[]>) => {
+    retryGetImageQueue: (state, action: PayloadAction<Isbn13[]>) => {
       const retryList = action.payload;
       retryList.forEach(isbn => {
         const existsCheck = checkBookImageExists(isbn, state);
@@ -62,7 +67,7 @@ export const fetchApiQueueSlice = createSlice({
         state.bookImageQueue.set(isbn, isbn);
       });
     },
-    completeGetImageQueues: (state, action: PayloadAction<{ isbn: string; url: string | null }[]>) => {
+    completeGetImageQueues: (state, action: PayloadAction<{ isbn: Isbn13; url: string | null }[]>) => {
       action.payload.forEach(({ isbn, url }) => {
         const existsCheck = checkBookImageExists(isbn, state);
         if (!existsCheck?.queue) return;

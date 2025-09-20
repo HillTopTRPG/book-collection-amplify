@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { useToast } from '@/hooks/use-toast';
 import useFetchBookData from '@/hooks/useFetchBookData.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import type { Isbn13 } from '@/store/scannerSlice.ts';
 import {
   addScannedIsbn,
   rejectFetchBookData,
@@ -32,7 +33,7 @@ export default function CameraView({ width, height }: Props) {
   const scannedBookDetails = useAppSelector(selectScannedBookDetails);
   const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBookDetails.size);
   const scannerRef = useRef<HTMLDivElement>(null);
-  const lastFetchIsbn = useRef<string | null>(null);
+  const lastFetchIsbn = useRef<Isbn13 | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFirst, setIsFirst] = useState(true);
@@ -124,39 +125,39 @@ export default function CameraView({ width, height }: Props) {
 
       // イベントリスナーを設定
       Quagga.onDetected(async result => {
-        const maybeIsbn = result.codeResult.code;
+        const maybeIsbn = result.codeResult.code?.replaceAll('-', '') ?? null;
 
         if (!checkIsbnCode(maybeIsbn)) {
           return;
         }
 
-        const isbn = getIsbn13(maybeIsbn);
+        const isbn13 = getIsbn13(maybeIsbn);
 
-        if (lastFetchIsbn.current === isbn) return;
-        lastFetchIsbn.current = isbn;
+        if (lastFetchIsbn.current === isbn13) return;
+        lastFetchIsbn.current = isbn13;
 
-        console.log('バーコード検出:', isbn);
+        console.log('バーコード検出:', isbn13);
 
         // トーストを表示
         toast({
           title: 'ISBN検出',
-          description: `${isbn}`,
+          description: isbn13,
           duration: 2000,
         });
 
         // 既に存在する場合はスキップ
-        if (scannedItemMap.has(isbn)) return;
+        if (scannedItemMap.has(isbn13)) return;
 
-        dispatch(addScannedIsbn(isbn));
+        dispatch(addScannedIsbn(isbn13));
 
         setTimeout(async () => {
-          const scannedItemMapValue = await fetchBookData(isbn);
+          const scannedItemMapValue = await fetchBookData(isbn13);
           if (!scannedItemMapValue.filterSets.length) {
             console.log('書籍データ取得失敗');
-            dispatch(rejectFetchBookData(isbn));
+            dispatch(rejectFetchBookData(isbn13));
             return;
           }
-          dispatch(setFetchedBookData({ [isbn]: scannedItemMapValue }));
+          dispatch(setFetchedBookData({ [isbn13]: scannedItemMapValue }));
         });
       });
 

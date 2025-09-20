@@ -1,4 +1,5 @@
 import { keys } from 'es-toolkit/compat';
+import type { Isbn13 } from '@/store/scannerSlice.ts';
 
 export const sortString = (a: string | null | undefined, b: string | null | undefined, sortOrder: 'asc' | 'desc') => {
   if (a === b) return 0;
@@ -37,12 +38,12 @@ export const getIsbnWithHyphen = (isbn: string, len: 10 | 13) => {
   return list.join('-');
 };
 
-export const getIsbn13 = (isbn: string): string => {
+export const getIsbn13 = (isbn: string): Isbn13 => {
   const maybeIsbn10 = isbn.replaceAll('-', '');
-  if (maybeIsbn10.length === 13) return maybeIsbn10;
+  if (maybeIsbn10.length === 13) return maybeIsbn10 as Isbn13;
   const isbn13part = `978${maybeIsbn10.slice(0, -1)}`;
 
-  return `${isbn13part}${getIsbn13CheckDigit(isbn13part)}`;
+  return `${isbn13part}${getIsbn13CheckDigit(isbn13part)}` as Isbn13;
 };
 
 export const getIsbn10 = (isbn: string): string => {

@@ -47,10 +47,10 @@ export default function IsbnForm() {
 
       if (!checkIsbnCode(maybeIsbn)) return;
 
-      const isbn = getIsbn13(maybeIsbn);
+      const isbn13 = getIsbn13(maybeIsbn);
 
       // 既に存在する場合はスキップ
-      if (scannedItemMap.has(isbn)) {
+      if (scannedItemMap.has(isbn13)) {
         toast({
           title: 'You submitted the following values',
           description: (
@@ -63,17 +63,17 @@ export default function IsbnForm() {
         return;
       }
 
-      dispatch(addScannedIsbn(isbn));
+      dispatch(addScannedIsbn(isbn13));
       form.setValue('isbn', '');
 
       setTimeout(async () => {
-        const scannedItemMapValue = await fetchBookData(isbn);
+        const scannedItemMapValue = await fetchBookData(isbn13);
         if (!scannedItemMapValue.filterSets.length) {
           console.log('書籍データ取得失敗');
-          dispatch(rejectFetchBookData(isbn));
+          dispatch(rejectFetchBookData(isbn13));
           return;
         }
-        dispatch(setFetchedBookData({ [isbn]: scannedItemMapValue }));
+        dispatch(setFetchedBookData({ [isbn13]: scannedItemMapValue }));
       });
     },
     [dispatch, fetchBookData, form, scannedItemMap, toast]

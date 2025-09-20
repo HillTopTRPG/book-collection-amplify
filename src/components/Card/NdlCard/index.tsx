@@ -19,7 +19,7 @@ type Props = {
 };
 
 export default function NdlCard({ ndl, filterSets, selectedIsbn, setSelectedIsbn, onOpenBookDetail }: Props) {
-  const isbn = ndl.isbn?.replaceAll('-', '');
+  const isbn = ndl.isbn;
 
   const options = useMemo(() => filterSets.at(0)?.fetch, [filterSets]);
 

@@ -4,9 +4,10 @@ import { useDispatch } from 'react-redux';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { addGetImageQueue, selectBookImageResults } from '@/store/fetchApiQueueSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
+import type { Isbn13 } from '@/store/scannerSlice.ts';
 
 type Props = {
-  isbn: string | null | undefined;
+  isbn: Isbn13 | null | undefined;
   size?: 'small' | 'big';
   onClick?: () => void;
 };

@@ -2,7 +2,9 @@ import * as _ from 'es-toolkit/compat';
 import { keys } from 'es-toolkit/compat';
 import ndc8Map from '@/assets/ndc8.json';
 import ndc9Map from '@/assets/ndc9.json';
+import type { Isbn13 } from '@/store/scannerSlice.ts';
 import { getIsbn13 } from '@/utils/primitive.ts';
+import { checkIsbnCode } from '@/utils/validate.ts';
 import type { BookData } from '../types/book.ts';
 
 const NDC_MAPS = {
@@ -14,7 +16,7 @@ const NDC_MAPS = {
 const RAKUTEN_API_APPLICATION_ID: string = import.meta.env.VITE_RAKUTEN_API_APPLICATION_ID;
 
 // openBD APIから書籍データを取得
-export const fetchOpenBdApi = async (isbn: string): Promise<BookData> => {
+export const fetchOpenBdApi = async (isbn: Isbn13): Promise<BookData> => {
   try {
     const response = await fetch(`https://api.openbd.jp/v1/get?isbn=${isbn}`);
     const data = await response.json();
@@ -41,7 +43,7 @@ export const fetchOpenBdApi = async (isbn: string): Promise<BookData> => {
   }
 };
 
-export const fetchGoogleBooksApi = async (isbn: string): Promise<BookData> => {
+export const fetchGoogleBooksApi = async (isbn: Isbn13): Promise<BookData> => {
   let data;
   try {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
@@ -141,8 +143,12 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
   return data['Items']
     .map(({ Item: item }: { Item: RakutenBook }) => item)
     .flatMap((item: RakutenBook) => {
-      // isbnコード必須
-      if (!item.isbn) return [];
+      const maybeIsbn = item.isbn?.replaceAll('-', '') ?? null;
+
+      if (!checkIsbnCode(maybeIsbn)) return [];
+
+      const isbn13 = getIsbn13(maybeIsbn);
+
       // // まとめ売りの商品は除外
       // if (item.booksGenreId?.startsWith('001025')) return [];
 
@@ -152,7 +158,7 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
 
       return [
         {
-          isbn: item.isbn.replaceAll('-', ''),
+          isbn: isbn13,
           title: item.title,
           volume: item.subTitle,
           creator: item.author ? [item.author] : [],
@@ -314,25 +320,21 @@ const checkIfImageExists = async (url: string | null | undefined) =>
     img.src = url;
   });
 
-const getAsyncUrl = async (
-  type: 'rakuten' | 'google',
-  isbn: string,
-  callback: (isbn: string) => Promise<string | null>
-) =>
+const getAsyncUrl = async (type: 'rakuten' | 'google', callback: () => Promise<string | null>) =>
   new Promise<GetBookImagePromiseInfo>(resolve => {
-    callback(isbn)
+    callback()
       .then(url => {
         resolve({ url, type, error: null });
       })
       .catch(error => {
-        console.log('$$$ getAsyncUrl catch', type, isbn, error.toString());
+        console.log('$$$ getAsyncUrl catch', type, error.toString());
         resolve({ url: null, type, error: error?.message ?? null });
       });
   });
 
 type GetBookImagePromiseInfo = { url: string | null; type: 'ndl' | 'rakuten' | 'google'; error: string | null };
 
-export const getBookImageUrl = async (isbn: string): Promise<GetBookImagePromiseInfo> => {
+export const getBookImageUrl = async (isbn: Isbn13): Promise<GetBookImagePromiseInfo> => {
   const ndlUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`;
   if (await checkIfImageExists(ndlUrl)) {
     return {
@@ -343,12 +345,8 @@ export const getBookImageUrl = async (isbn: string): Promise<GetBookImagePromise
   }
 
   const results = await Promise.all([
-    getAsyncUrl('google', isbn, async isbn => (await fetchGoogleBooksApi(isbn)).cover ?? null),
-    getAsyncUrl(
-      'rakuten',
-      isbn,
-      async isbn => (await fetchRakutenBooksApi({ isbn })).find(book => book.cover)?.cover ?? null
-    ),
+    getAsyncUrl('google', async () => (await fetchGoogleBooksApi(isbn)).cover ?? null),
+    getAsyncUrl('rakuten', async () => (await fetchRakutenBooksApi({ isbn })).find(book => book.cover)?.cover ?? null),
   ]);
 
   const haveUrl = results.find(result => result.url);

@@ -2,6 +2,7 @@ import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
 import type { NdlOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
 import { selectFilterQueueResults } from '@/store/fetchApiQueueSlice.ts';
+import type { Isbn13 } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { RootState } from './index.ts';
@@ -11,7 +12,8 @@ const userPoolClient = generateClient<Schema>({
   authMode: 'userPool',
 });
 
-export type Collection = Omit<Schema['Collection']['type'], 'meta'> & {
+export type Collection = Omit<Schema['Collection']['type'], 'isbn' | 'meta'> & {
+  isbn: Isbn13;
   meta: {
     overwrite?: Partial<BookData>;
     isWant?: boolean;

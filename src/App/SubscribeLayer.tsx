@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import { setFilterSet } from '@/store/editFilterSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import type { Isbn13 } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import {
   selectCreateFilterSet,
@@ -42,6 +43,7 @@ export default function SubscribeLayer({ children }: Props) {
           setCollections(
             structuredClone(data.items).map(item => ({
               ...item,
+              isbn: item.isbn as Isbn13,
               meta: JSON.parse(item.meta?.trim() || '{}'),
             }))
           )

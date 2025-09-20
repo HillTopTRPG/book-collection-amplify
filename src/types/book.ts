@@ -1,6 +1,8 @@
 // 書籍データの型定義
+import type { Isbn13 } from '@/store/scannerSlice.ts';
+
 export type BookData = {
-  isbn: string;
+  isbn: Isbn13;
   title?: string | null;
   volume?: string | null;
   volumeTitle?: string | null;
