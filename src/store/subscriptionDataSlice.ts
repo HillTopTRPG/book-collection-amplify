@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
-import type { NdlOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
 import type { Isbn13 } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
@@ -21,10 +21,7 @@ export type Collection = Omit<Schema['Collection']['type'], 'isbn' | 'meta'> & {
 };
 
 export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters'> & {
-  fetch: NdlOptions & {
-    creator: string;
-    publisher: string;
-  };
+  fetch: NdlFullOptions;
   filters: { anywhere: string }[][];
 };
 

@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import type { AppDispatch } from '@/store';
 import { useAppSelector } from '@/store/hooks.ts';
-import { clearScannedItems, selectScanningItemMap } from '@/store/scannerSlice.ts';
+import { clearScanViewList, selectScanResultList } from '@/store/scannerSlice.ts';
 import { wait } from '@/utils/primitive.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 
@@ -18,24 +18,22 @@ const userPoolClient = generateClient<Schema>({
 
 export default function ScannedResults() {
   const dispatch = useDispatch<AppDispatch>();
-  const scanningItemMap = useAppSelector(selectScanningItemMap);
+  const scanResultList = useAppSelector(selectScanResultList);
   const { toast } = useToast();
   const [registering, setRegistering] = useState(false);
 
-  const clearDisable = !scanningItemMap.size;
-  const registrable =
-    !clearDisable &&
-    Array.from(scanningItemMap.entries()).some(([_, scanningItemMapValue]) => scanningItemMapValue.bookDetail);
+  const clearDisable = !scanResultList.length;
+  const registrable = !clearDisable && scanResultList.some(({ status }) => status === 'done');
   const registerDisable = !registrable || registering;
 
   const onClear = useCallback(() => {
-    dispatch(clearScannedItems());
+    dispatch(clearScanViewList());
   }, [dispatch]);
 
   const onRegister = useCallback(async () => {
     setRegistering(true);
-    for (const [isbn, scanningItemMapValue] of scanningItemMap.entries()) {
-      if (!scanningItemMapValue.bookDetail?.book) return;
+    for (const { isbn, result: scanningItemMapValue } of scanResultList) {
+      if (!scanningItemMapValue?.bookDetail?.book) return;
       const isHave = scanningItemMapValue.bookDetail.isHave;
       const { title } = scanningItemMapValue.bookDetail.book;
 
@@ -65,7 +63,7 @@ export default function ScannedResults() {
     }
     onClear();
     setRegistering(false);
-  }, [onClear, scanningItemMap, toast]);
+  }, [onClear, scanResultList, toast]);
 
   return (
     <div className="flex-1 flex flex-col gap-3 w-full bg-background rounded-lg shadow-lg p-2">
@@ -89,13 +87,13 @@ export default function ScannedResults() {
         </Fragment>
       ) : null}
       <ScrollArea className="w-full max-h-max px-1">
-        {Array.from(scanningItemMap.entries()).map(([_, scanningItemMapValue], index) => (
+        {scanResultList.map(({ result }, index) => (
           <Fragment key={index}>
             {index > 0 && <Separator className="my-2" />}
-            <BookCard bookDetail={scanningItemMapValue.bookDetail} />
+            <BookCard bookDetail={result?.bookDetail ?? null} />
           </Fragment>
         ))}
-        {!scanningItemMap.size && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}
+        {!scanResultList.length && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}
       </ScrollArea>
     </div>
   );

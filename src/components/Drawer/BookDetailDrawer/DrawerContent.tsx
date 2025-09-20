@@ -6,11 +6,12 @@ import NdlOptionsForm from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.
 import SearchConditionsForm from '@/components/Drawer/BookDetailDrawer/SearchConditionsForm.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
-import { enqueueNdlFuzzySearch, selectFilterQueueResults } from '@/store/fetchNdlFuzzySearchSlice.ts';
+import { enqueueNdlSearch, selectNdlSearchQueueResults } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import { updateFetchedFetchOption } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
+import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import type { PickRequired } from '@/utils/type.ts';
 
 type Props = {
@@ -19,7 +20,7 @@ type Props = {
 
 export default function DrawerContent({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
-  const filterQueueResults = useAppSelector(selectFilterQueueResults);
+  const filterQueueResults = useAppSelector(selectNdlSearchQueueResults);
   const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
   const [detailIsbn, setDetailIsbn] = useState<string | null>(null);
 
@@ -30,7 +31,10 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
     [scannedItemMapValue]
   );
 
-  const stringifyFetchOptions = useMemo(() => (fetchOptions ? JSON.stringify(fetchOptions) : ''), [fetchOptions]);
+  const stringifyFetchOptions = useMemo(
+    () => (fetchOptions ? makeNdlOptionsStringByNdlFullOptions(fetchOptions) : ''),
+    [fetchOptions]
+  );
 
   const fetchedResults = useMemo(
     () => filterQueueResults[stringifyFetchOptions],
@@ -45,7 +49,8 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   }, [anywhere, fetchedResults]);
 
   useEffect(() => {
-    dispatch(enqueueNdlFuzzySearch({ options: [stringifyFetchOptions], type: 'priority' }));
+    if (!stringifyFetchOptions) return;
+    dispatch(enqueueNdlSearch({ options: [stringifyFetchOptions], type: 'priority' }));
   }, [dispatch, stringifyFetchOptions]);
 
   return (

@@ -7,16 +7,9 @@ import { useInterval } from 'usehooks-ts';
 import se01 from '@/assets/se01.mp3';
 import { Button } from '@/components/ui/button.tsx';
 import { useToast } from '@/hooks/use-toast';
-import useFetchBookData from '@/hooks/useFetchBookData.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { Isbn13 } from '@/store/scannerSlice.ts';
-import {
-  addScannedIsbn,
-  rejectFetchBookData,
-  selectScannedBookDetails,
-  selectScanningItemMap,
-  setFetchedBookData,
-} from '@/store/scannerSlice.ts';
+import { enqueueScan, selectScanResultList, selectScannedBookDetails } from '@/store/scannerSlice.ts';
 import { getIsbn13, wait } from '@/utils/primitive.ts';
 import { checkIsbnCode } from '@/utils/validate.ts';
 import CornerFrame from './CornerFrame.tsx';
@@ -29,9 +22,9 @@ type Props = {
 export default function CameraView({ width, height }: Props) {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
-  const scannedItemMap = useAppSelector(selectScanningItemMap);
+  const scanResultList = useAppSelector(selectScanResultList);
   const scannedBookDetails = useAppSelector(selectScannedBookDetails);
-  const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBookDetails.size);
+  const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBookDetails);
   const scannerRef = useRef<HTMLDivElement>(null);
   const lastFetchIsbn = useRef<Isbn13 | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -44,7 +37,6 @@ export default function CameraView({ width, height }: Props) {
     volume,
     interrupt: true,
   });
-  const { fetchBookData } = useFetchBookData();
 
   const setVolume = useCallback((volume: number) => {
     localStorage.volume = volume;
@@ -52,8 +44,8 @@ export default function CameraView({ width, height }: Props) {
   }, []);
 
   useEffect(() => {
-    if (lastFetchedBookListCount !== scannedBookDetails.size) {
-      if (scannedBookDetails.size > 0) {
+    if (lastFetchedBookListCount !== scannedBookDetails) {
+      if (scannedBookDetails > 0) {
         // fetch済みリストの件数が変化するたびに音を鳴らす
         try {
           play();
@@ -65,8 +57,8 @@ export default function CameraView({ width, height }: Props) {
         lastFetchIsbn.current = null;
       }
     }
-    setLastFetchedBookListCount(scannedBookDetails.size);
-  }, [scannedBookDetails.size, lastFetchedBookListCount, play]);
+    setLastFetchedBookListCount(scannedBookDetails);
+  }, [scannedBookDetails, lastFetchedBookListCount, play]);
 
   const startBarcodeScanning = useCallback(async () => {
     console.log('バーコードスキャン開始を試行中...');
@@ -146,19 +138,9 @@ export default function CameraView({ width, height }: Props) {
         });
 
         // 既に存在する場合はスキップ
-        if (scannedItemMap.has(isbn13)) return;
+        if (scanResultList.some(sr => sr.isbn === isbn13)) return;
 
-        dispatch(addScannedIsbn(isbn13));
-
-        setTimeout(async () => {
-          const scannedItemMapValue = await fetchBookData(isbn13);
-          if (!scannedItemMapValue.filterSets.length) {
-            console.log('書籍データ取得失敗');
-            dispatch(rejectFetchBookData(isbn13));
-            return;
-          }
-          dispatch(setFetchedBookData({ [isbn13]: scannedItemMapValue }));
-        });
+        dispatch(enqueueScan({ isbnList: [isbn13], type: 'new' }));
       });
 
       setError(null);
@@ -168,7 +150,7 @@ export default function CameraView({ width, height }: Props) {
       setError(`スキャナーの開始に失敗しました: ${error}`);
       setIsScanning(false);
     }
-  }, [dispatch, fetchBookData, scannedItemMap, toast]);
+  }, [dispatch, scanResultList, toast]);
 
   const startCamera = useCallback(async () => {
     setIsFirst(false);

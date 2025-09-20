@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { pick } from 'es-toolkit';
 import { omit } from 'es-toolkit/compat';
-import { selectFilterQueueResults } from '@/store/fetchNdlFuzzySearchSlice.ts';
+import { selectNdlSearchQueueResults } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppSelector } from '@/store/hooks';
 import type { Isbn13, ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice';
@@ -43,7 +43,7 @@ const _fetchBookData = async (isbn: Isbn13): Promise<BookData> => {
 export default function useFetchBookData() {
   const collections = useAppSelector(selectCollections);
   const dbFilterSets = useAppSelector(selectFilterSets);
-  const filterQueueResults = useAppSelector(selectFilterQueueResults);
+  const filterQueueResults = useAppSelector(selectNdlSearchQueueResults);
 
   const fetchBookData = useCallback(
     async (isbn: Isbn13): Promise<ScanFinishedItemMapValue> => {

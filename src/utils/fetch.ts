@@ -209,13 +209,13 @@ const getNdlQuery = (options: NdlOptions) => {
 };
 
 const parser = new DOMParser();
-const getNdlBookFromDocument = (recordElm: Element) => {
+const getNdlBookFromDocument = (recordElm: Element): BookData | null => {
   const resourceElm = recordElm.querySelector('recordData > RDF > BibResource');
   const maybeIsbn =
     Array.from(resourceElm?.querySelectorAll('identifier') ?? [])
       .find(isbnElm => isbnElm.getAttribute('rdf:datatype') === 'http://ndl.go.jp/dcndl/terms/ISBN')
       ?.textContent?.replaceAll('-', '') ?? null;
-  if (!maybeIsbn || ![10, 13].includes(maybeIsbn.length)) return null;
+  if (!checkIsbnCode(maybeIsbn)) return null;
 
   const isbn = getIsbn13(maybeIsbn);
 
@@ -294,7 +294,7 @@ const getNdlBookFromDocument = (recordElm: Element) => {
   } as const satisfies BookData;
 };
 
-export const fetchNdlSearch = async (options: NdlOptions) => {
+export const fetchNdlSearch = async (options: NdlOptions): Promise<BookData[]> => {
   const BASE_URL =
     'https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&version=1.2&recordPacking=xml&recordSchema=dcndl&startRecord=1&maximumRecords=200&query=';
   const query = getNdlQuery(options);

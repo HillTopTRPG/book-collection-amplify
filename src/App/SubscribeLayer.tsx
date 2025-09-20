@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { generateClient } from 'aws-amplify/data';
-import { setFilterSet } from '@/store/editFilterSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { Isbn13 } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
@@ -61,17 +60,6 @@ export default function SubscribeLayer({ children }: Props) {
             }))
           )
         );
-        if (nextFilterSetNameRef.current) {
-          // Use slice().reverse() to avoid mutating original array
-          const item = data.items
-            .slice()
-            .reverse()
-            .find(item => item.name === nextFilterSetNameRef.current);
-          if (item) {
-            dispatch(setFilterSet({ id: item.id, filters: JSON.parse(item.filters) }));
-          }
-          nextFilterSetNameRef.current = null;
-        }
       },
     });
 

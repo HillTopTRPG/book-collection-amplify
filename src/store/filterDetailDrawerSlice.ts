@@ -18,7 +18,7 @@ const initialState: State = {
 };
 
 export const filterDetailDrawerSlice = createSlice({
-  name: 'collectionPageDrawer',
+  name: 'filterDetailDrawer',
   initialState,
   reducers: {
     openDrawer: (state, action: PayloadAction<string>) => {

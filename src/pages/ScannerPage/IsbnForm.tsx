@@ -7,14 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form.tsx';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast.ts';
-import useFetchBookData from '@/hooks/useFetchBookData.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import {
-  addScannedIsbn,
-  rejectFetchBookData,
-  selectScanningItemMap,
-  setFetchedBookData,
-} from '@/store/scannerSlice.ts';
+import { enqueueScan, selectScanResultList } from '@/store/scannerSlice.ts';
 import { getIsbn13 } from '@/utils/primitive.ts';
 import { checkIsbnCode } from '@/utils/validate.ts';
 
@@ -29,9 +23,8 @@ const FormSchema = z
 
 export default function IsbnForm() {
   const dispatch = useAppDispatch();
-  const { fetchBookData } = useFetchBookData();
+  const scanResultList = useAppSelector(selectScanResultList);
   const { toast } = useToast();
-  const scannedItemMap = useAppSelector(selectScanningItemMap);
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -47,10 +40,12 @@ export default function IsbnForm() {
 
       if (!checkIsbnCode(maybeIsbn)) return;
 
+      form.setValue('isbn', '');
+
       const isbn13 = getIsbn13(maybeIsbn);
 
       // 既に存在する場合はスキップ
-      if (scannedItemMap.has(isbn13)) {
+      if (scanResultList.some(sr => sr.isbn === isbn13)) {
         toast({
           title: 'You submitted the following values',
           description: (
@@ -59,24 +54,12 @@ export default function IsbnForm() {
             </pre>
           ),
         });
-        form.setValue('isbn', '');
         return;
       }
 
-      dispatch(addScannedIsbn(isbn13));
-      form.setValue('isbn', '');
-
-      setTimeout(async () => {
-        const scannedItemMapValue = await fetchBookData(isbn13);
-        if (!scannedItemMapValue.filterSets.length) {
-          console.log('書籍データ取得失敗');
-          dispatch(rejectFetchBookData(isbn13));
-          return;
-        }
-        dispatch(setFetchedBookData({ [isbn13]: scannedItemMapValue }));
-      });
+      dispatch(enqueueScan({ isbnList: [isbn13], type: 'new' }));
     },
-    [dispatch, fetchBookData, form, scannedItemMap, toast]
+    [dispatch, form, scanResultList, toast]
   );
 
   return (

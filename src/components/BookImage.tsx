@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { ImageOff } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
-import { enqueueGetBookImage, selectBookImageQueueResults } from '@/store/fetchBookImageSlice.ts';
+import { enqueueBookImage, selectBookImageQueueResults } from '@/store/fetchBookImageSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
 import type { Isbn13 } from '@/store/scannerSlice.ts';
 
@@ -26,7 +26,7 @@ export default function BookImage({ isbn, size, onClick }: Props) {
   useEffect(() => {
     if (!isbn) return;
     setImageUrl({ status: 'loading', url: null });
-    dispatch(enqueueGetBookImage({ isbnList: [isbn], type: 'priority' }));
+    dispatch(enqueueBookImage({ isbnList: [isbn], type: 'priority' }));
   }, [dispatch, isbn]);
 
   useEffect(() => {

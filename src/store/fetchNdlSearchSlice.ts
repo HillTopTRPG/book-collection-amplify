@@ -7,9 +7,9 @@ type FilterQueue = string[];
 type FilterQueueResults = Record<string, BookData[]>;
 
 type State = {
-  // NDL曖昧検索処理 / キュー
+  // NDL検索処理 / キュー
   filterQueue: FilterQueue;
-  // NDL曖昧検索処理 / 処理結果
+  // NDL検索処理 / 処理結果
   filterQueueResults: FilterQueueResults;
 };
 
@@ -28,16 +28,16 @@ const checkFilterQueueExists = (key: string, state: State) => {
   return queue || result ? { queue, result, both: queue && result } : null;
 };
 
-export const fetchNdlFuzzySearchSlice = createSlice({
-  name: 'fetchNdlFuzzySearch',
+export const fetchNdlSearchSlice = createSlice({
+  name: 'fetchNdlSearch',
   initialState,
   reducers: {
-    enqueueNdlFuzzySearch: (state, action: PayloadAction<{ options: string[]; type: 'new' | 'priority' }>) => {
+    enqueueNdlSearch: (state, action: PayloadAction<{ options: string[]; type: 'new' | 'priority' }>) => {
       const addList = action.payload.options.filter(option => {
         if (action.payload.type === 'new') {
           return !checkFilterQueueExists(option, state);
         } else {
-          return state.filterQueue.at(0) !== option;
+          return state.filterQueueResults[option] === undefined && state.filterQueue.at(0) !== option;
         }
       });
 
@@ -47,7 +47,7 @@ export const fetchNdlFuzzySearchSlice = createSlice({
         state.filterQueue.splice(1, 0, ...addList);
       }
     },
-    dequeueNdlFuzzySearch: (state, action: PayloadAction<{ option: string; books: BookData[] }[]>) => {
+    dequeueNdlSearch: (state, action: PayloadAction<{ option: string; books: BookData[] }[]>) => {
       action.payload.forEach(({ option, books }) => {
         const existsCheck = checkFilterQueueExists(option, state);
         if (!existsCheck?.queue) return;
@@ -63,12 +63,12 @@ export const fetchNdlFuzzySearchSlice = createSlice({
   },
 });
 
-export const { enqueueNdlFuzzySearch, dequeueNdlFuzzySearch } = fetchNdlFuzzySearchSlice.actions;
+export const { enqueueNdlSearch, dequeueNdlSearch } = fetchNdlSearchSlice.actions;
 
-const _selectFilterQueue = (state: RootState) => state.fetchNdlFuzzySearch.filterQueue;
-/** NDL曖昧検索キューの中で処理対象のもの */
-export const selectQueuedFilterOption = createSelector([_selectFilterQueue], filterQueue => filterQueue.slice(0, 2));
-/** NDL曖昧検索条件：書籍一覧 のRecord */
-export const selectFilterQueueResults = (state: RootState) => state.fetchNdlFuzzySearch.filterQueueResults;
+const _selectFilterQueue = (state: RootState) => state.fetchNdlSearch.filterQueue;
+/** NDL検索キューの中で処理対象のもの */
+export const selectNdlSearchQueueTargets = createSelector([_selectFilterQueue], filterQueue => filterQueue.slice(0, 2));
+/** NDL検索条件：書籍一覧 のRecord */
+export const selectNdlSearchQueueResults = (state: RootState) => state.fetchNdlSearch.filterQueueResults;
 
-export default fetchNdlFuzzySearchSlice.reducer;
+export default fetchNdlSearchSlice.reducer;
