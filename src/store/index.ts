@@ -1,7 +1,9 @@
 import { configureStore } from '@reduxjs/toolkit';
 // import bookDetailDrawerReducer from './bookDetailDrawerSlice.ts';
 import fetchBookImageReducer from './fetchBookImageSlice';
+import fetchGoogleSearchReducer from './fetchGoogleSearchSlice';
 import fetchNdlSearchReducer from './fetchNdlSearchSlice';
+import fetchRakutenSearchReducer from './fetchRakutenSearchSlice';
 import fetchResultReducer from './fetchResultSlice';
 import filterDetailDrawerReducer from './filterDetailDrawerSlice.ts';
 import scannerReducer from './scannerSlice';
@@ -15,6 +17,8 @@ export const store = configureStore({
     fetchResult: fetchResultReducer,
     fetchBookImage: fetchBookImageReducer,
     fetchNdlSearch: fetchNdlSearchReducer,
+    fetchGoogleSearch: fetchGoogleSearchReducer,
+    fetchRakutenSearch: fetchRakutenSearchReducer,
   },
 });
 

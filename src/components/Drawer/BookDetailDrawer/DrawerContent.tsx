@@ -20,7 +20,7 @@ type Props = {
 
 export default function DrawerContent({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
-  const filterQueueResults = useAppSelector(selectNdlSearchQueueResults);
+  const ndlSearchQueueResults = useAppSelector(selectNdlSearchQueueResults);
   const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
   const [detailIsbn, setDetailIsbn] = useState<string | null>(null);
 
@@ -37,8 +37,8 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   );
 
   const fetchedResults = useMemo(
-    () => filterQueueResults[stringifyFetchOptions],
-    [filterQueueResults, stringifyFetchOptions]
+    () => ndlSearchQueueResults[stringifyFetchOptions],
+    [ndlSearchQueueResults, stringifyFetchOptions]
   );
 
   const filteredResults = useMemo((): BookData[] => {
@@ -50,7 +50,7 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
 
   useEffect(() => {
     if (!stringifyFetchOptions) return;
-    dispatch(enqueueNdlSearch({ list: [stringifyFetchOptions], type: 'priority' }));
+    dispatch(enqueueNdlSearch({ type: 'priority', list: [stringifyFetchOptions] }));
   }, [dispatch, stringifyFetchOptions]);
 
   return (

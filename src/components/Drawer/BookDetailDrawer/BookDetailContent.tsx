@@ -9,7 +9,6 @@ type Props = {
 
 export default function BookDetailContent({ book }: Props) {
   const isbn = book.isbn;
-  if (!isbn || ![10, 13].includes(isbn.length)) return null;
 
   const tableData = [
     ...(book.creator?.map((c, idx, self) => ({ name: `著者${self.length === 1 ? '' : idx + 1}`, value: c })) ?? []),
@@ -27,7 +26,7 @@ export default function BookDetailContent({ book }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <BookImage isbn={book?.isbn} size="big" />
+      <BookImage isbn={isbn} size="big" />
       <div className="flex flex-col gap-1">
         {tableData.map((rowData, idx) => (
           <div key={idx} className="flex gap-3">

@@ -1,43 +1,34 @@
-import { Authenticator } from '@aws-amplify/ui-react';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { Amplify } from 'aws-amplify';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import config from '$/amplify_outputs';
-import QueueProcessLayer from '@/App/QueueProcessLayer.tsx';
+import ApplicationControlLayer from '@/App/ApplicationControlLayer';
+import AwsLayer from '@/App/AwsLayer/AwsLayer.tsx';
 import { Toaster } from '@/components/ui/toaster';
 import CollectionPage from '@/pages/CollectionPage';
 import Home from '@/pages/Home';
 import ScannerPage from '@/pages/ScannerPage';
-import AuthWrapper from './AuthWrapper';
-import LoginPage from './LoginPage';
 import MainLayout from './MainLayout';
-import SubscribeLayer from './SubscribeLayer.tsx';
 
 Amplify.configure(config);
 
 export default function App() {
   return (
-    <ScrollArea className="h-full w-full">
-      <Authenticator.Provider>
-        <AuthWrapper>
-          <LoginPage>
-            <QueueProcessLayer>
-              <SubscribeLayer>
-                <Router>
-                  <MainLayout>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/scanner" element={<ScannerPage />} />
-                      <Route path="/collection" element={<CollectionPage />} />
-                    </Routes>
-                    <Toaster />
-                  </MainLayout>
-                </Router>
-              </SubscribeLayer>
-            </QueueProcessLayer>
-          </LoginPage>
-        </AuthWrapper>
-      </Authenticator.Provider>
-    </ScrollArea>
+    <ApplicationControlLayer>
+      <ScrollArea className="h-full w-full">
+        <AwsLayer>
+          <Router>
+            <MainLayout>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/scanner" element={<ScannerPage />} />
+                <Route path="/collection" element={<CollectionPage />} />
+              </Routes>
+              <Toaster />
+            </MainLayout>
+          </Router>
+        </AwsLayer>
+      </ScrollArea>
+    </ApplicationControlLayer>
   );
 }

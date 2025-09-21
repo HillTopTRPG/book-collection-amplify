@@ -42,7 +42,9 @@ export const fetchOpenBdApi = async (isbn: Isbn13): Promise<BookData> => {
   }
 };
 
-export const fetchGoogleBooksApi = async (isbn: Isbn13): Promise<BookData> => {
+export const fetchGoogleBooksApi = async (
+  isbn: Isbn13
+): Promise<{ book: BookData | null; retry: boolean; error: string | null }> => {
   let data;
   try {
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
@@ -50,26 +52,27 @@ export const fetchGoogleBooksApi = async (isbn: Isbn13): Promise<BookData> => {
   } catch (error) {
     console.log('$$ google error');
     console.log(JSON.stringify(error, null, 2));
-    throw new Error('other');
+    return { book: null, error: 'network?', retry: false };
   }
 
   if (!data?.items?.length) {
     if (data.totalItems === 0) {
-      throw new Error('no-exists');
+      return { book: null, error: null, retry: false };
     }
     if (data?.error?.errors?.some((error: { reason: string | null } | null) => error?.reason === 'rateLimitExceeded')) {
-      throw new Error('need-retry');
+      return { book: null, error: 'rateLimitExceeded', retry: true };
     }
     console.log('$$ google illegal response');
     console.log(JSON.stringify(data, null, 2));
-    throw new Error('other');
+    const reason: string | null =
+      data?.error?.errors
+        ?.flatMap((error: { reason: string | null } | null): string[] => (error?.reason ? [error.reason] : []))
+        ?.at(0) ?? null;
+
+    return { book: null, error: reason, retry: false };
   }
 
-  if (!data.items[0].volumeInfo?.imageLinks?.thumbnail) {
-    console.log('google cant have image but got info: ', data.items[0].volumeInfo?.title);
-  }
-
-  return {
+  const book = {
     isbn,
     title: data.items[0].volumeInfo?.title,
     volume: data.items[0].volumeInfo?.subtitle,
@@ -79,6 +82,8 @@ export const fetchGoogleBooksApi = async (isbn: Isbn13): Promise<BookData> => {
     cover: data.items[0].volumeInfo?.imageLinks?.thumbnail,
     ndcLabels: [],
   } as const satisfies BookData;
+
+  return { book, error: null, retry: false };
 };
 
 export type RakutenApiOption = {
@@ -96,14 +101,16 @@ type RakutenBook = {
   author?: string;
   booksGenreId?: string;
   isbn?: string;
-  mediumImageUrl?: string;
+  largeImageUrl?: string;
   publisherName?: string;
   salesDate?: string;
   subTitle?: string;
   title?: string;
 };
-export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<BookData[]> => {
-  const opt = structuredClone(options);
+export const fetchRakutenBooksApi = async (
+  isbn: Isbn13
+): Promise<{ book: BookData | null; retry: boolean; error: string | null }> => {
+  const opt: RakutenApiOption = { isbn };
   opt.applicationId ??= RAKUTEN_API_APPLICATION_ID;
   opt.booksGenreId ??= '001';
   const keys = _.keys(opt) as (keyof RakutenApiOption)[];
@@ -124,50 +131,51 @@ export const fetchRakutenBooksApi = async (options: RakutenApiOption): Promise<B
   } catch (error) {
     console.log('$$ rakuten error');
     console.log(JSON.stringify(error, null, 2));
-    throw new Error('other');
+    return { book: null, error: 'network?', retry: false };
   }
 
   if (!data['Items']) {
     if (data['error']) {
-      if (data['error'] === 'too_many_requests') throw new Error('need-retry');
+      if (data['error'] === 'too_many_requests') {
+        return { book: null, error: 'too_many_requests', retry: true };
+      }
       console.log('$$ rakuten illegal response');
       console.log(JSON.stringify(data, null, 2));
-      throw new Error(data['error']);
+      return { book: null, error: data['error'].toString(), retry: false };
     }
     console.log('$$ rakuten illegal response');
     console.log(JSON.stringify(data, null, 2));
-    throw new Error('other');
+    return { book: null, error: 'other', retry: false };
   }
+  const book =
+    (data['Items'] as { Item: RakutenBook }[])
+      .map(({ Item: item }: { Item: RakutenBook }) => item)
+      .flatMap((item: RakutenBook): BookData[] => {
+        const maybeIsbn = item.isbn?.replaceAll('-', '') ?? null;
 
-  return data['Items']
-    .map(({ Item: item }: { Item: RakutenBook }) => item)
-    .flatMap((item: RakutenBook) => {
-      const maybeIsbn = item.isbn?.replaceAll('-', '') ?? null;
+        if (!checkIsbnCode(maybeIsbn)) return [];
 
-      if (!checkIsbnCode(maybeIsbn)) return [];
+        const isbn13 = getIsbn13(maybeIsbn);
 
-      const isbn13 = getIsbn13(maybeIsbn);
+        // // まとめ売りの商品は除外
+        // if (item.booksGenreId?.startsWith('001025')) return [];
 
-      // // まとめ売りの商品は除外
-      // if (item.booksGenreId?.startsWith('001025')) return [];
+        return [
+          {
+            isbn: isbn13,
+            title: item.title,
+            volume: item.subTitle,
+            creator: item.author ? [item.author] : [],
+            publisher: item.publisherName,
+            date: item.salesDate,
+            cover: item.largeImageUrl,
+            ndcLabels: [],
+          },
+        ] as const satisfies BookData[];
+      })
+      .at(0) ?? null;
 
-      if (!item.mediumImageUrl) {
-        console.log('rakuten cant have image but got info: ', item.title);
-      }
-
-      return [
-        {
-          isbn: isbn13,
-          title: item.title,
-          volume: item.subTitle,
-          creator: item.author ? [item.author] : [],
-          publisher: item.publisherName,
-          date: item.salesDate,
-          cover: item.mediumImageUrl,
-          ndcLabels: [],
-        } as const satisfies BookData,
-      ];
-    });
+  return { book, error: null, retry: false };
 };
 
 export type NdlOptions = {
@@ -310,7 +318,7 @@ export const fetchNdlSearch = async (options: NdlOptions): Promise<BookData[]> =
   );
 };
 
-const checkIfImageExists = async (url: string | null | undefined) =>
+export const checkIfImageExists = async (url: string | null | undefined) =>
   new Promise<boolean>(resolve => {
     if (!url) return resolve(false);
     const img = new Image();
@@ -319,44 +327,44 @@ const checkIfImageExists = async (url: string | null | undefined) =>
     img.src = url;
   });
 
-const getAsyncUrl = async (type: 'rakuten' | 'google', callback: () => Promise<string | null>) =>
-  new Promise<GetBookImagePromiseInfo>(resolve => {
-    callback()
-      .then(url => {
-        resolve({ url, type, error: null });
-      })
-      .catch(error => {
-        console.log('$$$ getAsyncUrl catch', type, error.toString());
-        resolve({ url: null, type, error: error?.message ?? null });
-      });
-  });
+// const getAsyncUrl = async (type: 'rakuten' | 'google', callback: () => Promise<string | null>) =>
+//   new Promise<GetBookImagePromiseInfo>(resolve => {
+//     callback()
+//       .then(url => {
+//         resolve({ url, type, error: null });
+//       })
+//       .catch(error => {
+//         console.log('$$$ getAsyncUrl catch', type, error.toString());
+//         resolve({ url: null, type, error: error?.message ?? null });
+//       });
+//   });
 
-type GetBookImagePromiseInfo = { url: string | null; type: 'ndl' | 'rakuten' | 'google'; error: string | null };
+// type GetBookImagePromiseInfo = { url: string | null; type: 'ndl' | 'rakuten' | 'google'; error: string | null };
 
-export const getBookImageUrl = async (isbn: Isbn13): Promise<GetBookImagePromiseInfo> => {
-  const ndlUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`;
-  if (await checkIfImageExists(ndlUrl)) {
-    return {
-      url: ndlUrl,
-      type: 'ndl',
-      error: null,
-    };
-  }
-
-  const results = await Promise.all([
-    getAsyncUrl('google', async () => (await fetchGoogleBooksApi(isbn)).cover ?? null),
-    getAsyncUrl('rakuten', async () => (await fetchRakutenBooksApi({ isbn })).find(book => book.cover)?.cover ?? null),
-  ]);
-
-  const haveUrl = results.find(result => result.url);
-  if (haveUrl) return haveUrl;
-
-  const needRetry = results.find(result => result.error === 'need-retry');
-  if (needRetry) return needRetry;
-
-  return {
-    url: null,
-    type: 'rakuten',
-    error: 'other',
-  };
-};
+// export const getBookImageUrl = async (isbn: Isbn13): Promise<GetBookImagePromiseInfo> => {
+//   const ndlUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`;
+//   if (await checkIfImageExists(ndlUrl)) {
+//     return {
+//       url: ndlUrl,
+//       type: 'ndl',
+//       error: null,
+//     };
+//   }
+//
+//   const results = await Promise.all([
+//     getAsyncUrl('google', async () => (await fetchGoogleBooksApi(isbn)).cover ?? null),
+//     getAsyncUrl('rakuten', async () => (await fetchRakutenBooksApi({ isbn })).find(book => book.cover)?.cover ?? null),
+//   ]);
+//
+//   const haveUrl = results.find(result => result.url);
+//   if (haveUrl) return haveUrl;
+//
+//   const needRetry = results.find(result => result.error === 'need-retry');
+//   if (needRetry) return needRetry;
+//
+//   return {
+//     url: null,
+//     type: 'rakuten',
+//     error: 'other',
+//   };
+// };

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ImageOff } from 'lucide-react';
 import { useDispatch } from 'react-redux';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { useInView } from '@/hooks/useInView.ts';
 import { enqueueBookImage, selectFetchBookImageQueueResults } from '@/store/fetchBookImageSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
 import type { Isbn13 } from '@/types/book.ts';
@@ -14,11 +15,19 @@ type Props = {
 
 export default function BookImage({ isbn, size, onClick }: Props) {
   const dispatch = useDispatch();
-  const bookImageQueueResults = useAppSelector(selectFetchBookImageQueueResults);
+  const fetchBookImageQueueResults = useAppSelector(selectFetchBookImageQueueResults);
   const [imageUrl, setImageUrl] = useState<{ status: 'loading' | 'retrying' | 'done'; url: string | null }>({
     status: 'loading',
     url: null,
   });
+
+  const { ref, inView } = useInView({ threshold: 0.2, once: false });
+
+  useEffect(() => {
+    if (inView && isbn) {
+      dispatch(enqueueBookImage({ type: 'priority', list: [isbn] }));
+    }
+  }, [dispatch, inView, isbn]);
 
   const width = size === 'big' ? 150 : 50;
   const height = size === 'big' ? 225 : 75;
@@ -26,12 +35,11 @@ export default function BookImage({ isbn, size, onClick }: Props) {
   useEffect(() => {
     if (!isbn) return;
     setImageUrl({ status: 'loading', url: null });
-    dispatch(enqueueBookImage({ list: [isbn], type: 'priority' }));
   }, [dispatch, isbn]);
 
   useEffect(() => {
     if (!isbn) return;
-    const url = bookImageQueueResults[isbn];
+    const url = fetchBookImageQueueResults[isbn];
     if (url !== undefined && imageUrl.status !== 'done') {
       if (url === 'retrying') {
         setImageUrl({ url: null, status: 'retrying' });
@@ -39,23 +47,31 @@ export default function BookImage({ isbn, size, onClick }: Props) {
         setImageUrl({ url, status: 'done' });
       }
     }
-  }, [bookImageQueueResults, imageUrl.status, isbn]);
+  }, [fetchBookImageQueueResults, imageUrl.status, isbn]);
 
-  return imageUrl.url ? (
-    <img
-      src={imageUrl.url}
-      alt="表紙"
-      className="rounded border"
-      style={{ objectFit: 'cover', width, height }}
-      onClick={onClick}
-    />
-  ) : (
+  const content = (() => {
+    if (!imageUrl.url) {
+      return imageUrl.status !== 'done' ? <Spinner variant="bars" /> : <ImageOff />;
+    }
+    return (
+      <img
+        src={imageUrl.url}
+        alt="表紙"
+        className="rounded border"
+        style={{ objectFit: 'cover', width, height }}
+        onClick={onClick}
+      />
+    );
+  })();
+
+  return (
     <div
+      ref={ref}
       className="min-w-[50px] min-h-[75px] rounded border flex items-center justify-center"
       onClick={onClick}
       style={{ minWidth: width, minHeight: height }}
     >
-      {imageUrl.status !== 'done' ? <Spinner variant="bars" /> : <ImageOff />}
+      {content}
     </div>
   );
 }
