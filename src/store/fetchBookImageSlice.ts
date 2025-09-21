@@ -1,7 +1,9 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { Isbn13 } from '@/types/book.ts';
-import { simpleSelector } from '@/utils/data.ts';
+import { deleteAllStrings, simpleSelector } from '@/utils/data.ts';
 import { unique } from '@/utils/primitive.ts';
+import { getKeys } from '@/utils/type.ts';
+import { checkQueueExists } from '@/utils/validate.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 type QueueType = Isbn13;
@@ -19,13 +21,6 @@ const initialState: State = {
   results: {},
 };
 
-const checkQueueExists = (key: QueueType, state: State) => {
-  const queue = state.queue.includes(key);
-  const result = state.results[key] !== undefined;
-
-  return queue || result ? { queue, result, both: queue && result } : null;
-};
-
 export const fetchBookImageSlice = createSlice({
   name: 'fetchBookImage',
   initialState,
@@ -33,7 +28,7 @@ export const fetchBookImageSlice = createSlice({
     enqueueBookImage: (state, action: PayloadAction<{ isbnList: QueueType[]; type: 'new' | 'retry' | 'priority' }>) => {
       const addList = action.payload.isbnList.filter(isbn => {
         if (action.payload.type === 'new') {
-          return !checkQueueExists(isbn, state);
+          return !checkQueueExists(isbn, state.queue, state.results);
         } else {
           return state.results[isbn] === 'retrying' && state.queue.at(0) !== isbn;
         }
@@ -46,17 +41,18 @@ export const fetchBookImageSlice = createSlice({
       }
     },
     dequeueBookImage: (state, action: PayloadAction<{ isbn: QueueType; url: QueueResult }[]>) => {
-      action.payload.forEach(({ isbn, url }) => {
-        const existsCheck = checkQueueExists(isbn, state);
-        if (!existsCheck?.queue) return;
+      const results = action.payload.reduce<Record<QueueType, QueueResult | null>>((acc, { isbn, url }) => {
+        const existsCheck = checkQueueExists(isbn, state.queue, state.results);
+        if (!existsCheck?.queue) return acc;
 
-        // キューから一致するISBNを全て削除する
-        state.queue
-          .flatMap((queuedIsbn, index) => (queuedIsbn === isbn ? [index] : []))
-          .reverse()
-          .forEach(deleteIndex => state.queue.splice(deleteIndex, 1));
-        state.results[isbn] = url;
-      });
+        acc[isbn] = url;
+        return acc;
+      }, {});
+
+      // 結果を格納する
+      state.results = { ...state.results, ...results };
+      // キューから一致するISBNを全て削除する
+      deleteAllStrings(state.queue, getKeys(results));
     },
   },
 });

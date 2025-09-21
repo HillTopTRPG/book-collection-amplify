@@ -3,9 +3,15 @@ import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOpt
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
-import { createSimpleReducers, makeNdlOptionsStringByNdlFullOptions, simpleSelector } from '@/utils/data.ts';
+import {
+  createSimpleReducers,
+  deleteAllString,
+  makeNdlOptionsStringByNdlFullOptions,
+  simpleSelector,
+} from '@/utils/data.ts';
 import { unique } from '@/utils/primitive.ts';
 import type { PickRequired } from '@/utils/type.ts';
+import { checkQueueExists } from '@/utils/validate.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 export type ScanningItemMapValue = {
@@ -39,19 +45,12 @@ const initialState: State = {
   selectedIsbn: null,
 };
 
-const checkScanExists = (key: Isbn13, state: State) => {
-  const queue = state.queue.includes(key);
-  const result = state.results[key] !== undefined;
-
-  return queue || result ? { queue, result, both: queue && result } : null;
-};
-
 export const scannerSlice = createSlice({
   name: 'scanner',
   initialState,
   reducers: {
     enqueueScan: (state, action: PayloadAction<{ isbnList: Isbn13[]; type: 'new' }>) => {
-      const addList = action.payload.isbnList.filter(isbn => !checkScanExists(isbn, state));
+      const addList = action.payload.isbnList.filter(isbn => !checkQueueExists(isbn, state.queue, state.results));
       state.queue.push(...addList);
       state.queueViewList.push(...addList);
     },
@@ -60,22 +59,16 @@ export const scannerSlice = createSlice({
       action: PayloadAction<{ list: { isbn: Isbn13; result: ScannedItemMapValue | null }[]; retryList: Isbn13[] }>
     ) => {
       action.payload.list.forEach(({ isbn, result }) => {
-        const existsCheck = checkScanExists(isbn, state);
+        const existsCheck = checkQueueExists(isbn, state.queue, state.results);
         if (!existsCheck?.queue) return;
 
         // キューから一致するISBNを全て削除する
-        state.queue
-          .flatMap((queuedIsbn, index) => (queuedIsbn === isbn ? [index] : []))
-          .reverse()
-          .forEach(deleteIndex => state.queue.splice(deleteIndex, 1));
+        deleteAllString(state.queue, isbn);
         state.results[isbn] = result;
 
         // 書籍情報が取得できなければ表示から消す
         if (!result) {
-          state.queueViewList
-            .flatMap((viewIsbn, index) => (viewIsbn === isbn ? [index] : []))
-            .reverse()
-            .forEach(deleteIndex => state.queueViewList.splice(deleteIndex, 1));
+          deleteAllString(state.queueViewList, isbn);
         }
       });
     },
@@ -84,14 +77,8 @@ export const scannerSlice = createSlice({
     },
     deleteScanViewList: (state, action: PayloadAction<Isbn13>) => {
       const isbn = action.payload;
-      state.queueViewList
-        .flatMap((queuedIsbn, index) => (queuedIsbn === isbn ? [index] : []))
-        .reverse()
-        .forEach(deleteIndex => state.queue.splice(deleteIndex, 1));
-      state.queue
-        .flatMap((queuedIsbn, index) => (queuedIsbn === isbn ? [index] : []))
-        .reverse()
-        .forEach(deleteIndex => state.queue.splice(deleteIndex, 1));
+      deleteAllString(state.queueViewList, isbn);
+      deleteAllString(state.queue, isbn);
     },
     updateFetchedFetchOption: (
       state,

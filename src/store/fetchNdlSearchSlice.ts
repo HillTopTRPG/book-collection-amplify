@@ -1,7 +1,8 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { BookData } from '@/types/book.ts';
-import { simpleSelector } from '@/utils/data.ts';
+import { deleteAllString, simpleSelector } from '@/utils/data.ts';
 import { unique } from '@/utils/primitive.ts';
+import { checkQueueExists } from '@/utils/validate.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 type QueueType = string;
@@ -19,16 +20,6 @@ const initialState: State = {
   results: {},
 };
 
-const checkFilterQueueExists = (key: QueueType, state: State) => {
-  const queueItem = state.queue.includes(key);
-  const resultItem = state.results[key];
-
-  const queue = Boolean(queueItem);
-  const result = resultItem !== undefined;
-
-  return queue || result ? { queue, result, both: queue && result } : null;
-};
-
 export const fetchNdlSearchSlice = createSlice({
   name: 'fetchNdlSearch',
   initialState,
@@ -36,7 +27,7 @@ export const fetchNdlSearchSlice = createSlice({
     enqueueNdlSearch: (state, action: PayloadAction<{ options: QueueType[]; type: 'new' | 'priority' }>) => {
       const addList = action.payload.options.filter(option => {
         if (action.payload.type === 'new') {
-          return !checkFilterQueueExists(option, state);
+          return !checkQueueExists(option, state.queue, state.results);
         } else {
           return state.results[option] === undefined && state.queue.at(0) !== option;
         }
@@ -50,14 +41,11 @@ export const fetchNdlSearchSlice = createSlice({
     },
     dequeueNdlSearch: (state, action: PayloadAction<{ option: QueueType; books: QueueResult }[]>) => {
       action.payload.forEach(({ option, books }) => {
-        const existsCheck = checkFilterQueueExists(option, state);
+        const existsCheck = checkQueueExists(option, state.queue, state.results);
         if (!existsCheck?.queue) return;
 
         // キューから一致するオプションを全て削除する
-        state.queue
-          .flatMap((queuedOption, index) => (queuedOption === option ? [index] : []))
-          .reverse()
-          .forEach(deleteIndex => state.queue.splice(deleteIndex, 1));
+        deleteAllString(state.queue, option);
         state.results[option] = books;
       });
     },
