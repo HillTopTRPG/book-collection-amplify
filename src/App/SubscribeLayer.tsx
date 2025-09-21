@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import type { Isbn13 } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import {
   selectCreateFilterSet,
@@ -10,6 +9,7 @@ import {
   setCreateFilterSet,
   setFilterSets,
 } from '@/store/subscriptionDataSlice.ts';
+import type { Isbn13 } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({

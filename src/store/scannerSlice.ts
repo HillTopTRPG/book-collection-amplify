@@ -2,12 +2,11 @@ import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
+import type { Isbn13 } from '@/types/book.ts';
+import { createSimpleReducers, makeNdlOptionsStringByNdlFullOptions, simpleSelector } from '@/utils/data.ts';
+import { unique } from '@/utils/primitive.ts';
 import type { PickRequired } from '@/utils/type.ts';
-import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
-
-export type Isbn13 = string & { readonly __brand: 'Isbn13' };
 
 export type ScanningItemMapValue = {
   isbn: Isbn13;
@@ -16,32 +15,33 @@ export type ScanningItemMapValue = {
   bookDetail: BookDetail | null;
   filterSets: FilterSet[];
 };
-export type ScanFinishedItemMapValue = Omit<ScanningItemMapValue, 'bookDetail'> & {
+export type ScannedItemMapValue = Omit<ScanningItemMapValue, 'bookDetail'> & {
   bookDetail: PickRequired<BookDetail, 'book'> | null;
 };
 
-export type ScannedItemRecord = Record<Isbn13, ScanFinishedItemMapValue | null>;
+export type ScannedItemRecord = Record<Isbn13, ScannedItemMapValue | null>;
 
 type State = {
   // 読み込み処理 / キュー
-  scanQueue: Isbn13[];
+  queue: Isbn13[];
   // 読み込み処理 / 処理結果
-  scanQueueResults: ScannedItemRecord;
+  results: ScannedItemRecord;
   // 読み込み処理 / 表示
-  scanQueueViewList: Isbn13[];
+  queueViewList: Isbn13[];
+  // 選択された読み込み結果
   selectedIsbn: Isbn13 | null;
 };
 
 const initialState: State = {
-  scanQueue: [],
-  scanQueueResults: {},
-  scanQueueViewList: [],
+  queue: [],
+  results: {},
+  queueViewList: [],
   selectedIsbn: null,
 };
 
 const checkScanExists = (key: Isbn13, state: State) => {
-  const queue = state.scanQueue.includes(key);
-  const result = state.scanQueueResults[key] !== undefined;
+  const queue = state.queue.includes(key);
+  const result = state.results[key] !== undefined;
 
   return queue || result ? { queue, result, both: queue && result } : null;
 };
@@ -52,52 +52,60 @@ export const scannerSlice = createSlice({
   reducers: {
     enqueueScan: (state, action: PayloadAction<{ isbnList: Isbn13[]; type: 'new' }>) => {
       const addList = action.payload.isbnList.filter(isbn => !checkScanExists(isbn, state));
-      state.scanQueue.push(...addList);
-      state.scanQueueViewList.push(...addList);
+      state.queue.push(...addList);
+      state.queueViewList.push(...addList);
     },
     dequeueScan: (
       state,
-      action: PayloadAction<{ list: { isbn: Isbn13; result: ScanFinishedItemMapValue | null }[]; retryList: Isbn13[] }>
+      action: PayloadAction<{ list: { isbn: Isbn13; result: ScannedItemMapValue | null }[]; retryList: Isbn13[] }>
     ) => {
       action.payload.list.forEach(({ isbn, result }) => {
         const existsCheck = checkScanExists(isbn, state);
         if (!existsCheck?.queue) return;
 
         // キューから一致するISBNを全て削除する
-        state.scanQueue
+        state.queue
           .flatMap((queuedIsbn, index) => (queuedIsbn === isbn ? [index] : []))
           .reverse()
-          .forEach(deleteIndex => state.scanQueue.splice(deleteIndex, 1));
-        state.scanQueueResults[isbn] = result;
+          .forEach(deleteIndex => state.queue.splice(deleteIndex, 1));
+        state.results[isbn] = result;
+
+        // 書籍情報が取得できなければ表示から消す
+        if (!result) {
+          state.queueViewList
+            .flatMap((viewIsbn, index) => (viewIsbn === isbn ? [index] : []))
+            .reverse()
+            .forEach(deleteIndex => state.queueViewList.splice(deleteIndex, 1));
+        }
       });
     },
     clearScanViewList: state => {
-      state.scanQueueViewList.splice(0, state.scanQueueViewList.length);
+      state.queueViewList.splice(0, state.queueViewList.length);
     },
     deleteScanViewList: (state, action: PayloadAction<Isbn13>) => {
       const isbn = action.payload;
-      state.scanQueueViewList
+      state.queueViewList
         .flatMap((queuedIsbn, index) => (queuedIsbn === isbn ? [index] : []))
         .reverse()
-        .forEach(deleteIndex => state.scanQueue.splice(deleteIndex, 1));
-      state.scanQueue
+        .forEach(deleteIndex => state.queue.splice(deleteIndex, 1));
+      state.queue
         .flatMap((queuedIsbn, index) => (queuedIsbn === isbn ? [index] : []))
         .reverse()
-        .forEach(deleteIndex => state.scanQueue.splice(deleteIndex, 1));
+        .forEach(deleteIndex => state.queue.splice(deleteIndex, 1));
     },
     updateFetchedFetchOption: (
       state,
-      action: PayloadAction<{ isbn: Isbn13; index: number; fetch: NdlFullOptions }>
+      action: PayloadAction<{ isbn: Isbn13; filterSetIndex: number; fetch: NdlFullOptions }>
     ) => {
-      const scanningItemMapValue = state.scanQueueResults[action.payload.isbn];
+      const scanningItemMapValue = state.results[action.payload.isbn];
       if (!scanningItemMapValue) return;
-      if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
-      const filterSet = scanningItemMapValue.filterSets[action.payload.index];
+      if (scanningItemMapValue.filterSets.length <= action.payload.filterSetIndex) return;
+      const filterSet = scanningItemMapValue.filterSets[action.payload.filterSetIndex];
       filterSet.fetch = action.payload.fetch;
-      scanningItemMapValue.filterSets.splice(action.payload.index, 1, filterSet);
+      scanningItemMapValue.filterSets.splice(action.payload.filterSetIndex, 1, filterSet);
     },
     updateFetchedFilterAnywhere: (state, action: PayloadAction<{ isbn: Isbn13; index: number; anywhere: string }>) => {
-      const scanningItemMapValue = state.scanQueueResults[action.payload.isbn];
+      const scanningItemMapValue = state.results[action.payload.isbn];
       if (!scanningItemMapValue) return;
       if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
       const filterSet = scanningItemMapValue.filterSets[action.payload.index];
@@ -106,9 +114,7 @@ export const scannerSlice = createSlice({
       if (!filterSet.filters.length) filterSet.filters.push([]);
       filterSet.filters[0].splice(0, 1, addFilter);
     },
-    updateSelectedScanIsbn: (state, action: PayloadAction<Isbn13 | null>) => {
-      state.selectedIsbn = action.payload;
-    },
+    updateSelectedScanIsbn: createSimpleReducers('selectedIsbn'),
   },
 });
 
@@ -122,41 +128,40 @@ export const {
   updateFetchedFilterAnywhere,
 } = scannerSlice.actions;
 
-const _selectScanQueueUnUnique = (state: RootState) => state.scanner.scanQueue;
-const _selectScanQueue = createSelector([_selectScanQueueUnUnique], scanQueueUnUnique =>
-  scanQueueUnUnique.filter((isbn, idx, self) => self.findIndex(s => s === isbn) === idx)
-);
-/** スキャンキューの中で処理対象のもの */
-export const selectScanQueueTargets = createSelector([_selectScanQueue], scanQueue => scanQueue.slice(0, 1));
-const _selectScanQueueResults = (state: RootState) => state.scanner.scanQueueResults;
-const _selectScanQueueViewList = (state: RootState) => state.scanner.scanQueueViewList;
+const _selectQueueUnUnique = simpleSelector('scanner', 'queue');
+const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => unique(unUniqueQueue));
+const _selectScanQueueResults = simpleSelector('scanner', 'results');
+const _selectScanQueueViewList = simpleSelector('scanner', 'queueViewList');
+const _selectSelectedIsbn = simpleSelector('scanner', 'selectedIsbn');
+
+// スキャンキューの中で処理対象のもの
+export const selectScanQueueTargets = createSelector([_selectQueue], queue => queue.slice(0, 1));
+// スキャン中に表示するデータの整形済データ
 export const selectScanResultList = createSelector(
   [_selectScanQueueViewList, _selectScanQueueResults],
-  (
-    viewList,
-    results
-  ): { isbn: Isbn13; status: 'loading' | 'none' | 'done'; result: ScanFinishedItemMapValue | null }[] =>
-    viewList
-      .filter((isbn, idx, self) => self.findIndex(s => s === isbn) === idx)
-      .map(isbn => {
-        if (results[isbn] === undefined) return { isbn, status: 'loading' as const, result: null };
-        return { isbn, status: !results[isbn] ? ('none' as const) : ('done' as const), result: results[isbn] };
-      })
+  (viewList, results): { isbn: Isbn13; status: 'loading' | 'none' | 'done'; result: ScannedItemMapValue | null }[] =>
+    unique(viewList).map(isbn => {
+      if (results[isbn] === undefined) return { isbn, status: 'loading' as const, result: null };
+      return { isbn, status: !results[isbn] ? ('none' as const) : ('done' as const), result: results[isbn] };
+    })
 );
-const selectSelectedIsbn = (state: RootState) => state.scanner.selectedIsbn;
-export const selectScannedBookDetails = createSelector(
+
+// スキャン成功件数（スキャン成功音を鳴らすための数値）
+export const selectScanSuccessCount = createSelector(
   [selectScanResultList],
   (scanResultList): number => scanResultList.filter(({ status }) => status === 'done').length
 );
+// BookDetailDrawerに表示するデータ
 export const selectSelectedScannedItemMapValue = createSelector(
-  [selectScanResultList, selectSelectedIsbn],
-  (scanResultList, selectedIsbn): PickRequired<ScanFinishedItemMapValue, 'bookDetail'> | null => {
+  [selectScanResultList, _selectSelectedIsbn],
+  (scanResultList, selectedIsbn): PickRequired<ScannedItemMapValue, 'bookDetail'> | null => {
     if (!selectedIsbn) return null;
     return (scanResultList.find(
       scanResult => scanResult.isbn === selectedIsbn && Boolean(scanResult.result?.bookDetail)
-    )?.result ?? null) as PickRequired<ScanFinishedItemMapValue, 'bookDetail'> | null;
+    )?.result ?? null) as PickRequired<ScannedItemMapValue, 'bookDetail'> | null;
   }
 );
+// BookDetailDrawerで表示されている検索条件フォームの値（変化するたびにNDL検索キューにenqueueする）
 export const selectSelectedScannedItemFetchOptions = createSelector(
   [selectSelectedScannedItemMapValue],
   selectedScannedItemMapValue =>

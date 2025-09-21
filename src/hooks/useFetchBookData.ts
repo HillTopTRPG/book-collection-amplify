@@ -3,10 +3,10 @@ import { pick } from 'es-toolkit';
 import { omit } from 'es-toolkit/compat';
 import { selectNdlSearchQueueResults } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppSelector } from '@/store/hooks';
-import type { Isbn13, ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice';
 import { selectFilterSets, selectCollections } from '@/store/subscriptionDataSlice';
-import type { BookData } from '@/types/book.ts';
+import type { Isbn13, BookData } from '@/types/book.ts';
 import { getScannedItemMapValueByBookData } from '@/utils/data.ts';
 import { fetchGoogleBooksApi, fetchNdlSearch, fetchOpenBdApi, fetchRakutenBooksApi } from '@/utils/fetch.ts';
 import { getKeys } from '@/utils/type.ts';
@@ -46,7 +46,7 @@ export default function useFetchBookData() {
   const filterQueueResults = useAppSelector(selectNdlSearchQueueResults);
 
   const fetchBookData = useCallback(
-    async (isbn: Isbn13): Promise<ScanFinishedItemMapValue> => {
+    async (isbn: Isbn13): Promise<ScannedItemMapValue> => {
       console.log('fetchBookData', isbn);
       const book = await _fetchBookData(isbn);
       const scannedItemMapValue = getScannedItemMapValueByBookData(collections, book);

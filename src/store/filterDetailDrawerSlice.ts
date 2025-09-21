@@ -1,6 +1,6 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { selectFetchResultMap } from '@/store/fetchResultSlice.ts';
-import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import { getScannedItemMapValueByBookData } from '@/utils/data.ts';
 import { filterMatch } from '@/utils/primitive.ts';
@@ -46,7 +46,7 @@ export type BookDetail = {
 } & Required<Omit<Collection['meta'], 'overwrite'>>;
 export const selectScannedItemMapValueBySelectedFilterSet = createSelector(
   [selectSelectedFilterSet, selectFetchResultMap, selectCollections],
-  (selectedFilterSet, fetchResultMap, collections): ScanFinishedItemMapValue[] => {
+  (selectedFilterSet, fetchResultMap, collections): ScannedItemMapValue[] => {
     const books = fetchResultMap[selectedFilterSet?.id ?? ''] ?? [];
 
     return books.map(book => getScannedItemMapValueByBookData(collections, book));

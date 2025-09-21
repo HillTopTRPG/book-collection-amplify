@@ -1,11 +1,10 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
 import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
-import type { Isbn13 } from '@/store/scannerSlice.ts';
-import type { BookData } from '@/types/book.ts';
+import type { Isbn13, BookData } from '@/types/book.ts';
+import { createSimpleReducers } from '@/utils/data.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { RootState } from './index.ts';
-import type { PayloadAction } from '@reduxjs/toolkit';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool',
@@ -41,15 +40,9 @@ export const subscriptionDataSlice = createSlice({
   name: 'subscriptionData',
   initialState,
   reducers: {
-    setCollections: (state, action: PayloadAction<State['collections']>) => {
-      state.collections = action.payload;
-    },
-    setFilterSets: (state, action: PayloadAction<State['filterSets']>) => {
-      state.filterSets = action.payload;
-    },
-    setCreateFilterSet: (state, action: PayloadAction<State['createFilterSet']>) => {
-      state.createFilterSet = action.payload;
-    },
+    setCollections: createSimpleReducers('collections'),
+    setFilterSets: createSimpleReducers('filterSets'),
+    setCreateFilterSet: createSimpleReducers('createFilterSet'),
   },
 });
 

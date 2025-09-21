@@ -8,14 +8,14 @@ import { Separator } from '@/components/ui/separator.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { enqueueNdlSearch, selectNdlSearchQueueResults } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import { updateFetchedFetchOption } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import type { PickRequired } from '@/utils/type.ts';
 
 type Props = {
-  scannedItemMapValue: PickRequired<ScanFinishedItemMapValue, 'bookDetail'>;
+  scannedItemMapValue: PickRequired<ScannedItemMapValue, 'bookDetail'>;
 };
 
 export default function DrawerContent({ scannedItemMapValue }: Props) {
@@ -62,7 +62,9 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
         <NdlOptionsForm
           defaultValues={fetchOptions}
           onChange={fetchFullOptions => {
-            dispatch(updateFetchedFetchOption({ isbn: scannedItemMapValue.isbn, index: 0, fetch: fetchFullOptions }));
+            dispatch(
+              updateFetchedFetchOption({ isbn: scannedItemMapValue.isbn, filterSetIndex: 0, fetch: fetchFullOptions })
+            );
           }}
         />
       ) : null}

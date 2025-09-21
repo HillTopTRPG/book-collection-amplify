@@ -12,7 +12,7 @@ import {
   selectSelectedFilterSet,
 } from '@/store/filterDetailDrawerSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
-import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import { fetchNdlSearch } from '@/utils/fetch.ts';
 import DrawerContent from './DrawerContent.tsx';
@@ -42,7 +42,7 @@ export default function FilterDetailDrawer() {
   });
 
   const [bufferedFilterSet, setBufferedFilterSet] = useState<FilterSet | null>(null);
-  const [bufferedScannedItemMapValues, setBufferedScannedItemMapValues] = useState<ScanFinishedItemMapValue[]>([]);
+  const [bufferedScannedItemMapValues, setBufferedScannedItemMapValues] = useState<ScannedItemMapValue[]>([]);
   useEffect(() => {
     if (filterSet) {
       setBufferedFilterSet(structuredClone(filterSet));

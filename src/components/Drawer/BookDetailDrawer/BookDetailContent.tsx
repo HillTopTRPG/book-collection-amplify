@@ -13,7 +13,7 @@ export default function BookDetailContent({ book }: Props) {
 
   const tableData = [
     ...(book.creator?.map((c, idx, self) => ({ name: `著者${self.length === 1 ? '' : idx + 1}`, value: c })) ?? []),
-    { name: '出版社', value: book.publisher + 'あああああいいいいいうううううえええええおおおおお' },
+    { name: '出版社', value: book.publisher },
     { name: '分類コード', value: book.ndc },
     ...book.ndcLabels.map((ndcl, idx) => ({ name: `分類${idx + 1}`, value: ndcl })),
     { name: 'シリーズ', value: book.seriesTitle },

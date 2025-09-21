@@ -1,5 +1,5 @@
 import { keys } from 'es-toolkit/compat';
-import type { Isbn13 } from '@/store/scannerSlice.ts';
+import type { Isbn13 } from '@/types/book.ts';
 
 export const sortString = (a: string | null | undefined, b: string | null | undefined, sortOrder: 'asc' | 'desc') => {
   if (a === b) return 0;
@@ -45,6 +45,8 @@ export const getIsbn13 = (isbn: string): Isbn13 => {
 
   return `${isbn13part}${getIsbn13CheckDigit(isbn13part)}` as Isbn13;
 };
+
+export const unique = <T>(list: T[]) => list.filter((v, i, s) => s.findIndex(a => a === v) === i);
 
 export const getIsbn10 = (isbn: string): string => {
   const maybeIsbn13 = isbn.replaceAll('-', '');

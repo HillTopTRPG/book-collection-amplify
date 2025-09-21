@@ -1,11 +1,11 @@
 import BookCard from '@/components/Card/BookCard.tsx';
 import FilterCard from '@/components/Card/FilterCard';
-import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 
 type Props = {
   filterSet: FilterSet | null;
-  scannedItemMapValues: ScanFinishedItemMapValue[];
+  scannedItemMapValues: ScannedItemMapValue[];
 };
 
 export default function DrawerContent({ filterSet, scannedItemMapValues }: Props) {

@@ -1,6 +1,6 @@
-// 書籍データの型定義
-import type { Isbn13 } from '@/store/scannerSlice.ts';
+export type Isbn13 = string & { readonly __brand: 'Isbn13' };
 
+// 書籍データの型定義
 export type BookData = {
   isbn: Isbn13;
   title?: string | null;

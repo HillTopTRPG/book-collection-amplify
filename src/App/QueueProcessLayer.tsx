@@ -8,14 +8,14 @@ import {
   selectNdlSearchQueueResults,
 } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import type { Isbn13, ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import { selectSelectedScannedItemFetchOptions, dequeueScan, selectScanQueueTargets } from '@/store/scannerSlice.ts';
 import { type FilterSet, selectCollections, selectFilterSets } from '@/store/subscriptionDataSlice.ts';
-import type { BookData } from '@/types/book.ts';
+import type { Isbn13, BookData } from '@/types/book.ts';
 import { getScannedItemMapValueByBookData, makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import type { NdlOptions } from '@/utils/fetch.ts';
 import { fetchNdlSearch, getBookImageUrl } from '@/utils/fetch.ts';
-import { wait } from '@/utils/primitive.ts';
+import { filterMatch, wait } from '@/utils/primitive.ts';
 
 const fetchBookImageQueueProcess = async (
   queuedBookImageIsbn: Isbn13[],
@@ -92,7 +92,7 @@ export default function QueueProcessLayer({ children }: Props) {
         if (retryList.length) {
           setTimeout(() => {
             dispatch(enqueueBookImage({ isbnList: retryList, type: 'retry' }));
-          }, 10000);
+          }, 500);
         }
       }
     );
@@ -105,51 +105,47 @@ export default function QueueProcessLayer({ children }: Props) {
 
   // スキャンキューの処理2 - NDL検索結果から取得できたらスキャンキューからdequeue
   useEffect(() => {
-    const findIsbnList = scanQueueTargets.flatMap(
-      (isbn): { isbn: Isbn13; result: ScanFinishedItemMapValue | null }[] => {
-        const key = JSON.stringify({ isbn });
-        if (!(key in ndlSearchQueueResults)) return [];
-        const ndlSearchQueueResult = ndlSearchQueueResults[key];
-        if (!ndlSearchQueueResult.length) return [{ isbn, result: null }];
-        const result = getScannedItemMapValueByBookData(collections, ndlSearchQueueResult[0]);
-        const _filterSets: FilterSet[] = filterSets.filter(filterSet =>
-          filterQueueResults[JSON.stringify(filterSet.fetch)]?.some(book => book.isbn === isbn)
-        );
-        const wrappedFilterSets =
-          _filterSets.length > 0
-            ? _filterSets
-            : [
-                {
-                  id: '',
-                  name: result.bookDetail?.book.title ?? '無名のフィルター',
-                  fetch: {
-                    title: result.bookDetail?.book.title ?? '無名',
-                    publisher: result.bookDetail?.book.publisher ?? '',
-                    creator: result.bookDetail?.book.creator?.at(0) ?? '',
-                    usePublisher: true,
-                    useCreator: true,
-                  },
-                  filters: [],
-                  createdAt: '',
-                  updatedAt: '',
-                  owner: '',
-                } as const satisfies FilterSet,
-              ];
-        result.filterSets.push(...wrappedFilterSets);
+    const findIsbnList = scanQueueTargets.flatMap((isbn): { isbn: Isbn13; result: ScannedItemMapValue | null }[] => {
+      const key = JSON.stringify({ isbn });
+      if (!(key in ndlSearchQueueResults)) return [];
+      const ndlSearchQueueResult = ndlSearchQueueResults[key];
+      if (!ndlSearchQueueResult.length) return [{ isbn, result: null }];
+      const result = getScannedItemMapValueByBookData(collections, ndlSearchQueueResult[0]);
+      const _filterSets: FilterSet[] = filterSets.filter(filterSet =>
+        filterQueueResults[JSON.stringify(filterSet.fetch)]?.some(filterMatch({ isbn }))
+      );
+      const wrappedFilterSets =
+        _filterSets.length > 0
+          ? _filterSets
+          : [
+              {
+                id: '',
+                name: result.bookDetail?.book.title ?? '無名のフィルター',
+                fetch: {
+                  title: result.bookDetail?.book.title ?? '無名',
+                  publisher: result.bookDetail?.book.publisher ?? '',
+                  creator: result.bookDetail?.book.creator?.at(0) ?? '',
+                  usePublisher: true,
+                  useCreator: true,
+                },
+                filters: [],
+                createdAt: '',
+                updatedAt: '',
+                owner: '',
+              } as const satisfies FilterSet,
+            ];
+      result.filterSets.push(...wrappedFilterSets);
 
-        return [{ isbn, result }];
-      }
-    );
+      return [{ isbn, result }];
+    });
     dispatch(dequeueScan({ list: findIsbnList, retryList: [] }));
-    dispatch(
-      enqueueNdlSearch({
-        options: findIsbnList.flatMap(({ result }): string[] => {
-          if (!result) return [];
-          return result.filterSets.map(filterSet => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch));
-        }),
-        type: 'new',
-      })
-    );
+    const options = findIsbnList.flatMap(({ result }): string[] => {
+      if (!result) return [];
+      return result.filterSets.map(filterSet => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch));
+    });
+    if (options.length) {
+      dispatch(enqueueNdlSearch({ options, type: 'new' }));
+    }
   }, [dispatch, scanQueueTargets, ndlSearchQueueResults, collections, filterSets, filterQueueResults]);
 
   // 蔵書のグループ本を全て検索する

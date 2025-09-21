@@ -2,10 +2,9 @@ import * as _ from 'es-toolkit/compat';
 import { keys } from 'es-toolkit/compat';
 import ndc8Map from '@/assets/ndc8.json';
 import ndc9Map from '@/assets/ndc9.json';
-import type { Isbn13 } from '@/store/scannerSlice.ts';
+import type { Isbn13, BookData } from '@/types/book.ts';
 import { getIsbn13 } from '@/utils/primitive.ts';
 import { checkIsbnCode } from '@/utils/validate.ts';
-import type { BookData } from '../types/book.ts';
 
 const NDC_MAPS = {
   ndc8: ndc8Map,
@@ -289,7 +288,7 @@ const getNdlBookFromDocument = (recordElm: Element): BookData | null => {
     date,
     ndc,
     ndcLabels,
-    cover: isbn ? `https://ndlsearch.ndl.go.jp/thumbnail/${isbn.replaceAll('-', '')}.jpg` : null,
+    cover: isbn ? `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg` : null,
     extent,
   } as const satisfies BookData;
 };

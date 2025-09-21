@@ -1,17 +1,16 @@
 import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
-import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { RootState } from '@/store';
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Collection } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { NdlOptions } from '@/utils/fetch.ts';
 import { filterMatch } from '@/utils/primitive.ts';
 import type { PickRequired } from '@/utils/type.ts';
+import type { PayloadAction } from '@reduxjs/toolkit';
 
-export const getScannedItemMapValueByBookData = (
-  collections: Collection[],
-  book: BookData
-): ScanFinishedItemMapValue => {
+export const getScannedItemMapValueByBookData = (collections: Collection[], book: BookData): ScannedItemMapValue => {
   const isbn = book.isbn;
-  const result: PickRequired<ScanFinishedItemMapValue, 'bookDetail'> = {
+  const result: PickRequired<ScannedItemMapValue, 'bookDetail'> = {
     isbn,
     status: 'loading',
     collectionId: null,
@@ -36,3 +35,14 @@ export const makeNdlOptionsStringByNdlFullOptions = (ndlFullOptions: NdlFullOpti
 
   return JSON.stringify(requestOptions);
 };
+
+export const createSimpleReducers =
+  <State, Property extends keyof State>(property: Property) =>
+  (state: State, action: PayloadAction<State[Property]>) => {
+    state[property] = action.payload;
+  };
+
+export const simpleSelector =
+  <State extends keyof RootState, Property extends keyof RootState[State]>(state: State, property: Property) =>
+  (rootState: RootState) =>
+    rootState[state][property];

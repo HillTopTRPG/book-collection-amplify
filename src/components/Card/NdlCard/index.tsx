@@ -78,12 +78,7 @@ export default function NdlCard({ ndl, filterSets, selectedIsbn, setSelectedIsbn
           ) : null}
           <TempItem value={ndl.seriesTitle} label="シリーズ" highLight={anywhere} className="text-xs" />
           <TempItem value={ndl.extent} label="商品形態" highLight={anywhere} className="text-xs" />
-          <TempItem
-            value={ndl.isbn?.replaceAll('-', '')}
-            label="ISBN"
-            highLight={anywhere}
-            className="w-full text-xs text-gray-400"
-          />
+          <TempItem value={ndl.isbn} label="ISBN" highLight={anywhere} className="w-full text-xs text-gray-400" />
         </div>
       </div>
     </CardFrame>

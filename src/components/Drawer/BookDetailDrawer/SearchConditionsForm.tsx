@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import ComboInput from '@/components/ComboInput.tsx';
-import type { ScanFinishedItemMapValue } from '@/store/scannerSlice.ts';
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import { updateFetchedFilterAnywhere } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { PickRequired } from '@/utils/type.ts';
@@ -26,7 +26,7 @@ const setAllTag = (
 };
 
 type Props = {
-  scannedItemMapValue: PickRequired<ScanFinishedItemMapValue, 'bookDetail'>;
+  scannedItemMapValue: PickRequired<ScannedItemMapValue, 'bookDetail'>;
   fetchedResults: BookData[];
 };
 
