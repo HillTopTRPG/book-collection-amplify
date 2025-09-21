@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import useLocalStorage from '@/App/ApplicationControlLayer/useLocalStorage.ts';
 import useRakutenSearchQueueProcessor from '@/App/ApplicationControlLayer/useRakutenSearchQueueProcessor.ts';
 import { useAppSelector } from '@/store/hooks.ts';
 import { selectCollections, selectFilterSets } from '@/store/subscriptionDataSlice.ts';
@@ -15,6 +16,7 @@ export default function QueueProcessLayer({ children }: Props) {
   const filterSets = useAppSelector(selectFilterSets);
   const collections = useAppSelector(selectCollections);
 
+  useLocalStorage();
   useBookImageQueueProcessor();
   useNdlSearchQueueProcessor({ filterSets });
   useScanQueueProcessor({ filterSets, collections });

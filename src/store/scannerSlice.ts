@@ -13,6 +13,11 @@ import {
   makeNdlOptionsStringByNdlFullOptions,
   simpleSelector,
 } from '@/utils/data.ts';
+import {
+  deleteScannedIsbnToLocalStorage,
+  pushScannedIsbnToLocalStorage,
+  resetScannedIsbnToLocalStorage,
+} from '@/utils/localStorage.ts';
 import { unique } from '@/utils/primitive.ts';
 import type { PickRequired } from '@/utils/type.ts';
 import { getKeys } from '@/utils/type.ts';
@@ -59,16 +64,20 @@ export const scannerSlice = createSlice({
     ) => {
       const addList = enqueue(state, action);
       state.queueViewList.push(...addList);
+      // localStorageにも反映
+      pushScannedIsbnToLocalStorage(action.payload.list);
     },
     dequeueScan: (state, action: PayloadAction<Record<QueueType, QueueResult>>) => {
       dequeue(state, action);
-      deleteAllStrings(
-        state.queueViewList,
-        getKeys(action.payload).filter(isbn => !action.payload[isbn])
-      );
+      const deleteIsbnList = getKeys(action.payload).filter(isbn => !action.payload[isbn]);
+      deleteAllStrings(state.queueViewList, deleteIsbnList);
+      // localStorageにも反映
+      deleteScannedIsbnToLocalStorage(deleteIsbnList);
     },
     clearScanViewList: state => {
       state.queueViewList.splice(0, state.queueViewList.length);
+      // localStorageにも反映
+      resetScannedIsbnToLocalStorage();
     },
     updateFetchedFetchOption: (
       state,

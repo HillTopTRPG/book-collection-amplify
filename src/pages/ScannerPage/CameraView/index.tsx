@@ -8,7 +8,7 @@ import se01 from '@/assets/se01.mp3';
 import { Button } from '@/components/ui/button.tsx';
 import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { enqueueScan, selectScanResultList, selectScanSuccessCount } from '@/store/scannerSlice.ts';
+import { enqueueScan, selectScanSuccessCount } from '@/store/scannerSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
 import { getIsbn13, wait } from '@/utils/primitive.ts';
 import { checkIsbnCode } from '@/utils/validate.ts';
@@ -22,7 +22,6 @@ type Props = {
 export default function CameraView({ width, height }: Props) {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
-  const scanResultList = useAppSelector(selectScanResultList);
   const scannedBookDetails = useAppSelector(selectScanSuccessCount);
   const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBookDetails);
   const scannerRef = useRef<HTMLDivElement>(null);
@@ -137,9 +136,6 @@ export default function CameraView({ width, height }: Props) {
           duration: 2000,
         });
 
-        // 既に存在する場合はスキップ
-        if (scanResultList.some(sr => sr.isbn === isbn13)) return;
-
         dispatch(enqueueScan({ type: 'new', list: [isbn13] }));
       });
 
@@ -150,7 +146,7 @@ export default function CameraView({ width, height }: Props) {
       setError(`スキャナーの開始に失敗しました: ${error}`);
       setIsScanning(false);
     }
-  }, [dispatch, scanResultList, toast]);
+  }, [dispatch, toast]);
 
   const startCamera = useCallback(async () => {
     setIsFirst(false);
