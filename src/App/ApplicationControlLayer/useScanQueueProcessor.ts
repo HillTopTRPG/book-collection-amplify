@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import { enqueueNdlSearch, selectNdlSearchQueueResults } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { dequeueScan, type ScannedItemMapValue, selectScanQueueTargets } from '@/store/scannerSlice.ts';
@@ -48,7 +49,7 @@ export default function useScanQueueProcessor({ filterSets, collections }: Props
           ? _filterSets
           : [
               {
-                id: '',
+                id: uuidv4(),
                 name: result.bookDetail?.book.title ?? '無名のフィルター',
                 fetch: {
                   title: result.bookDetail?.book.title ?? '無名',
@@ -57,7 +58,7 @@ export default function useScanQueueProcessor({ filterSets, collections }: Props
                   usePublisher: true,
                   useCreator: true,
                 },
-                filters: [],
+                filters: [[{ anywhere: '' }]],
                 createdAt: '',
                 updatedAt: '',
                 owner: '',

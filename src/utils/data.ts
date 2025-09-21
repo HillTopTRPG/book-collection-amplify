@@ -1,5 +1,5 @@
 import { omit } from 'es-toolkit/compat';
-import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
 import type { RootState } from '@/store';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Collection } from '@/store/subscriptionDataSlice.ts';

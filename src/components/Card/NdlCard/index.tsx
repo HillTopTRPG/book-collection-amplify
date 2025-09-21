@@ -34,7 +34,14 @@ export default function NdlCard({ ndl, filterSets, selectedIsbn, setSelectedIsbn
     [ndl.publisher, options?.usePublisher, options?.publisher]
   );
 
-  const anywhere = useMemo(() => filterSets.at(0)?.filters.at(0)?.at(0)?.anywhere, [filterSets]);
+  const anywhereList = useMemo(
+    () =>
+      filterSets
+        .at(0)
+        ?.filters.at(0)
+        ?.map(({ anywhere }) => anywhere) ?? [],
+    [filterSets]
+  );
 
   return (
     <CardFrame className="flex-col gap-1">
@@ -43,7 +50,7 @@ export default function NdlCard({ ndl, filterSets, selectedIsbn, setSelectedIsbn
           <Fragment key={idx}>
             {idx ? <ChevronRight width={10} /> : ''}
             <Badge variant="secondary" className="text-[8px]">
-              <HighLightText value={label} subStr={anywhere} subClassName="bg-yellow-700" />
+              <HighLightText value={label} subStrList={anywhereList} subClassName="bg-yellow-700" />
             </Badge>
           </Fragment>
         ))}
@@ -62,23 +69,23 @@ export default function NdlCard({ ndl, filterSets, selectedIsbn, setSelectedIsbn
           ) : null}
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
             {isViewTitle ? (
-              <TempItem value={ndl.title} highLight={anywhere} className="text-lg font-bold inline-block" />
+              <TempItem value={ndl.title} highLights={anywhereList} className="text-lg font-bold inline-block" />
             ) : null}
-            <TempItem value={ndl.volume} highLight={anywhere} className="text-lg font-bold" />
-            <TempItem value={ndl.volumeTitle} highLight={anywhere} className="text-lg font-bold" />
+            <TempItem value={ndl.volume} highLights={anywhereList} className="text-lg font-bold" />
+            <TempItem value={ndl.volumeTitle} highLights={anywhereList} className="text-lg font-bold" />
           </div>
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
-            {isViewCreator ? <TempItem value={creatorText} highLight={anywhere} className="text-xs" /> : null}
-            {isViewPublisher ? <TempItem value={ndl.publisher} highLight={anywhere} className="text-xs" /> : null}
+            {isViewCreator ? <TempItem value={creatorText} highLights={anywhereList} className="text-xs" /> : null}
+            {isViewPublisher ? <TempItem value={ndl.publisher} highLights={anywhereList} className="text-xs" /> : null}
           </div>
-          <TempItem value={ndl.edition} highLight={anywhere} className="text-xs" />
-          <TempItem value={ndl.date} highLight={anywhere} label="発売日" className="text-xs" />
+          <TempItem value={ndl.edition} highLights={anywhereList} className="text-xs" />
+          <TempItem value={ndl.date} highLights={anywhereList} label="発売日" className="text-xs" />
           {!ndl.ndcLabels.length && ndl.ndc ? (
-            <TempItem value={ndl.ndc} highLight={anywhere} label="分類コード" className="text-xs" />
+            <TempItem value={ndl.ndc} highLights={anywhereList} label="分類コード" className="text-xs" />
           ) : null}
-          <TempItem value={ndl.seriesTitle} label="シリーズ" highLight={anywhere} className="text-xs" />
-          <TempItem value={ndl.extent} label="商品形態" highLight={anywhere} className="text-xs" />
-          <TempItem value={ndl.isbn} label="ISBN" highLight={anywhere} className="w-full text-xs text-gray-400" />
+          <TempItem value={ndl.seriesTitle} label="シリーズ" highLights={anywhereList} className="text-xs" />
+          <TempItem value={ndl.extent} label="商品形態" highLights={anywhereList} className="text-xs" />
+          <TempItem value={ndl.isbn} label="ISBN" highLights={anywhereList} className="w-full text-xs text-gray-400" />
         </div>
       </div>
     </CardFrame>

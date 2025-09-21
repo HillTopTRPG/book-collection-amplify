@@ -1,11 +1,12 @@
 type Props = {
   value: string;
-  subStr: string | null | undefined;
+  subStrList?: string[];
   className?: string;
   subClassName?: string;
 };
 
-export default function HighLightText({ value, subStr, className, subClassName }: Props) {
+export default function HighLightText({ value, subStrList, className, subClassName }: Props) {
+  const subStr = subStrList?.find(s => value.includes(s));
   if (!subStr) return value;
 
   const sp = value.split(subStr);

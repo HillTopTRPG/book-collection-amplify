@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Import } from 'lucide-react';
+import { RotateCw } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -31,9 +31,11 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
 
   const onSubmit = useCallback(
     (data: NdlOptions) => {
-      onChange({ ...defaultValues, ...data });
+      const newData = { ...defaultValues, ...data };
+      form.reset(newData);
+      onChange(newData);
     },
-    [defaultValues, onChange]
+    [defaultValues, form, onChange]
   );
 
   return (
@@ -90,9 +92,9 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
               )}
             />
           </div>
-          <Button size="sm" type="submit">
-            <Import />
-            読み込む
+          <Button size="sm" type="submit" disabled={!form.formState.isDirty}>
+            <RotateCw />
+            再読込
           </Button>
         </div>
       </form>

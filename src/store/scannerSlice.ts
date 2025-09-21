@@ -1,5 +1,5 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
-import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
@@ -81,27 +81,23 @@ export const scannerSlice = createSlice({
     },
     updateFetchedFetchOption: (
       state,
-      action: PayloadAction<{ isbn: QueueType; filterSetIndex: number; fetch: NdlFullOptions }>
+      action: PayloadAction<{ isbn: QueueType; filterSetId: string; fetch: NdlFullOptions }>
     ) => {
       const scanningItemMapValue = state.results[action.payload.isbn];
       if (!scanningItemMapValue) return;
-      if (scanningItemMapValue.filterSets.length <= action.payload.filterSetIndex) return;
-      const filterSet = scanningItemMapValue.filterSets[action.payload.filterSetIndex];
+      const filterSet = scanningItemMapValue.filterSets.find(({ id }) => id === action.payload.filterSetId);
+      if (!filterSet) return;
       filterSet.fetch = action.payload.fetch;
-      scanningItemMapValue.filterSets.splice(action.payload.filterSetIndex, 1, filterSet);
     },
     updateFetchedFilterAnywhere: (
       state,
-      action: PayloadAction<{ key: QueueType; index: number; anywhere: string }>
+      action: PayloadAction<{ key: QueueType; filterSetId: string; filters: { anywhere: string }[][] }>
     ) => {
       const scanningItemMapValue = state.results[action.payload.key];
       if (!scanningItemMapValue) return;
-      if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
-      const filterSet = scanningItemMapValue.filterSets[action.payload.index];
-      const anywhere = action.payload.anywhere;
-      const addFilter = { anywhere };
-      if (!filterSet.filters.length) filterSet.filters.push([]);
-      filterSet.filters[0].splice(0, 1, addFilter);
+      const filterSet = scanningItemMapValue.filterSets.find(({ id }) => id === action.payload.filterSetId);
+      if (!filterSet) return;
+      filterSet.filters = action.payload.filters;
     },
     updateSelectedScanIsbn: createSimpleReducers('selectedIsbn'),
   },

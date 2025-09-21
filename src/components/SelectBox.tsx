@@ -9,12 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select.tsx';
+import { cn } from '@/lib/utils.ts';
 
 const COLOR_CLASS = 'bg-foreground text-background';
 
 type Props<Options extends Record<string, ReactNode>> = {
   label?: string;
-  className: string;
+  className?: string;
   options: Options;
   value: keyof Options;
   onChange: (value: keyof Options) => void;
@@ -29,7 +30,7 @@ export default function SelectBox<Options extends Record<string, ReactNode>>({
 }: Props<Options>) {
   return (
     <Select value={value.toString()} onValueChange={onChange}>
-      <SelectTrigger className={`${COLOR_CLASS} ${className}`}>
+      <SelectTrigger className={cn(COLOR_CLASS, className)}>
         <SelectValue placeholder={label} />
       </SelectTrigger>
       <SelectContent className={COLOR_CLASS}>
