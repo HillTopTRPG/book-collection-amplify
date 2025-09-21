@@ -26,7 +26,7 @@ export default function BookImage({ isbn, size, onClick }: Props) {
   useEffect(() => {
     if (!isbn) return;
     setImageUrl({ status: 'loading', url: null });
-    dispatch(enqueueBookImage({ isbnList: [isbn], type: 'priority' }));
+    dispatch(enqueueBookImage({ list: [isbn], type: 'priority' }));
   }, [dispatch, isbn]);
 
   useEffect(() => {

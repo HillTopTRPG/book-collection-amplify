@@ -13,10 +13,3 @@ export const checkIsbnCode = (code: string | null): code is string => {
 
   return `${isbnPart}${getIsbn10CheckDigit(isbnPart)}` === code;
 };
-
-export const checkQueueExists = <T extends string>(key: T, queueList: T[], results: Record<T, unknown>) => {
-  const queue = queueList.includes(key);
-  const result = results[key] !== undefined;
-
-  return queue || result ? { queue, result, both: queue && result } : null;
-};

@@ -12,7 +12,7 @@ import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import { selectSelectedScannedItemFetchOptions, dequeueScan, selectScanQueueTargets } from '@/store/scannerSlice.ts';
 import { type FilterSet, selectCollections, selectFilterSets } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13, BookData } from '@/types/book.ts';
-import { getScannedItemMapValueByBookData, makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
+import { entries, getScannedItemMapValueByBookData, makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import type { NdlOptions } from '@/utils/fetch.ts';
 import { fetchNdlSearch, getBookImageUrl } from '@/utils/fetch.ts';
 import { filterMatch, wait } from '@/utils/primitive.ts';
@@ -22,7 +22,7 @@ const fetchBookImageQueueProcess = async (
   lastEndTime: MutableRefObject<number>,
   bookImageLastResult: MutableRefObject<{ type: 'ndl' | 'other'; url: string | null | undefined } | null>
 ) => {
-  if (!queuedBookImageIsbn.length) return { list: [], retryList: [] };
+  if (!queuedBookImageIsbn.length) return { results: {}, retryList: [] };
   const needWait = Math.ceil(10 - (performance.now() - lastEndTime.current));
   if (bookImageLastResult.current?.type !== 'ndl' && needWait > 0) {
     await wait(needWait);
@@ -53,7 +53,13 @@ const fetchBookImageQueueProcess = async (
     url,
   };
 
-  return { list, retryList };
+  return {
+    results: list.reduce<Record<Isbn13, string | null>>((acc, { isbn, url }) => {
+      acc[isbn] = url;
+      return acc;
+    }, {}),
+    retryList,
+  };
 };
 
 type Props = {
@@ -86,12 +92,13 @@ export default function QueueProcessLayer({ children }: Props) {
 
   // 書影URL取得キューの処理
   useEffect(() => {
+    if (!fetchBookImageQueueTargets.length) return;
     fetchBookImageQueueProcess(fetchBookImageQueueTargets, lastEndTime, bookImageLastResult).then(
-      ({ list, retryList }) => {
-        dispatch(dequeueBookImage(list));
+      ({ results, retryList }) => {
+        dispatch(dequeueBookImage(results));
         if (retryList.length) {
           setTimeout(() => {
-            dispatch(enqueueBookImage({ isbnList: retryList, type: 'retry' }));
+            dispatch(enqueueBookImage({ list: retryList, type: 'retry' }));
           }, 500);
         }
       }
@@ -100,16 +107,20 @@ export default function QueueProcessLayer({ children }: Props) {
 
   // スキャンキューの処理1 - NDL検索キューへのenqueue
   useEffect(() => {
-    dispatch(enqueueNdlSearch({ options: scanQueueTargets.map(isbn => JSON.stringify({ isbn })), type: 'priority' }));
+    dispatch(enqueueNdlSearch({ list: scanQueueTargets.map(isbn => JSON.stringify({ isbn })), type: 'priority' }));
   }, [dispatch, scanQueueTargets]);
 
   // スキャンキューの処理2 - NDL検索結果から取得できたらスキャンキューからdequeue
   useEffect(() => {
-    const findIsbnList = scanQueueTargets.flatMap((isbn): { isbn: Isbn13; result: ScannedItemMapValue | null }[] => {
+    if (!scanQueueTargets.length) return;
+    const results = scanQueueTargets.reduce<Map<Isbn13, ScannedItemMapValue | null>>((acc, isbn) => {
       const key = JSON.stringify({ isbn });
-      if (!(key in ndlSearchQueueResults)) return [];
+      if (ndlSearchQueueResults[key] === undefined) return acc;
       const ndlSearchQueueResult = ndlSearchQueueResults[key];
-      if (!ndlSearchQueueResult.length) return [{ isbn, result: null }];
+      if (!ndlSearchQueueResult.length) {
+        acc.set(isbn, null);
+        return acc;
+      }
       const result = getScannedItemMapValueByBookData(collections, ndlSearchQueueResult[0]);
       const _filterSets: FilterSet[] = filterSets.filter(filterSet =>
         filterQueueResults[JSON.stringify(filterSet.fetch)]?.some(filterMatch({ isbn }))
@@ -136,28 +147,31 @@ export default function QueueProcessLayer({ children }: Props) {
             ];
       result.filterSets.push(...wrappedFilterSets);
 
-      return [{ isbn, result }];
-    });
-    dispatch(dequeueScan({ list: findIsbnList, retryList: [] }));
-    const options = findIsbnList.flatMap(({ result }): string[] => {
+      acc.set(isbn, result);
+      return acc;
+    }, new Map<Isbn13, ScannedItemMapValue | null>());
+
+    if (!results.size) return;
+    dispatch(dequeueScan(entries(results)));
+    const list = Array.from(results.entries()).flatMap(([_, result]): string[] => {
       if (!result) return [];
       return result.filterSets.map(filterSet => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch));
     });
-    if (options.length) {
-      dispatch(enqueueNdlSearch({ options, type: 'new' }));
+    if (list.length) {
+      dispatch(enqueueNdlSearch({ list, type: 'new' }));
     }
   }, [dispatch, scanQueueTargets, ndlSearchQueueResults, collections, filterSets, filterQueueResults]);
 
   // 蔵書のグループ本を全て検索する
   useEffect(() => {
     filterSets.forEach(filterSet => {
-      dispatch(enqueueNdlSearch({ options: [makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)], type: 'new' }));
+      dispatch(enqueueNdlSearch({ list: [makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)], type: 'new' }));
     });
   }, [dispatch, filterSets]);
 
   // 読み込み書籍のグループ本のフィルターが変更される毎に検索結果を取得し直す
   useEffect(() => {
-    dispatch(enqueueNdlSearch({ options: selectedScannedItemFetchOptions, type: 'priority' }));
+    dispatch(enqueueNdlSearch({ list: selectedScannedItemFetchOptions, type: 'priority' }));
   }, [dispatch, selectedScannedItemFetchOptions]);
 
   // NDL検索キューの処理
@@ -166,17 +180,20 @@ export default function QueueProcessLayer({ children }: Props) {
     Promise.all(
       ndlSearchQueueTargets.map(
         optionsStr =>
-          new Promise<{ option: string; books: BookData[] }>(resolve => {
+          new Promise<Record<string, BookData[]>>(resolve => {
             const requestOptions = JSON.parse(optionsStr) as NdlOptions;
             fetchNdlSearch(requestOptions).then(books => {
-              dispatch(enqueueBookImage({ isbnList: books.map(({ isbn }) => isbn), type: 'new' }));
-              resolve({ option: optionsStr, books });
+              // 書籍データを取得したらすぐに、書影URLの取得をキューイングする
+              if (books.length) {
+                const list = books.map(({ isbn }) => isbn);
+                dispatch(enqueueBookImage({ list, type: 'new' }));
+              }
+              resolve({ [optionsStr]: books });
             });
           })
       )
     ).then(list => {
-      console.log('fetchNdlSearch done', list);
-      dispatch(dequeueNdlSearch(list));
+      dispatch(dequeueNdlSearch(list.reduce<Record<string, BookData[]>>((acc, cur) => ({ ...acc, ...cur }), {})));
     });
   }, [dispatch, ndlSearchQueueTargets]);
 

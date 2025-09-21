@@ -140,7 +140,7 @@ export default function CameraView({ width, height }: Props) {
         // 既に存在する場合はスキップ
         if (scanResultList.some(sr => sr.isbn === isbn13)) return;
 
-        dispatch(enqueueScan({ isbnList: [isbn13], type: 'new' }));
+        dispatch(enqueueScan({ list: [isbn13], type: 'new' }));
       });
 
       setError(null);

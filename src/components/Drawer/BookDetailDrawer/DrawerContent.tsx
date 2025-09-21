@@ -50,7 +50,7 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
 
   useEffect(() => {
     if (!stringifyFetchOptions) return;
-    dispatch(enqueueNdlSearch({ options: [stringifyFetchOptions], type: 'priority' }));
+    dispatch(enqueueNdlSearch({ list: [stringifyFetchOptions], type: 'priority' }));
   }, [dispatch, stringifyFetchOptions]);
 
   return (

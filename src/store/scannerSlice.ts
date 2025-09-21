@@ -6,12 +6,15 @@ import type { Isbn13 } from '@/types/book.ts';
 import {
   createSimpleReducers,
   deleteAllString,
+  deleteAllStrings,
+  dequeue,
+  enqueue,
   makeNdlOptionsStringByNdlFullOptions,
   simpleSelector,
 } from '@/utils/data.ts';
 import { unique } from '@/utils/primitive.ts';
 import type { PickRequired } from '@/utils/type.ts';
-import { checkQueueExists } from '@/utils/validate.ts';
+import { getKeys } from '@/utils/type.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 export type ScanningItemMapValue = {
@@ -49,28 +52,16 @@ export const scannerSlice = createSlice({
   name: 'scanner',
   initialState,
   reducers: {
-    enqueueScan: (state, action: PayloadAction<{ isbnList: Isbn13[]; type: 'new' }>) => {
-      const addList = action.payload.isbnList.filter(isbn => !checkQueueExists(isbn, state.queue, state.results));
-      state.queue.push(...addList);
+    enqueueScan: (state, action: PayloadAction<{ list: Isbn13[]; type: 'new' }>) => {
+      const addList = enqueue(state, action);
       state.queueViewList.push(...addList);
     },
-    dequeueScan: (
-      state,
-      action: PayloadAction<{ list: { isbn: Isbn13; result: ScannedItemMapValue | null }[]; retryList: Isbn13[] }>
-    ) => {
-      action.payload.list.forEach(({ isbn, result }) => {
-        const existsCheck = checkQueueExists(isbn, state.queue, state.results);
-        if (!existsCheck?.queue) return;
-
-        // キューから一致するISBNを全て削除する
-        deleteAllString(state.queue, isbn);
-        state.results[isbn] = result;
-
-        // 書籍情報が取得できなければ表示から消す
-        if (!result) {
-          deleteAllString(state.queueViewList, isbn);
-        }
-      });
+    dequeueScan: (state, action: PayloadAction<Record<Isbn13, ScannedItemMapValue | null>>) => {
+      dequeue(state, action);
+      deleteAllStrings(
+        state.queueViewList,
+        getKeys(action.payload).filter(isbn => !action.payload[isbn])
+      );
     },
     clearScanViewList: state => {
       state.queueViewList.splice(0, state.queueViewList.length);

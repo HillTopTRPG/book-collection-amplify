@@ -57,7 +57,7 @@ export default function IsbnForm() {
         return;
       }
 
-      dispatch(enqueueScan({ isbnList: [isbn13], type: 'new' }));
+      dispatch(enqueueScan({ list: [isbn13], type: 'new' }));
     },
     [dispatch, form, scanResultList, toast]
   );
