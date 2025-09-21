@@ -49,13 +49,6 @@ export const simpleSelector =
   (rootState: RootState) =>
     rootState[state][property];
 
-export const deleteAllString = <T extends string>(list: T[], value: T) => {
-  list
-    .flatMap((v, index) => (v === value ? [index] : []))
-    .reverse()
-    .forEach(deleteIndex => list.splice(deleteIndex, 1));
-};
-
 export const deleteAllStrings = <T extends string>(list: T[], values: T[]) => {
   list
     .flatMap((v, index) => (values.includes(v) ? [index] : []))

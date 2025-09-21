@@ -3,9 +3,10 @@ import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOpt
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
+import type { QueueState } from '@/types/queue.ts';
+import { makeInitialQueueState } from '@/types/queue.ts';
 import {
   createSimpleReducers,
-  deleteAllString,
   deleteAllStrings,
   dequeue,
   enqueue,
@@ -28,35 +29,38 @@ export type ScannedItemMapValue = Omit<ScanningItemMapValue, 'bookDetail'> & {
   bookDetail: PickRequired<BookDetail, 'book'> | null;
 };
 
-export type ScannedItemRecord = Record<Isbn13, ScannedItemMapValue | null>;
+type QueueType = Isbn13;
+type QueueResult = ScannedItemMapValue | null;
 
-type State = {
-  // 読み込み処理 / キュー
-  queue: Isbn13[];
-  // 読み込み処理 / 処理結果
-  results: ScannedItemRecord;
+type State = QueueState<QueueType, QueueResult> & {
   // 読み込み処理 / 表示
-  queueViewList: Isbn13[];
+  queueViewList: QueueType[];
   // 選択された読み込み結果
-  selectedIsbn: Isbn13 | null;
+  selectedIsbn: QueueType | null;
 };
 
 const initialState: State = {
-  queue: [],
-  results: {},
+  ...makeInitialQueueState<QueueType, QueueResult>(),
   queueViewList: [],
   selectedIsbn: null,
-};
+} as const;
 
+// 読み込み処理
 export const scannerSlice = createSlice({
   name: 'scanner',
   initialState,
   reducers: {
-    enqueueScan: (state, action: PayloadAction<{ list: Isbn13[]; type: 'new' }>) => {
+    enqueueScan: (
+      state,
+      action: PayloadAction<{
+        list: QueueType[];
+        type: 'new';
+      }>
+    ) => {
       const addList = enqueue(state, action);
       state.queueViewList.push(...addList);
     },
-    dequeueScan: (state, action: PayloadAction<Record<Isbn13, ScannedItemMapValue | null>>) => {
+    dequeueScan: (state, action: PayloadAction<Record<QueueType, QueueResult>>) => {
       dequeue(state, action);
       deleteAllStrings(
         state.queueViewList,
@@ -66,14 +70,9 @@ export const scannerSlice = createSlice({
     clearScanViewList: state => {
       state.queueViewList.splice(0, state.queueViewList.length);
     },
-    deleteScanViewList: (state, action: PayloadAction<Isbn13>) => {
-      const isbn = action.payload;
-      deleteAllString(state.queueViewList, isbn);
-      deleteAllString(state.queue, isbn);
-    },
     updateFetchedFetchOption: (
       state,
-      action: PayloadAction<{ isbn: Isbn13; filterSetIndex: number; fetch: NdlFullOptions }>
+      action: PayloadAction<{ isbn: QueueType; filterSetIndex: number; fetch: NdlFullOptions }>
     ) => {
       const scanningItemMapValue = state.results[action.payload.isbn];
       if (!scanningItemMapValue) return;
@@ -82,8 +81,11 @@ export const scannerSlice = createSlice({
       filterSet.fetch = action.payload.fetch;
       scanningItemMapValue.filterSets.splice(action.payload.filterSetIndex, 1, filterSet);
     },
-    updateFetchedFilterAnywhere: (state, action: PayloadAction<{ isbn: Isbn13; index: number; anywhere: string }>) => {
-      const scanningItemMapValue = state.results[action.payload.isbn];
+    updateFetchedFilterAnywhere: (
+      state,
+      action: PayloadAction<{ key: QueueType; index: number; anywhere: string }>
+    ) => {
+      const scanningItemMapValue = state.results[action.payload.key];
       if (!scanningItemMapValue) return;
       if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
       const filterSet = scanningItemMapValue.filterSets[action.payload.index];
@@ -100,7 +102,6 @@ export const {
   enqueueScan,
   dequeueScan,
   clearScanViewList,
-  deleteScanViewList,
   updateSelectedScanIsbn,
   updateFetchedFetchOption,
   updateFetchedFilterAnywhere,

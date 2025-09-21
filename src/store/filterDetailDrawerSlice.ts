@@ -15,7 +15,7 @@ type State = {
 
 const initialState: State = {
   selectedFilterSetId: null,
-};
+} as const;
 
 export const filterDetailDrawerSlice = createSlice({
   name: 'filterDetailDrawer',

@@ -34,7 +34,7 @@ const initialState: State = {
   collections: [],
   filterSets: [],
   createFilterSet: null,
-};
+} as const;
 
 export const subscriptionDataSlice = createSlice({
   name: 'subscriptionData',

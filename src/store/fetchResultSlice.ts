@@ -11,7 +11,7 @@ type State = {
 
 const initialState: State = {
   fetchResultMap: {},
-};
+} as const;
 
 export const fetchResultSlice = createSlice({
   name: 'fetchResult',

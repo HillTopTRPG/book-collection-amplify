@@ -75,7 +75,7 @@ export default function SearchConditionsForm({ scannedItemMapValue, fetchedResul
 
   const condition = scannedItemMapValue.filterSets.at(0)?.filters.at(0)?.at(0);
   const updateAnywhere = (anywhere: string) => {
-    dispatch(updateFetchedFilterAnywhere({ isbn: scannedItemMapValue.isbn, index: 0, anywhere }));
+    dispatch(updateFetchedFilterAnywhere({ key: scannedItemMapValue.isbn, index: 0, anywhere }));
   };
 
   return (
