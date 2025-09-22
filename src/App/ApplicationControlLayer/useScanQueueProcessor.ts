@@ -58,7 +58,7 @@ export default function useScanQueueProcessor({ filterSets, collections }: Props
                   usePublisher: true,
                   useCreator: true,
                 },
-                filters: [[{ keyword: '', sign: '*=' }]],
+                filters: [{ list: [{ keyword: '', sign: '*=' }], grouping: null }],
                 primary: isbn,
                 createdAt: '',
                 updatedAt: '',

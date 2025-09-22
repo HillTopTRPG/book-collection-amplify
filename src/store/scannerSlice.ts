@@ -1,7 +1,7 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
-import type { FilterBean, FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { FilterAndGroup, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
 import type { QueueState } from '@/types/queue.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
@@ -91,7 +91,7 @@ export const scannerSlice = createSlice({
     },
     updateFetchedFilterAnywhere: (
       state,
-      action: PayloadAction<{ key: QueueType; filterSetId: string; filters: FilterBean[][] }>
+      action: PayloadAction<{ key: QueueType; filterSetId: string; filters: FilterAndGroup[] }>
     ) => {
       const scanningItemMapValue = state.results[action.payload.key];
       if (!scanningItemMapValue) return;

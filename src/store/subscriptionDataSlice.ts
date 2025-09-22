@@ -21,10 +21,11 @@ export type Collection = Omit<Schema['Collection']['type'], 'isbn' | 'meta'> & {
 
 export type Sign = '==' | '*=' | '!=' | '!*';
 export type FilterBean = { keyword: string; sign: Sign };
+export type FilterAndGroup = { list: FilterBean[]; grouping: 'date' | null };
 
 export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters' | 'primary'> & {
   fetch: NdlFullOptions;
-  filters: FilterBean[][];
+  filters: FilterAndGroup[];
   primary: Isbn13;
 };
 

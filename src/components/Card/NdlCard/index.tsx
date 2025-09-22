@@ -36,7 +36,7 @@ export default function NdlCard({ ndl, filterSet, orIndex, selectedIsbn, setSele
   );
 
   const anywhereList = useMemo(
-    () => filterSet.filters[orIndex].map(({ keyword }) => keyword) ?? [],
+    () => filterSet.filters[orIndex].list.map(({ keyword }) => keyword) ?? [],
     [orIndex, filterSet.filters]
   );
 

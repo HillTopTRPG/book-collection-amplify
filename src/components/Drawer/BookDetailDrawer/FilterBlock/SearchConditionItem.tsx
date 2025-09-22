@@ -79,7 +79,7 @@ export default function SearchConditionItem({ isbn, filterSet, orIndex, andIndex
   const allBooks = useAppSelector(selectFetchedAllBooks);
 
   const primaryBook = allBooks.find(book => book.isbn === filterSet.primary) ?? null;
-  const condition = filterSet.filters[orIndex][andIndex];
+  const condition = filterSet.filters[orIndex].list[andIndex];
 
   const isPrimeFirst = !orIndex && !andIndex;
 
@@ -118,7 +118,7 @@ export default function SearchConditionItem({ isbn, filterSet, orIndex, andIndex
 
   const updateSign = (sign: Sign) => {
     const newFilters = structuredClone(filterSet.filters);
-    newFilters[orIndex][andIndex].sign = sign;
+    newFilters[orIndex].list[andIndex].sign = sign;
     dispatch(updateFetchedFilterAnywhere({ key: isbn, filterSetId: filterSet.id, filters: newFilters }));
   };
 
@@ -126,30 +126,30 @@ export default function SearchConditionItem({ isbn, filterSet, orIndex, andIndex
     const newFilters = structuredClone(filterSet.filters);
 
     // ANDブロックのための処理
-    if (!keyword && andIndex < newFilters[orIndex].length - 1) {
-      const res = newFilters[orIndex].splice(andIndex, 1);
-      if (!newFilters[orIndex][andIndex].keyword.trim()) {
-        newFilters[orIndex][andIndex].sign = res[0].sign;
+    if (!keyword && andIndex < newFilters[orIndex].list.length - 1) {
+      const res = newFilters[orIndex].list.splice(andIndex, 1);
+      if (!newFilters[orIndex].list[andIndex].keyword.trim()) {
+        newFilters[orIndex].list[andIndex].sign = res[0].sign;
       }
     } else {
-      if (keyword && andIndex === newFilters[orIndex].length - 1) {
-        newFilters[orIndex].push({ keyword: '', sign: '*=' });
+      if (keyword && andIndex === newFilters[orIndex].list.length - 1) {
+        newFilters[orIndex].list.push({ keyword: '', sign: '*=' });
       }
-      newFilters[orIndex][andIndex].keyword = keyword.trim();
+      newFilters[orIndex].list[andIndex].keyword = keyword.trim();
     }
 
     if (orIndex === 0) {
       // プライマリブロックのための処理
-      if (newFilters.length === 1 && newFilters[orIndex][0]) {
-        newFilters.push([{ keyword: '', sign: '*=' }]);
+      if (newFilters.length === 1 && newFilters[orIndex].list[0]) {
+        newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: null });
       }
     } else {
       // ORブロックのための処理
-      if (orIndex < newFilters.length - 1 && !newFilters[orIndex][0]) {
+      if (orIndex < newFilters.length - 1 && !newFilters[orIndex].list[0]) {
         newFilters.splice(orIndex, 1);
       } else {
-        if (orIndex === newFilters.length - 1 && newFilters[orIndex][0]) {
-          newFilters.push([{ keyword: '', sign: '*=' }]);
+        if (orIndex === newFilters.length - 1 && newFilters[orIndex].list[0]) {
+          newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: null });
         }
       }
     }

@@ -120,10 +120,8 @@ export const entries = <T extends string, U>(map: Map<T, U>): Record<T, U> => Ob
 export const getFilteredItems = (fetchedBooks: BookData[], filterSet: FilterSet, filterIndex: number): BookData[] => {
   if (!fetchedBooks?.length) return [];
 
-  const filters = filterSet.filters[filterIndex].filter(({ keyword }) => keyword);
+  const filters = filterSet.filters[filterIndex].list.filter(({ keyword }) => keyword);
   if (!filters.length) return !filterIndex ? fetchedBooks : [];
-
-  console.log(JSON.stringify(filters));
 
   return fetchedBooks.filter(book =>
     filters.every(filter =>
@@ -138,4 +136,73 @@ export const getFilteredItems = (fetchedBooks: BookData[], filterSet: FilterSet,
       )
     )
   );
+};
+
+const getVolumeNumber = (book: BookData): number | null => {
+  const str = (book.volume || book.volumeTitle || book.title || '').replace(/[０-９]/g, s =>
+    String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+  );
+  const maybeNumStr = [str.match(/^[0-9]+$/)?.at(0), str.match(/^[0-9]+/)?.at(0), str.match(/[0-9]+$/)?.at(0)].find(
+    s => s !== undefined
+  );
+  if (maybeNumStr === undefined) return null;
+  return parseInt(maybeNumStr, 10);
+};
+
+const matchSet = (book: BookData, matchList: GroupingInfo[], add: number, judge: (book: BookData) => boolean) => {
+  const matched = matchList.find(info => judge(info.list[info.list.length - 1]));
+  if (!matched) return false;
+  matched.next += add;
+  matched.list.push(book);
+  return true;
+};
+
+const isNearDateBook = (b1: BookData, b2: BookData): boolean => {
+  const r1 = b1.date?.match(/([0-9]{4})\.([0-9]{1,2})\.?([0-9]{1,2})?/)?.slice(1);
+  const r2 = b2.date?.match(/([0-9]{4})\.([0-9]{1,2})\.?([0-9]{1,2})?/)?.slice(1);
+  if (!r1 || !r2) return false;
+  const d1 = new Date(parseInt(r1[0]), parseInt(r1[1]) - 1, r1[2] ? parseInt(r1[2]) : 15);
+  const d2 = new Date(parseInt(r2[0]), parseInt(r2[1]) - 1, r2[2] ? parseInt(r2[2]) : 15);
+  const dayDiff = Math.abs((d2.getTime() - d1.getTime()) / 86400000);
+
+  return dayDiff < 50;
+};
+
+type GroupingInfo = { first: number; next: number; list: BookData[] };
+export const grouping = (books: BookData[]): GroupingInfo[] => {
+  const results: Array<{ first: number; next: number; list: BookData[] }> = [];
+  const unSeriesList: BookData[] = [];
+  books.forEach(book => {
+    const volume = getVolumeNumber(book);
+    if (volume === null) return unSeriesList.push(book);
+
+    // 順当に並ぶグループの一覧
+    const nextMatchList = [...results].reverse().filter(({ next }) => volume === next);
+    if (nextMatchList.length) {
+      // 特別な条件に当てはまればそちらのグループを優先する
+      if (matchSet(book, nextMatchList, 1, ({ title }) => title === book.title)) return;
+      if (matchSet(book, nextMatchList, 1, ({ edition }) => edition === book.edition)) return;
+      // グループ一覧の最後に適用するのが通常
+      nextMatchList[0].next++;
+      nextMatchList[0].list.push(book);
+      return;
+    }
+
+    // 最後の巻数が同じで、出版日が近いグループの一覧
+    const currentMatchList = [...results]
+      .reverse()
+      .filter(({ next, list }) => volume === next - 1 && isNearDateBook(list[list.length - 1], book));
+    if (currentMatchList.length) {
+      // 特別な条件に当てはまればそちらのグループを優先する
+      if (matchSet(book, currentMatchList, 0, ({ title }) => title === book.title)) return;
+      if (matchSet(book, currentMatchList, 0, ({ edition }) => edition === book.edition)) return;
+      // グループ一覧の最後に適用するのが通常
+      currentMatchList[0].list.push(book);
+      return;
+    }
+
+    results.push({ first: volume, next: volume + 1, list: [book] });
+  });
+  if (unSeriesList.length) results.push({ first: -1, next: -1, list: unSeriesList });
+  return results;
 };
