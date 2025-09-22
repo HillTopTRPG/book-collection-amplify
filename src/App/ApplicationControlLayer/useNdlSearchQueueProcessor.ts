@@ -6,7 +6,7 @@ import { selectSelectedScannedItemFetchOptions } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData, Isbn13 } from '@/types/book.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
-import type { NdlOptions } from '@/utils/fetch.ts';
+import type { NdlFetchOptions } from '@/utils/fetch.ts';
 import { fetchNdlSearch } from '@/utils/fetch.ts';
 import { getKeys } from '@/utils/type.ts';
 
@@ -41,7 +41,7 @@ export default function useNdlSearchQueueProcessor({ filterSets }: Props) {
       ndlSearchQueueTargets.map(
         optionsStr =>
           new Promise<{ optionsStr: string; books: BookData[] }>(resolve => {
-            const ndlOptions = JSON.parse(optionsStr) as NdlOptions;
+            const ndlOptions = JSON.parse(optionsStr) as NdlFetchOptions;
             fetchNdlSearch(ndlOptions).then(books => {
               resolve({ optionsStr, books });
             });

@@ -12,16 +12,24 @@ import type { BookData } from '@/types/book.ts';
 
 type Props = {
   ndl: BookData;
-  filterSets: FilterSet[];
+  filterSet: FilterSet;
+  filterIndex: number;
   selectedIsbn: string | null;
   setSelectedIsbn: (isbn: string | null) => void;
   onOpenBookDetail: (isbn: string | null) => void;
 };
 
-export default function NdlCard({ ndl, filterSets, selectedIsbn, setSelectedIsbn, onOpenBookDetail }: Props) {
+export default function NdlCard({
+  ndl,
+  filterSet,
+  filterIndex,
+  selectedIsbn,
+  setSelectedIsbn,
+  onOpenBookDetail,
+}: Props) {
   const isbn = ndl.isbn;
 
-  const options = useMemo(() => filterSets.at(0)?.fetch, [filterSets]);
+  const options = useMemo(() => filterSet.fetch, [filterSet.fetch]);
 
   const isViewTitle = useMemo(() => options?.title !== ndl.title, [ndl.title, options?.title]);
   const creatorText = useMemo(() => ndl.creator?.join(', ') ?? '', [ndl.creator]);
@@ -35,16 +43,14 @@ export default function NdlCard({ ndl, filterSets, selectedIsbn, setSelectedIsbn
   );
 
   const anywhereList = useMemo(
-    () =>
-      filterSets
-        .at(0)
-        ?.filters.at(0)
-        ?.map(({ anywhere }) => anywhere) ?? [],
-    [filterSets]
+    () => filterSet.filters[filterIndex].map(({ anywhere }) => anywhere) ?? [],
+    [filterIndex, filterSet.filters]
   );
 
+  const title = [isViewTitle ? ndl.title : '', ndl.volume ?? '', ndl.volumeTitle ?? ''].join(' ').trim();
+
   return (
-    <CardFrame className="flex-col gap-1">
+    <CardFrame className="flex-col gap-1 py-1 px-2">
       <div className="flex flex-wrap justify-start w-full">
         {ndl.ndcLabels.map((label, idx) => (
           <Fragment key={idx}>
@@ -68,11 +74,7 @@ export default function NdlCard({ ndl, filterSets, selectedIsbn, setSelectedIsbn
             </OverPanel>
           ) : null}
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
-            {isViewTitle ? (
-              <TempItem value={ndl.title} highLights={anywhereList} className="text-lg font-bold inline-block" />
-            ) : null}
-            <TempItem value={ndl.volume} highLights={anywhereList} className="text-lg font-bold" />
-            <TempItem value={ndl.volumeTitle} highLights={anywhereList} className="text-lg font-bold" />
+            <TempItem value={title} highLights={anywhereList} className="text-base/5 font-bold" />
           </div>
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
             {isViewCreator ? <TempItem value={creatorText} highLights={anywhereList} className="text-xs" /> : null}

@@ -10,6 +10,7 @@ import {
   setFilterSets,
 } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
+import { getIsbn13 } from '@/utils/primitive.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({
@@ -57,6 +58,7 @@ export default function SubscribeLayer({ children }: Props) {
               ...item,
               fetch: JSON.parse(item.fetch?.trim() || '{}') as FilterSet['fetch'],
               filters: JSON.parse(item.filters?.trim() || '[]') as FilterSet['filters'],
+              primary: getIsbn13(item.primary),
             }))
           )
         );

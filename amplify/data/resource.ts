@@ -20,6 +20,7 @@ const schema = a.schema({
       name: a.string().required(),
       fetch: a.string().required(),
       filters: a.string().required(),
+      primary: a.string().required(),
       owner: a.string(),
     })
     .authorization((allow) => [allow.owner()]),

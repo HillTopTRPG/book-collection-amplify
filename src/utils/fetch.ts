@@ -178,7 +178,7 @@ export const fetchRakutenBooksApi = async (
   return { book, error: null, retry: false };
 };
 
-export type NdlOptions = {
+export type NdlFetchOptions = {
   title?: string;
   creator?: string;
   publisher?: string;
@@ -187,10 +187,10 @@ export type NdlOptions = {
   mediatype?: string;
   anywhere?: string;
 };
-const getNdlQuery = (options: NdlOptions) => {
+const getNdlQuery = (options: NdlFetchOptions) => {
   options.dpid ||= 'book';
   options.mediatype ||= 'books';
-  const _keys = keys(options) as Array<keyof NdlOptions>;
+  const _keys = keys(options) as Array<keyof NdlFetchOptions>;
 
   return (
     _keys
@@ -301,7 +301,7 @@ const getNdlBookFromDocument = (recordElm: Element): BookData | null => {
   } as const satisfies BookData;
 };
 
-export const fetchNdlSearch = async (options: NdlOptions): Promise<BookData[]> => {
+export const fetchNdlSearch = async (options: NdlFetchOptions): Promise<BookData[]> => {
   const BASE_URL =
     'https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&version=1.2&recordPacking=xml&recordSchema=dcndl&startRecord=1&maximumRecords=200&query=';
   const query = getNdlQuery(options);

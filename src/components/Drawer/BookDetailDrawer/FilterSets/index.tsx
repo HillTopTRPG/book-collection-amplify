@@ -1,32 +1,22 @@
-import type { ReactNode } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import SelectBox from '@/components/SelectBox.tsx';
-import { Separator } from '@/components/ui/separator.tsx';
-import { selectNdlSearchQueueResults } from '@/store/fetchNdlSearchSlice.ts';
-import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { useAppDispatch } from '@/store/hooks.ts';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import { updateFetchedFetchOption } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import type { PickRequired } from '@/utils/type.ts';
 import NdlOptionsForm from './NdlOptionsForm.tsx';
-import SearchConditionsForm from './SearchConditionsForm.tsx';
 
 type Props = {
   scannedItemMapValue: PickRequired<ScannedItemMapValue, 'bookDetail'>;
+  selectedFilterSet: string;
+  setSelectedFilterSet: Dispatch<SetStateAction<string>>;
 };
 
-export default function FilterSets({ scannedItemMapValue }: Props) {
+export default function FilterSets({ scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }: Props) {
   const dispatch = useAppDispatch();
-  const [selectedFilterSet, setSelectedFilterSet] = useState<string>(scannedItemMapValue.filterSets.at(0)?.id ?? '');
   const [filterSet, setFilterSet] = useState<FilterSet | null>(null);
-  const ndlSearchQueueResults = useAppSelector(selectNdlSearchQueueResults);
-
-  const isbn = scannedItemMapValue.isbn;
-
-  useEffect(() => {
-    setSelectedFilterSet(scannedItemMapValue.filterSets.at(0)?.id ?? '');
-  }, [scannedItemMapValue.filterSets]);
 
   const currentFilterSet = scannedItemMapValue.filterSets.find(({ id }) => id === selectedFilterSet);
 
@@ -36,16 +26,6 @@ export default function FilterSets({ scannedItemMapValue }: Props) {
   }, [currentFilterSet]);
 
   const fetchFullOptions = useMemo(() => filterSet?.fetch, [filterSet?.fetch]);
-
-  const stringifyFetchOptions = useMemo(
-    () => (fetchFullOptions ? makeNdlOptionsStringByNdlFullOptions(fetchFullOptions) : ''),
-    [fetchFullOptions]
-  );
-
-  const fetchedBooks = useMemo(
-    () => ndlSearchQueueResults[stringifyFetchOptions],
-    [ndlSearchQueueResults, stringifyFetchOptions]
-  );
 
   const options = useMemo(
     () =>
@@ -57,7 +37,7 @@ export default function FilterSets({ scannedItemMapValue }: Props) {
   );
 
   return (
-    <>
+    <div className="px-2 flex flex-col gap-1 pb-2">
       <SelectBox options={options} value={selectedFilterSet} onChange={setSelectedFilterSet} />
       {fetchFullOptions ? (
         <NdlOptionsForm
@@ -73,8 +53,6 @@ export default function FilterSets({ scannedItemMapValue }: Props) {
           }}
         />
       ) : null}
-      <Separator className="my-2" />
-      {fetchedBooks?.length ? <SearchConditionsForm {...{ isbn, filterSet, fetchedBooks }} /> : null}
-    </>
+    </div>
   );
 }

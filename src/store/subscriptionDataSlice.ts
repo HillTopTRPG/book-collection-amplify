@@ -19,9 +19,10 @@ export type Collection = Omit<Schema['Collection']['type'], 'isbn' | 'meta'> & {
   };
 };
 
-export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters'> & {
+export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters' | 'primary'> & {
   fetch: NdlFullOptions;
   filters: { anywhere: string }[][];
+  primary: Isbn13;
 };
 
 type State = {

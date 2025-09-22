@@ -1,10 +1,10 @@
-import { omit } from 'es-toolkit/compat';
+import { isNil, omit } from 'es-toolkit/compat';
 import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
 import type { RootState } from '@/store';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Collection } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
-import type { NdlOptions } from '@/utils/fetch.ts';
+import type { NdlFetchOptions } from '@/utils/fetch.ts';
 import { filterMatch } from '@/utils/primitive.ts';
 import type { PickRequired } from '@/utils/type.ts';
 import { getKeys } from '@/utils/type.ts';
@@ -29,7 +29,7 @@ export const getScannedItemMapValueByBookData = (collections: Collection[], book
 };
 
 export const makeNdlOptionsStringByNdlFullOptions = (ndlFullOptions: NdlFullOptions): string => {
-  const requestOptions: NdlOptions = {
+  const requestOptions: NdlFetchOptions = {
     title: ndlFullOptions.title,
     creator: ndlFullOptions.useCreator ? ndlFullOptions.creator : undefined,
     publisher: ndlFullOptions.usePublisher ? ndlFullOptions.publisher : undefined,
@@ -102,3 +102,21 @@ export const dequeue = <T extends string, U>(
 };
 
 export const entries = <T extends string, U>(map: Map<T, U>): Record<T, U> => Object.fromEntries(map) as Record<T, U>;
+
+export const getFilteredItems = (fetchedBooks: BookData[], anywhereList: string[], primary: boolean): BookData[] => {
+  if (!fetchedBooks?.length) return [];
+  if (!anywhereList.length) return primary ? fetchedBooks : [];
+
+  return fetchedBooks.filter(book =>
+    anywhereList.filter(Boolean).every(anywhere =>
+      getKeys(book).some(property => {
+        const value = book[property];
+        if (isNil(value)) return false;
+        if (typeof value === 'string') {
+          return value.includes(anywhere);
+        }
+        return value.some(v => v.includes(anywhere));
+      })
+    )
+  );
+};

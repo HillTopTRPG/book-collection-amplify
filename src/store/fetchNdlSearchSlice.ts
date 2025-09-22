@@ -3,6 +3,7 @@ import type { BookData } from '@/types/book.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
 import { dequeue, enqueue, simpleSelector } from '@/utils/data.ts';
 import { unique } from '@/utils/primitive.ts';
+import { getKeys } from '@/utils/type.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 type QueueType = string;
@@ -38,5 +39,10 @@ const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => uni
 export const selectNdlSearchQueueTargets = createSelector([_selectQueue], queue => queue.slice(0, 2));
 /** NDL検索条件：書籍一覧 のRecord */
 export const selectNdlSearchQueueResults = simpleSelector('fetchNdlSearch', 'results');
+export const selectFetchedAllBooks = createSelector([selectNdlSearchQueueResults], results =>
+  getKeys(results)
+    .flatMap(option => results[option])
+    .filter((book, idx, self) => self.findIndex(b => b.isbn === book.isbn) === idx)
+);
 
 export default fetchNdlSearchSlice.reducer;

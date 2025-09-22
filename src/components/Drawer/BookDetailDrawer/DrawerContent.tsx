@@ -1,17 +1,14 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
-import { isNil } from 'es-toolkit/compat';
+import { useEffect, useMemo, useState } from 'react';
 import BookCard from '@/components/Card/BookCard.tsx';
-import NdlCard from '@/components/Card/NdlCard';
 import BookDetailDialog from '@/components/Drawer/BookDetailDrawer/BookDetailDialog.tsx';
+import FilterBlock from '@/components/Drawer/BookDetailDrawer/FilterBlock';
 import FilterSets from '@/components/Drawer/BookDetailDrawer/FilterSets';
-import { Separator } from '@/components/ui/separator.tsx';
 import { enqueueNdlSearch, selectNdlSearchQueueResults } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { BookData } from '@/types/book.ts';
+import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import type { PickRequired } from '@/utils/type.ts';
-import { getKeys } from '@/utils/type.ts';
 
 type Props = {
   scannedItemMapValue: PickRequired<ScannedItemMapValue, 'bookDetail'>;
@@ -23,44 +20,29 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
   const [detailIsbn, setDetailIsbn] = useState<string | null>(null);
 
-  const fetchOptions = useMemo(() => scannedItemMapValue.filterSets.at(0)?.fetch, [scannedItemMapValue]);
+  const isbn = scannedItemMapValue.isbn;
 
-  const anywhereList = useMemo(
-    () =>
-      scannedItemMapValue.filterSets
-        .at(0)
-        ?.filters.at(0)
-        ?.map(({ anywhere }) => anywhere) ?? [],
-    [scannedItemMapValue]
-  );
+  const [selectedFilterSet, setSelectedFilterSet] = useState<string>(scannedItemMapValue.filterSets.at(0)?.id ?? '');
+  useEffect(() => {
+    setSelectedFilterSet(scannedItemMapValue.filterSets.at(0)?.id ?? '');
+  }, [scannedItemMapValue.filterSets, setSelectedFilterSet]);
+
+  const [filterSet, setFilterSet] = useState<FilterSet | null>(null);
+  useEffect(() => {
+    const currentFilterSet = scannedItemMapValue.filterSets.find(({ id }) => id === selectedFilterSet);
+    if (!currentFilterSet) return;
+    setFilterSet(currentFilterSet);
+  }, [scannedItemMapValue.filterSets, selectedFilterSet]);
 
   const stringifyFetchOptions = useMemo(
-    () => (fetchOptions ? makeNdlOptionsStringByNdlFullOptions(fetchOptions) : ''),
-    [fetchOptions]
+    () => (filterSet?.fetch ? makeNdlOptionsStringByNdlFullOptions(filterSet?.fetch) : ''),
+    [filterSet?.fetch]
   );
 
   const fetchedBooks = useMemo(
-    () => ndlSearchQueueResults[stringifyFetchOptions],
+    () => ndlSearchQueueResults[stringifyFetchOptions] ?? null,
     [ndlSearchQueueResults, stringifyFetchOptions]
   );
-
-  const filteredResults = useMemo((): BookData[] => {
-    if (!fetchedBooks?.length) return [];
-    if (!anywhereList.length) return fetchedBooks;
-
-    return fetchedBooks.filter(book =>
-      anywhereList.filter(Boolean).every(anywhere =>
-        getKeys(book).some(property => {
-          const value = book[property];
-          if (isNil(value)) return false;
-          if (typeof value === 'string') {
-            return value.includes(anywhere);
-          }
-          return value.some(v => v.includes(anywhere));
-        })
-      )
-    );
-  }, [anywhereList, fetchedBooks]);
 
   useEffect(() => {
     if (!stringifyFetchOptions) return;
@@ -72,23 +54,13 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
       <div className="flex justify-center">
         <BookCard bookDetail={scannedItemMapValue.bookDetail} />
       </div>
-      <FilterSets scannedItemMapValue={scannedItemMapValue} />
-      <div className="flex flex-col justify-center">
-        {filteredResults.map((ndl, idx) => (
-          <Fragment key={idx}>
-            {idx ? <Separator /> : null}
-            <NdlCard
-              filterSets={scannedItemMapValue.filterSets}
-              {...{ ndl, selectedIsbn, setSelectedIsbn }}
-              onOpenBookDetail={isbn => {
-                setDetailIsbn(isbn);
-                setSelectedIsbn(null);
-              }}
-            />
-          </Fragment>
-        ))}
-      </div>
-      <span>{filteredResults?.length ?? 0}件</span>
+      <FilterSets {...{ scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }} />
+      {filterSet?.filters.map((_, filterIndex) => (
+        <FilterBlock
+          key={filterIndex}
+          {...{ isbn, filterSet, filterIndex, fetchedBooks, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
+        />
+      ))}
       <BookDetailDialog
         book={fetchedBooks?.find(book => book.isbn === detailIsbn) ?? null}
         onClose={() => setDetailIsbn(null)}
