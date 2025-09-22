@@ -14,8 +14,8 @@ const FormSchema = z.object({
   usePublisher: z.boolean(),
 });
 
-export type NdlOptions = z.infer<typeof FormSchema>;
-export type NdlFullOptions = NdlOptions & { creator: string; publisher: string };
+export type NdlFormOptions = z.infer<typeof FormSchema>;
+export type NdlFullOptions = NdlFormOptions & { creator: string; publisher: string };
 
 type Props = {
   defaultValues: NdlFullOptions;
@@ -23,14 +23,14 @@ type Props = {
 };
 
 export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
-  const form = useForm<NdlOptions>({
+  const form = useForm<NdlFormOptions>({
     resolver: zodResolver(FormSchema),
     defaultValues,
     mode: 'onChange',
   });
 
   const onSubmit = useCallback(
-    (data: NdlOptions) => {
+    (data: NdlFormOptions) => {
       const newData = { ...defaultValues, ...data };
       form.reset(newData);
       onChange(newData);

@@ -9,7 +9,7 @@ import SearchConditionsForm from './SearchConditionsForm.tsx';
 type Props = {
   isbn: Isbn13;
   filterSet: FilterSet;
-  filterIndex: number;
+  orIndex: number;
   fetchedBooks: BookData[];
   selectedIsbn: string | null;
   setSelectedIsbn: (isbn: string | null) => void;
@@ -19,33 +19,30 @@ type Props = {
 export default function FilterBlock({
   isbn,
   filterSet,
-  filterIndex,
+  orIndex,
   fetchedBooks,
   selectedIsbn,
   setSelectedIsbn,
   setDetailIsbn,
 }: Props) {
-  const anywhereList = useMemo(
-    () => filterSet.filters[filterIndex].flatMap(({ anywhere }) => (anywhere.trim() ? [anywhere.trim()] : [])) ?? [],
-    [filterIndex, filterSet.filters]
-  );
-
   const filteredResults = useMemo(
-    (): BookData[] => getFilteredItems(fetchedBooks, anywhereList, !filterIndex),
-    [fetchedBooks, anywhereList, filterIndex]
+    (): BookData[] => getFilteredItems(fetchedBooks, filterSet, orIndex),
+    [fetchedBooks, filterSet, orIndex]
   );
 
   return (
     <>
       <div className="relative">
         <Separator />
-        {fetchedBooks?.length ? <SearchConditionsForm {...{ isbn, filterSet, filterIndex, fetchedBooks }} /> : null}
+        {fetchedBooks?.length ? (
+          <SearchConditionsForm {...{ isbn, filterSet, orIndex, fetchedBooks }} count={filteredResults.length} />
+        ) : null}
         <div className="flex flex-col justify-center">
           {filteredResults.map((ndl, idx) => (
             <Fragment key={idx}>
               {idx ? <Separator /> : null}
               <NdlCard
-                {...{ ndl, filterSet, filterIndex, selectedIsbn, setSelectedIsbn }}
+                {...{ ndl, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
                 onOpenBookDetail={isbn => {
                   setDetailIsbn(isbn);
                   setSelectedIsbn(null);
@@ -55,7 +52,9 @@ export default function FilterBlock({
           ))}
         </div>
       </div>
-      <div style={{ minHeight: filteredResults.length ? '2rem' : 'calc(100vh - 7rem + 2px)' }}></div>
+      {orIndex === filterSet.filters.length - 1 ? (
+        <div style={{ minHeight: filteredResults.length ? '2rem' : 'calc(100vh - 7rem + 2px)' }}></div>
+      ) : null}
     </>
   );
 }

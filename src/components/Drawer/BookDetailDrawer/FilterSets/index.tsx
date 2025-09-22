@@ -29,8 +29,8 @@ export default function FilterSets({ scannedItemMapValue, selectedFilterSet, set
 
   const options = useMemo(
     () =>
-      scannedItemMapValue.filterSets.reduce<Record<string, ReactNode>>((acc, cur) => {
-        acc[cur.id] = cur.name;
+      scannedItemMapValue.filterSets.reduce<Record<string, { label: ReactNode; disabled: boolean }>>((acc, cur) => {
+        acc[cur.id] = { label: cur.name, disabled: false };
         return acc;
       }, {}),
     [scannedItemMapValue.filterSets]

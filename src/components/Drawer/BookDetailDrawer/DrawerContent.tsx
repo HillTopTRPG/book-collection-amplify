@@ -55,10 +55,10 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
         <BookCard bookDetail={scannedItemMapValue.bookDetail} />
       </div>
       <FilterSets {...{ scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }} />
-      {filterSet?.filters.map((_, filterIndex) => (
+      {filterSet?.filters.map((_, orIndex) => (
         <FilterBlock
-          key={filterIndex}
-          {...{ isbn, filterSet, filterIndex, fetchedBooks, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
+          key={orIndex}
+          {...{ isbn, filterSet, orIndex, fetchedBooks, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
         />
       ))}
       <BookDetailDialog

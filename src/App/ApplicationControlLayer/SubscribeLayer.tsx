@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { generateClient } from 'aws-amplify/data';
+import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { FilterBean } from '@/store/subscriptionDataSlice.ts';
 import {
   selectCreateFilterSet,
   setCollections,
@@ -56,8 +57,8 @@ export default function SubscribeLayer({ children }: Props) {
           setFilterSets(
             structuredClone(data.items).map(item => ({
               ...item,
-              fetch: JSON.parse(item.fetch?.trim() || '{}') as FilterSet['fetch'],
-              filters: JSON.parse(item.filters?.trim() || '[]') as FilterSet['filters'],
+              fetch: JSON.parse(item.fetch?.trim() || '{}') as NdlFullOptions,
+              filters: JSON.parse(item.filters?.trim() || '[]') as FilterBean[][],
               primary: getIsbn13(item.primary),
             }))
           )

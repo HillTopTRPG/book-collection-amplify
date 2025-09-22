@@ -13,20 +13,13 @@ import type { BookData } from '@/types/book.ts';
 type Props = {
   ndl: BookData;
   filterSet: FilterSet;
-  filterIndex: number;
+  orIndex: number;
   selectedIsbn: string | null;
   setSelectedIsbn: (isbn: string | null) => void;
   onOpenBookDetail: (isbn: string | null) => void;
 };
 
-export default function NdlCard({
-  ndl,
-  filterSet,
-  filterIndex,
-  selectedIsbn,
-  setSelectedIsbn,
-  onOpenBookDetail,
-}: Props) {
+export default function NdlCard({ ndl, filterSet, orIndex, selectedIsbn, setSelectedIsbn, onOpenBookDetail }: Props) {
   const isbn = ndl.isbn;
 
   const options = useMemo(() => filterSet.fetch, [filterSet.fetch]);
@@ -43,8 +36,8 @@ export default function NdlCard({
   );
 
   const anywhereList = useMemo(
-    () => filterSet.filters[filterIndex].map(({ anywhere }) => anywhere) ?? [],
-    [filterIndex, filterSet.filters]
+    () => filterSet.filters[orIndex].map(({ keyword }) => keyword) ?? [],
+    [orIndex, filterSet.filters]
   );
 
   const title = [isViewTitle ? ndl.title : '', ndl.volume ?? '', ndl.volumeTitle ?? ''].join(' ').trim();

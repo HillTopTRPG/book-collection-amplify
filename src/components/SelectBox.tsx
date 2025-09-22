@@ -13,7 +13,9 @@ import { cn } from '@/lib/utils.ts';
 
 const COLOR_CLASS = 'bg-foreground text-background';
 
-type Props<Options extends Record<string, ReactNode>> = {
+export type SelectBoxOption = { label: ReactNode; disabled?: boolean };
+
+type Props<Options extends Record<string, SelectBoxOption>> = {
   label?: string;
   className?: string;
   options: Options;
@@ -21,7 +23,7 @@ type Props<Options extends Record<string, ReactNode>> = {
   onChange: (value: keyof Options) => void;
 };
 
-export default function SelectBox<Options extends Record<string, ReactNode>>({
+export default function SelectBox<Options extends Record<string, SelectBoxOption>>({
   label,
   className,
   options,
@@ -37,8 +39,8 @@ export default function SelectBox<Options extends Record<string, ReactNode>>({
         <SelectGroup>
           {label ? <SelectLabel>{label}</SelectLabel> : null}
           {keys(options).map(key => (
-            <SelectItem key={key} value={key} className={COLOR_CLASS}>
-              {options[key]}
+            <SelectItem key={key} value={key} className={COLOR_CLASS} disabled={options[key].disabled}>
+              {options[key].label}
             </SelectItem>
           ))}
         </SelectGroup>

@@ -2,7 +2,7 @@ import { isNil, omit } from 'es-toolkit/compat';
 import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
 import type { RootState } from '@/store';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { Collection } from '@/store/subscriptionDataSlice.ts';
+import type { Collection, FilterBean, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/utils/fetch.ts';
 import { filterMatch } from '@/utils/primitive.ts';
@@ -101,22 +101,41 @@ export const dequeue = <T extends string, U>(
   deleteAllStrings(state.queue, getKeys(state.results));
 };
 
+const isMatch = (filter: FilterBean, list: string[]) => {
+  const keyword = filter.keyword;
+  switch (filter.sign) {
+    case '==':
+      return list.includes(keyword);
+    case '*=':
+      return list.some(v => v.includes(keyword));
+    case '!=':
+      return list.every(v => v !== keyword);
+    case '!*':
+      return list.every(v => !v.includes(keyword));
+  }
+};
+
 export const entries = <T extends string, U>(map: Map<T, U>): Record<T, U> => Object.fromEntries(map) as Record<T, U>;
 
-export const getFilteredItems = (fetchedBooks: BookData[], anywhereList: string[], primary: boolean): BookData[] => {
+export const getFilteredItems = (fetchedBooks: BookData[], filterSet: FilterSet, filterIndex: number): BookData[] => {
   if (!fetchedBooks?.length) return [];
-  if (!anywhereList.length) return primary ? fetchedBooks : [];
+
+  const filters = filterSet.filters[filterIndex].filter(({ keyword }) => keyword);
+  if (!filters.length) return !filterIndex ? fetchedBooks : [];
+
+  console.log(JSON.stringify(filters));
 
   return fetchedBooks.filter(book =>
-    anywhereList.filter(Boolean).every(anywhere =>
-      getKeys(book).some(property => {
-        const value = book[property];
-        if (isNil(value)) return false;
-        if (typeof value === 'string') {
-          return value.includes(anywhere);
-        }
-        return value.some(v => v.includes(anywhere));
-      })
+    filters.every(filter =>
+      isMatch(
+        filter,
+        getKeys(book).flatMap(property => {
+          const value = book[property];
+          if (isNil(value)) return [];
+          if (typeof value === 'string') return [value];
+          return value;
+        })
+      )
     )
   );
 };
