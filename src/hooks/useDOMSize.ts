@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type DOMSize = {
   width: number;
@@ -16,11 +16,11 @@ const INITIAL_DOM_SIZE: DOMSize = {
  */
 export default function useDOMSize() {
   const [size, setSize] = useState(INITIAL_DOM_SIZE);
+  const ref = useRef<HTMLDivElement | null>(null);
 
-  const ref = useCallback((element: HTMLElement | null) => {
-    if (element == null) {
-      return;
-    }
+  useEffect(() => {
+    const element = ref.current;
+    if (!element) return;
 
     // 監視前のサイズを保存する
     setSize({
