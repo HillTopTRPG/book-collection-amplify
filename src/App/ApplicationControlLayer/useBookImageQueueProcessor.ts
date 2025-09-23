@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
 import { dequeueBookImage, selectFetchBookImageQueueTargets } from '@/store/fetchBookImageSlice.ts';
-import { enqueueGoogleSearch, selectGoogleSearchQueueResults } from '@/store/fetchGoogleSearchSlice.ts';
-import { enqueueRakutenSearch, selectRakutenSearchQueueResults } from '@/store/fetchRakutenSearchSlice.ts';
+import { enqueueGoogleSearch, selectGoogleSearchResults } from '@/store/fetchGoogleSearchSlice.ts';
+import { enqueueRakutenSearch, selectRakutenSearchResults } from '@/store/fetchRakutenSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { BookData, Isbn13 } from '@/types/book.ts';
-import { checkIfImageExists } from '@/utils/fetch.ts';
+import { isBookData } from '@/utils/data.ts';
+import { checkImageExists } from '@/utils/fetch';
 import { getKeys } from '@/utils/type.ts';
 
 const preQueueProcess = async (
@@ -17,7 +18,7 @@ const preQueueProcess = async (
       isbn =>
         new Promise<{ isbn: Isbn13; url: string | null; type: 'ndl' | 'other' }>(resolve => {
           const ndlUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`;
-          checkIfImageExists(ndlUrl).then(result => {
+          checkImageExists(ndlUrl).then(result => {
             if (result) {
               resolve({ isbn, url: ndlUrl, type: 'ndl' });
               return;
@@ -27,11 +28,6 @@ const preQueueProcess = async (
         })
     )
   );
-};
-
-const isBookData = (book: BookData | string | null): book is BookData => {
-  if (book === null) return false;
-  return typeof book !== 'string';
 };
 
 const pickBookDataProps = <P extends keyof BookData>(p: P, a: BookData, b: BookData) =>
@@ -66,8 +62,8 @@ export default function useBookImageQueueProcessor() {
   // 書影URL取得キューの対象
   const fetchBookImageQueueTargets = useAppSelector(selectFetchBookImageQueueTargets);
 
-  const googleSearchQueueResults = useAppSelector(selectGoogleSearchQueueResults);
-  const rakutenSearchQueueResults = useAppSelector(selectRakutenSearchQueueResults);
+  const googleSearchQueueResults = useAppSelector(selectGoogleSearchResults);
+  const rakutenSearchQueueResults = useAppSelector(selectRakutenSearchResults);
 
   // 書影URL取得処理1
   useEffect(() => {

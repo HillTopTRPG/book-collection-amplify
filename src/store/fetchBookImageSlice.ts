@@ -19,10 +19,10 @@ export const fetchBookImageSlice = createSlice({
       state,
       action: PayloadAction<{
         list: QueueType[];
-        type: 'new' | 'retry' | 'priority';
+        type: 'new' | 'priority';
       }>
     ) => {
-      enqueue(state, action, result => result === 'retrying');
+      enqueue(state, action);
     },
     dequeueBookImage: (state, action: PayloadAction<Record<QueueType, QueueResult>>) => {
       dequeue(state, action);

@@ -4,7 +4,7 @@ import type { RootState } from '@/store';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Collection, FilterBean, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
-import type { NdlFetchOptions } from '@/utils/fetch.ts';
+import type { NdlFetchOptions } from '@/types/fetch.ts';
 import { filterMatch } from '@/utils/primitive.ts';
 import type { PickRequired } from '@/utils/type.ts';
 import { getKeys } from '@/utils/type.ts';
@@ -57,9 +57,8 @@ export const deleteAllStrings = <T extends string>(list: T[], values: T[]) => {
 };
 
 export const enqueue = <T extends string, U>(
-  state: { queue: T[]; results: Record<T, U> },
-  action: PayloadAction<{ list: T[]; type: 'new' | 'retry' | 'priority' }>,
-  isRetryResult?: (result: U) => boolean
+  state: { queue: T[]; results: Record<T, U | 'retrying'> },
+  action: PayloadAction<{ list: T[]; type: 'new' | 'retry' | 'priority' }>
 ) => {
   const addList = action.payload.list.filter(key => {
     const result = state.results[key];
@@ -67,7 +66,8 @@ export const enqueue = <T extends string, U>(
       case 'new':
         return result === undefined && !state.queue.includes(key);
       case 'retry':
-        return isRetryResult?.(result) && state.queue.at(0) !== key;
+        if (result === 'retrying') return false;
+        return state.queue.at(0) !== key;
       case 'priority':
       default:
         return result === undefined && state.queue.at(0) !== key;
@@ -206,3 +206,42 @@ export const grouping = (books: BookData[]): GroupingInfo[] => {
   if (unSeriesList.length) results.push({ first: -1, next: -1, list: unSeriesList });
   return results;
 };
+
+export const isBookData = (book: BookData | string | null): book is BookData => {
+  if (book === null) return false;
+  return typeof book !== 'string';
+};
+
+export class XmlProcessor<T extends Record<string, string>> {
+  constructor(
+    private readonly parentElm: Element,
+    private readonly queryMap: T
+  ) {
+    this.parentElm = parentElm;
+    this.queryMap = queryMap;
+  }
+
+  public getContents(query: keyof T) {
+    return this.parentElm?.querySelector(this.queryMap[query])?.textContent?.trim() ?? null;
+  }
+
+  public getAllContents(query: keyof T) {
+    return Array.from(this.parentElm?.querySelectorAll(this.queryMap[query]) ?? []).flatMap(elm =>
+      elm?.textContent ? [elm?.textContent] : []
+    );
+  }
+
+  public getContentsByAttribute(query: keyof T, attribute: keyof T, match: keyof T) {
+    return Array.from(this.parentElm?.querySelectorAll(this.queryMap[query]) ?? []).find(
+      elm => elm.getAttribute(this.queryMap[attribute]) === this.queryMap[match]
+    )?.textContent;
+  }
+
+  public getAllAttributes(query: keyof T, attribute: keyof T) {
+    return Array.from(this.parentElm?.querySelectorAll(this.queryMap[query]) ?? []).flatMap(elm => {
+      const attr = elm.getAttribute(this.queryMap[attribute]);
+
+      return attr ? [attr] : [];
+    });
+  }
+}

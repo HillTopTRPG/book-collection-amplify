@@ -10,8 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanSuccessCount } from '@/store/scannerSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
-import { getIsbn13, wait } from '@/utils/primitive.ts';
-import { checkIsbnCode } from '@/utils/validate.ts';
+import { getIsbnCode, getIsbn13, wait } from '@/utils/primitive.ts';
 import CornerFrame from './CornerFrame.tsx';
 
 type Props = {
@@ -116,11 +115,8 @@ export default function CameraView({ width, height }: Props) {
 
       // イベントリスナーを設定
       Quagga.onDetected(async result => {
-        const maybeIsbn = result.codeResult.code?.replaceAll('-', '') ?? null;
-
-        if (!checkIsbnCode(maybeIsbn)) {
-          return;
-        }
+        const maybeIsbn = getIsbnCode(result.codeResult.code);
+        if (!maybeIsbn) return;
 
         const isbn13 = getIsbn13(maybeIsbn);
 

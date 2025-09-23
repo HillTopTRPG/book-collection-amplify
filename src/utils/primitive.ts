@@ -1,9 +1,22 @@
-import { keys } from 'es-toolkit/compat';
 import type { Isbn13 } from '@/types/book.ts';
+import { getKeys } from '@/utils/type.ts';
 
 export const sortString = (a: string | null | undefined, b: string | null | undefined, sortOrder: 'asc' | 'desc') => {
   if (a === b) return 0;
   return ((a ?? '') > (b ?? '') ? 1 : -1) * (sortOrder === 'asc' ? 1 : -1);
+};
+
+export const getIsbnCode = (rawCode: string | null | undefined): string | null => {
+  const code = rawCode?.replaceAll('-', '');
+  if (!code || ![10, 13].some(v => v === code.length)) return null;
+  if (code.length === 13 && !/^[0-9]{13}$/.test(code)) return null;
+  if (code.length === 10 && !/^[0-9]{9}[0-9X]$/.test(code)) return null;
+
+  const isbnPart = code.slice(0, -1);
+  const getCheckDigit = code.length === 13 ? getIsbn13CheckDigit : getIsbn10CheckDigit;
+  const isbn = `${isbnPart}${getCheckDigit(isbnPart)}`;
+
+  return isbn === code ? isbn : null;
 };
 
 export const getIsbn10CheckDigit = (isbn10Part: string) => {
@@ -68,7 +81,7 @@ export const convertPubdate = (pubdate: string | null | undefined) => {
 export const filterMatch =
   <Conditions extends Record<string, unknown>>(conditions: Conditions): ((obj: Conditions) => boolean) =>
   obj =>
-    keys(conditions).some(key => conditions[key] === obj[key]);
+    getKeys(conditions).some(key => conditions[key] === obj[key]);
 
 type PickSameProperties<T1, T2> = Pick<
   T1,

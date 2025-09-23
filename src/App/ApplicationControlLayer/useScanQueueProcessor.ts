@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { enqueueNdlSearch, selectNdlSearchQueueResults } from '@/store/fetchNdlSearchSlice.ts';
+import { enqueueNdlSearch, selectNdlSearchResults } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { dequeueScan, type ScannedItemMapValue, selectScanQueueTargets } from '@/store/scannerSlice.ts';
 import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
@@ -16,13 +16,13 @@ type Props = {
 export default function useScanQueueProcessor({ filterSets, collections }: Props) {
   const dispatch = useAppDispatch();
 
-  const filterQueueResults = useAppSelector(selectNdlSearchQueueResults);
+  const filterQueueResults = useAppSelector(selectNdlSearchResults);
 
   // スキャンキューの対象
   const scanQueueTargets = useAppSelector(selectScanQueueTargets);
 
   // NDL検索キューの結果
-  const ndlSearchQueueResults = useAppSelector(selectNdlSearchQueueResults);
+  const ndlSearchQueueResults = useAppSelector(selectNdlSearchResults);
 
   // スキャンキューの処理1 - NDL検索キューへのenqueue
   useEffect(() => {
@@ -36,14 +36,17 @@ export default function useScanQueueProcessor({ filterSets, collections }: Props
       const key = JSON.stringify({ isbn });
       if (ndlSearchQueueResults[key] === undefined) return acc;
       const ndlSearchQueueResult = ndlSearchQueueResults[key];
+      if (typeof ndlSearchQueueResult === 'string') return acc;
       if (!ndlSearchQueueResult.length) {
         acc.set(isbn, null);
         return acc;
       }
       const result = getScannedItemMapValueByBookData(collections, ndlSearchQueueResult[0]);
-      const _filterSets: FilterSet[] = filterSets.filter(filterSet =>
-        filterQueueResults[JSON.stringify(filterSet.fetch)]?.some(filterMatch({ isbn }))
-      );
+      const _filterSets: FilterSet[] = filterSets.filter(filterSet => {
+        const result = filterQueueResults[JSON.stringify(filterSet.fetch)];
+        if (typeof result === 'string') return false;
+        return result?.some(filterMatch({ isbn }));
+      });
       const wrappedFilterSets =
         _filterSets.length > 0
           ? _filterSets

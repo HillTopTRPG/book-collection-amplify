@@ -7,7 +7,7 @@ import { getKeys } from '@/utils/type.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 type QueueType = string;
-type QueueResult = BookData[];
+type QueueResult = BookData[] | 'retrying';
 
 const initialState = makeInitialQueueState<QueueType, QueueResult>();
 
@@ -20,7 +20,7 @@ export const fetchNdlSearchSlice = createSlice({
       state,
       action: PayloadAction<{
         list: QueueType[];
-        type: 'new' | 'priority';
+        type: 'new' | 'retry' | 'priority';
       }>
     ) => {
       enqueue(state, action);
@@ -36,12 +36,12 @@ export const { enqueueNdlSearch, dequeueNdlSearch } = fetchNdlSearchSlice.action
 const _selectQueueUnUnique = simpleSelector('fetchNdlSearch', 'queue');
 const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => unique(unUniqueQueue));
 /** NDL検索キューの中で処理対象のもの */
-export const selectNdlSearchQueueTargets = createSelector([_selectQueue], queue => queue.slice(0, 2));
+export const selectNdlSearchTargets = createSelector([_selectQueue], queue => queue.slice(0, 2));
 /** NDL検索条件：書籍一覧 のRecord */
-export const selectNdlSearchQueueResults = simpleSelector('fetchNdlSearch', 'results');
-export const selectFetchedAllBooks = createSelector([selectNdlSearchQueueResults], results =>
+export const selectNdlSearchResults = simpleSelector('fetchNdlSearch', 'results');
+export const selectFetchedAllBooks = createSelector([selectNdlSearchResults], results =>
   getKeys(results)
-    .flatMap(option => results[option])
+    .flatMap(option => (typeof results[option] === 'string' ? [] : results[option]))
     .filter((book, idx, self) => self.findIndex(b => b.isbn === book.isbn) === idx)
 );
 
