@@ -109,7 +109,7 @@ export const getIsbn13CheckDigit = (isbn13Part: string): string => {
 /**
  * 出版社コード判定用の境界値
  */
-const PUBLISHER_CODE_BOUNDARIES = [20, 70, 85, 90, 95] as const;
+const PUBLISHER_CODE_BOUNDARIES = [20, 70, 85, 90, 95, 100] as const;
 
 /**
  * ISBN-10のベースオフセット

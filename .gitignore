@@ -29,4 +29,5 @@ amplify_outputs*
 amplifyconfiguration*
 
 .env
+coverage
 tmp
