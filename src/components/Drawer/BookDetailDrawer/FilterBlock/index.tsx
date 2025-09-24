@@ -1,7 +1,9 @@
 import { Fragment, useCallback, useMemo } from 'react';
+import { ChevronsUpDown } from 'lucide-react';
 import NdlCardList from '@/components/Drawer/BookDetailDrawer/FilterBlock/NdlCardList.tsx';
 import SearchConditionItem from '@/components/Drawer/BookDetailDrawer/FilterBlock/SearchConditionItem.tsx';
 import { Checkbox } from '@/components/ui/checkbox.tsx';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible.tsx';
 import { Label } from '@/components/ui/label.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import useDOMSize from '@/hooks/useDOMSize.ts';
@@ -84,21 +86,36 @@ export default function FilterBlock({
             {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
           />
         ) : (
-          groupedBooks.map(({ list, next, first }, idx) => (
+          groupedBooks.map((list, idx) => (
             <Fragment key={idx}>
               {idx ? <Separator /> : null}
-              <div className="sticky z-[100] dark:bg-green-800 px-2 py-1" style={{ top: size.height }}>
-                {idx === groupedBooks.length - 1
-                  ? 'グループなし'
-                  : `group${idx + 1} (${first}~${next - 1}) ${list.length}件`}
-              </div>
-              <div className="flex">
-                <div className="dark:bg-green-800 w-4"></div>
-                <div className="flex flex-col flex-1">
-                  <NdlCardList books={list} {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn }} />
-                  <div className="px-2 py-1">{list.length}件</div>
-                </div>
-              </div>
+              <Collapsible defaultOpen={true} className="contents">
+                <CollapsibleTrigger asChild>
+                  <div
+                    className="flex dark:bg-green-800 px-2 py-1 sticky z-[100] cursor-pointer"
+                    style={{ top: size.height }}
+                  >
+                    <div className="flex-1">
+                      {idx === groupedBooks.length - 1 && groupedBooks[idx][0].volume === -1
+                        ? 'グルーピングなし'
+                        : `グルーピング${idx + 1} (${list[0].volume}~${list[list.length - 1].volume}) ${list.length}件`}
+                    </div>
+                    <ChevronsUpDown />
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="contents">
+                  <div className="flex">
+                    <div className="dark:bg-green-800 w-2"></div>
+                    <div className="flex flex-col flex-1">
+                      <NdlCardList
+                        books={list.map(({ book }) => book)}
+                        {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
+                      />
+                      <div className="px-2 py-1">{list.length}件</div>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </Fragment>
           ))
         )}

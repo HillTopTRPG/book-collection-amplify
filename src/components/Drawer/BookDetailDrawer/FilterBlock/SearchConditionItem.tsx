@@ -17,7 +17,7 @@ const SIGN_LABELS: Record<Sign, string> = {
   ['!*']: '除く',
 } as const;
 
-const convert = (v: string | null | undefined) =>
+export const convert = (v: string | null | undefined) =>
   v
     ?.trim()
     .replace(/^[0-9()[\]a-zA-Z-.]+$/, '')

@@ -54,7 +54,7 @@ export default function NdlCard({ ndl, filterSet, orIndex, selectedIsbn, setSele
           </Fragment>
         ))}
       </div>
-      <div className="flex items-start w-full gap-1.5">
+      <div className="flex items-stretch w-full gap-1.5">
         <BookImage isbn={isbn} onClick={() => onOpenBookDetail(isbn)} />
         <div
           className="flex items-baseline flex-wrap gap-x-3 flex-1 pl-1.5 relative"

@@ -5,20 +5,14 @@ import type { FilterAndGroup, FilterSet } from '@/store/subscriptionDataSlice.ts
 import type { Isbn13 } from '@/types/book.ts';
 import type { QueueState } from '@/types/queue.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
-import {
-  createSimpleReducers,
-  deleteAllStrings,
-  dequeue,
-  enqueue,
-  makeNdlOptionsStringByNdlFullOptions,
-  simpleSelector,
-} from '@/utils/data.ts';
+import { deleteAllStrings, makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import {
   deleteScannedIsbnToLocalStorage,
   pushScannedIsbnToLocalStorage,
   resetScannedIsbnToLocalStorage,
 } from '@/utils/localStorage.ts';
 import { unique } from '@/utils/primitive.ts';
+import { dequeue, enqueue, createSimpleReducers, simpleSelector } from '@/utils/store.ts';
 import type { PickRequired } from '@/utils/type.ts';
 import { getKeys } from '@/utils/type.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';

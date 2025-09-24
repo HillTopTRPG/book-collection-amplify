@@ -69,7 +69,7 @@ export default function BookImage({ isbn, size, onClick }: Props) {
       ref={ref}
       className="min-w-[50px] min-h-[75px] rounded border flex items-center justify-center"
       onClick={onClick}
-      style={{ minWidth: width, minHeight: height }}
+      style={{ minWidth: width, maxWidth: width, minHeight: height, maxHeight: height }}
     >
       {content}
     </div>

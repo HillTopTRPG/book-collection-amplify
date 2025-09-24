@@ -1,8 +1,8 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { BookData, Isbn13 } from '@/types/book.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
-import { dequeue, enqueue, simpleSelector } from '@/utils/data.ts';
 import { unique } from '@/utils/primitive.ts';
+import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 type QueueType = Isbn13;
@@ -10,7 +10,7 @@ type QueueResult = BookData | 'retrying' | null;
 
 const initialState = makeInitialQueueState<QueueType, QueueResult>();
 
-// Google Books API処理
+// Rakuten Books API処理
 export const fetchRakutenSearchSlice = createSlice({
   name: 'fetchGoogleSearch',
   initialState,

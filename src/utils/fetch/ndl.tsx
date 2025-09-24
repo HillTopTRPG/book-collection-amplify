@@ -56,7 +56,8 @@ const getNdlBooks = (recordElm: Element): [BookData] | [] => {
   const ndcInfo =
     xml
       .getAllAttributes('ndc', 'resourceAttr')
-      .flatMap(sp => {
+      .flatMap(raw => {
+        const sp = raw.split('/');
         const rawNdcType = sp.at(-2);
         const ndcCode = sp.at(-1);
         const ndcType: 'ndc8' | 'ndc9' = rawNdcType === 'ndc8' ? 'ndc8' : 'ndc9';
