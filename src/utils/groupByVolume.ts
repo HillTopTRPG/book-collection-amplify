@@ -3,270 +3,324 @@ import type { BookData } from '@/types/book.ts';
 import { getVolumeNumber, isNearDateBook } from '@/utils/bookData.ts';
 import { getStringSimilarity } from '@/utils/stringSimilarity.ts';
 
-const OUTPUT_ISBN = ['9784061996694'];
-const isOutputInfo = ({ book }: GroupingInfo[number]) => OUTPUT_ISBN.includes(book.isbn);
+type BookWithVolume = { book: BookData; volume: number };
+type BookGroup = BookWithVolume[];
 
-const getBookValue = <Property extends keyof BookData>(v: GroupingInfo[number], property: Property) => v.book[property];
+interface MatchCandidate {
+  bookWithVolume: BookWithVolume;
+  groupIndex: number;
+  itemIndex: number;
+}
 
-const simpleEquals = <Property extends keyof BookData>(
-  v1: GroupingInfo[number],
-  v2: GroupingInfo[number],
+interface ScoredCandidate extends MatchCandidate {
+  score: number;
+}
+
+const DEBUG_ISBN = ['9784061996694'];
+const shouldLogDebugInfo = (bookWithVolume: BookWithVolume) => DEBUG_ISBN.includes(bookWithVolume.book.isbn);
+
+/**
+ * 書籍のプロパティ値を取得する
+ */
+const getBookProperty = <Property extends keyof BookData>(bookWithVolume: BookWithVolume, property: Property) =>
+  bookWithVolume.book[property];
+
+/**
+ * 2つの書籍の指定プロパティが等しいかどうかを判定する
+ */
+const arePropertiesEqual = <Property extends keyof BookData>(
+  book1: BookWithVolume,
+  book2: BookWithVolume,
   property: Property,
-  convert?: (value: BookData[Property], volume: number) => string | null | undefined
+  transformer?: (value: BookData[Property], volume: number) => string | null | undefined
 ): boolean => {
-  const [c1, c2] = [v1, v2].map(v =>
-    convert ? (convert(getBookValue(v, property), v.volume) ?? '') : getBookValue(v, property)
-  );
+  const getValue = (bookWithVolume: BookWithVolume) => {
+    const rawValue = getBookProperty(bookWithVolume, property);
 
-  return c1 === c2 && Boolean(c1) && Boolean(c2);
+    return transformer ? (transformer(rawValue, bookWithVolume.volume) ?? '') : rawValue;
+  };
+
+  const [value1, value2] = [book1, book2].map(getValue);
+
+  return value1 === value2 && Boolean(value1) && Boolean(value2);
 };
 
-const calculateBookValues = <Property extends keyof BookData>(
-  v1: GroupingInfo[number],
-  v2: GroupingInfo[number],
+/**
+ * 2つの書籍の指定プロパティの文字列類似度を計算する
+ */
+const calculateStringSimilarity = <Property extends keyof BookData>(
+  book1: BookWithVolume,
+  book2: BookWithVolume,
   property: Property
-) => {
-  const [c1, c2] = [v1, v2].map(v => getBookValue(v, property));
+): number => {
+  const [value1, value2] = [book1, book2].map(book => getBookProperty(book, property));
 
-  return typeof c1 === 'string' && typeof c2 === 'string' ? getStringSimilarity(c1, c2) : 0;
+  return typeof value1 === 'string' && typeof value2 === 'string' ? getStringSimilarity(value1, value2) : 0;
 };
 
-const POINT_RULES: { rule: (v1: GroupingInfo[number], v2: GroupingInfo[number]) => number; message: string }[] = [
-  { message: 'ISBN一致', rule: (v1, v2) => (getBookValue(v1, 'isbn') === getBookValue(v2, 'isbn') ? 1000 : 0) },
+/**
+ * 文字列から巻数部分を除去してトリムする変換関数
+ */
+const createVolumeTransformer = (value: string | null | undefined, volume: number) =>
+  value?.replace(volume.toString(), '').trim();
+
+interface MatchingRule {
+  name: string;
+  calculateScore: (book1: BookWithVolume, book2: BookWithVolume) => number;
+}
+
+const MATCHING_RULES: MatchingRule[] = [
   {
-    message: 'タイトル一致',
-    rule: (v1, v2) => {
-      if (simpleEquals(v1, v2, 'title')) return 1;
-      const calc = calculateBookValues(v1, v2, 'title');
-      if (isOutputInfo(v2)) console.log('calc:', calc, v1.book.isbn);
-      return calc >= 0.9 ? 1 : -1;
+    name: 'ISBN一致',
+    calculateScore: (book1, book2) => (getBookProperty(book1, 'isbn') === getBookProperty(book2, 'isbn') ? 1000 : 0),
+  },
+  {
+    name: 'タイトル一致',
+    calculateScore: (book1, book2) => {
+      if (arePropertiesEqual(book1, book2, 'title')) return 1;
+      const similarity = calculateStringSimilarity(book1, book2, 'title');
+      if (shouldLogDebugInfo(book2)) {
+        console.log('calc:', similarity, book1.book.isbn);
+      }
+      return similarity >= 0.9 ? 1 : -1;
     },
   },
   {
-    message: 'タイトル一致かつvolumeの一部が一致',
-    rule: (v1, v2) => {
-      if (!simpleEquals(v1, v2, 'title')) return 0;
-      const [c1, c2] = [v1, v2].map(v => getBookValue(v, 'volume')?.replace(v.volume.toString(), '').trim());
-      if (!c1 || !c2) return 0;
-      return c1 === c2 ? 1 : 0;
+    name: 'タイトル一致かつvolumeの一部が一致',
+    calculateScore: (book1, book2) => {
+      if (!arePropertiesEqual(book1, book2, 'title')) return 0;
+      return arePropertiesEqual(book1, book2, 'volume', createVolumeTransformer) ? 1 : 0;
     },
   },
   {
-    message: 'タイトル一致かつvolumeTitleの一部が一致',
-    rule: (v1, v2) => {
-      if (!simpleEquals(v1, v2, 'title')) return 0;
-      const [c1, c2] = [v1, v2].map(v => getBookValue(v, 'volumeTitle')?.replace(v.volume.toString(), '').trim());
-      if (!c1 || !c2) return 0;
-      return c1 === c2 ? 1 : 0;
+    name: 'タイトル一致かつvolumeTitleの一部が一致',
+    calculateScore: (book1, book2) => {
+      if (!arePropertiesEqual(book1, book2, 'title')) return 0;
+      return arePropertiesEqual(book1, book2, 'volumeTitle', createVolumeTransformer) ? 1 : 0;
     },
   },
   {
-    message: 'タイトル一致かつextentの一部が一致',
-    rule: (v1, v2) => {
-      if (!simpleEquals(v1, v2, 'title')) return 0;
-      const [c1, c2] = [v1, v2].map(
-        v =>
-          getBookValue(v, 'extent')
-            // ページ数は含めない
-            ?.replace(/[0-9]+ *p/g, '')
-            .split(';')
-            // +や×は区切って考慮する
-            .flatMap(v =>
-              v
-                .trim()
-                .split(/[+＋×]/g)
-                .map(v => {
-                  const str = v.trim();
-                  const matchResult = str.match(/([0-9]+) *(cm)/g);
-                  if (matchResult) return `${matchResult[1]}${matchResult[2]}`;
-                  return str;
-                })
-            )
-            .filter(Boolean) ?? null
-      );
-      if (!c1 || !c2) return 0;
-      return c1.filter(s => c2.includes(s)).length;
+    name: 'タイトル一致かつextentの一部が一致',
+    calculateScore: (book1, book2) => {
+      if (!arePropertiesEqual(book1, book2, 'title')) return 0;
+
+      const parseExtent = (bookWithVolume: BookWithVolume) => {
+        const extent = getBookProperty(bookWithVolume, 'extent');
+        if (!extent) return null;
+
+        return extent
+          .replace(/[0-9]+ *p/g, '')
+          .split(';')
+          .flatMap(part =>
+            part
+              .trim()
+              .split(/[+＋×]/g)
+              .map(subPart => {
+                const trimmed = subPart.trim();
+                const matchResult = trimmed.match(/([0-9]+) *(cm)/g);
+
+                return matchResult ? `${matchResult[1]}${matchResult[2]}` : trimmed;
+              })
+          )
+          .filter(Boolean);
+      };
+
+      const [extentParts1, extentParts2] = [book1, book2].map(parseExtent);
+      if (!extentParts1 || !extentParts2) return 0;
+
+      return extentParts1.filter(part => extentParts2.includes(part)).length;
     },
   },
   {
-    message: 'タイトル一致かつndcコード一致',
-    rule: (v1, v2) => {
-      if (!simpleEquals(v1, v2, 'title')) return 0;
-      const [ndc1, ndc2] = [v1, v2].map(v => getBookValue(v, 'ndc')?.replace(/^ndc[0-9]+:/g, ''));
+    name: 'タイトル一致かつndcコード一致',
+    calculateScore: (book1, book2) => {
+      if (!arePropertiesEqual(book1, book2, 'title')) return 0;
+
+      const getNdcCode = (bookWithVolume: BookWithVolume) =>
+        getBookProperty(bookWithVolume, 'ndc')?.replace(/^ndc[0-9]+:/g, '');
+
+      const [ndc1, ndc2] = [book1, book2].map(getNdcCode);
 
       return Boolean(ndc1) && Boolean(ndc2) && ndc1 === ndc2 ? 1 : 0;
     },
   },
   {
-    message: 'volume一部一致',
-    rule: (v1, v2) => (simpleEquals(v1, v2, 'volume', (v, volume) => v?.replace(volume.toString(), '').trim()) ? 1 : 0),
+    name: 'volume一部一致',
+    calculateScore: (book1, book2) => (arePropertiesEqual(book1, book2, 'volume', createVolumeTransformer) ? 1 : 0),
   },
   {
-    message: 'volumeTitle一部一致',
-    rule: (v1, v2) =>
-      simpleEquals(v1, v2, 'volumeTitle', (v, volume) => v?.replace(volume.toString(), '').trim()) ? 1 : 0,
+    name: 'volumeTitle一部一致',
+    calculateScore: (book1, book2) =>
+      arePropertiesEqual(book1, book2, 'volumeTitle', createVolumeTransformer) ? 1 : 0,
   },
-  { message: 'edition一致', rule: (v1, v2) => (simpleEquals(v1, v2, 'edition') ? 1 : 0) },
-  // (v1, v2) => simpleEquals(v1, v2, 'publisher'),
   {
-    message: 'edition違いの出版日が近い',
-    rule: (v1, v2) => {
-      const [c1, c2] = [v1, v2].map(v => getBookValue(v, 'edition') ?? null);
-      if ((!c1 && !c2) || c1 === c2) return 0;
-      return isNearDateBook(v1.book, v2.book) ? 1 : 0;
+    name: 'edition一致',
+    calculateScore: (book1, book2) => (arePropertiesEqual(book1, book2, 'edition') ? 1 : 0),
+  },
+  {
+    name: 'edition違いの出版日が近い',
+    calculateScore: (book1, book2) => {
+      const [edition1, edition2] = [book1, book2].map(book => getBookProperty(book, 'edition') ?? null);
+      if ((!edition1 && !edition2) || edition1 === edition2) return 0;
+      return isNearDateBook(book1.book, book2.book) ? 1 : 0;
     },
   },
   {
-    message: 'タイトル一致かつシリーズ名の部分一致の数',
-    rule: (v1, v2) => {
-      if (!simpleEquals(v1, v2, 'title')) return 0;
-      const [c1, c2] = [v1, v2].map(v => getBookValue(v, 'seriesTitle')?.split(';').map(convert).filter(Boolean) ?? []);
+    name: 'タイトル一致かつシリーズ名の部分一致の数',
+    calculateScore: (book1, book2) => {
+      if (!arePropertiesEqual(book1, book2, 'title')) return 0;
 
-      return c1.filter(s => c2.includes(s)).length;
+      const getSeriesTitles = (bookWithVolume: BookWithVolume) =>
+        getBookProperty(bookWithVolume, 'seriesTitle')?.split(';').map(convert).filter(Boolean) ?? [];
+
+      const [seriesTitles1, seriesTitles2] = [book1, book2].map(getSeriesTitles);
+
+      return seriesTitles1.filter(title => seriesTitles2.includes(title)).length;
     },
   },
 ];
 
-const pushInfoToResults = (info: GroupingInfo[number], results: GroupingInfo[]) => {
-  const output = (label: string, groupIndex: number, point: number) => {
-    if (!isOutputInfo(info)) return;
-    console.log(
-      label,
-      groupIndex,
-      info.book.isbn,
-      point,
-      `'${info.book.title}'`,
-      `'${info.book.volume}'`,
-      `'${info.book.volumeTitle}'`,
-      info.volume
-    );
-  };
-
-  const pointObj = results
-    // 各階層のindexを付与した情報の一覧を生成
-    .flatMap((group, groupIndex) =>
-      group.map((item, itemIndex) => ({
-        item,
-        groupIndex,
-        itemIndex,
-      }))
-    )
-    // ポイントを算出する要素を限定する
-    .filter(({ item, groupIndex }) => {
-      const lastVolume = results[groupIndex][results[groupIndex].length - 1].volume;
-
-      // 特別対応
-      if (item.volume === info.volume && lastVolume === item.volume + 1) return true;
-
-      // グループの最後のVolume番号と一致するものしか対象にしない
-      if (item.volume !== lastVolume) return false;
-
-      if (item.volume === 1 && info.volume === -1) return true;
-      if (item.volume === -1) return [2, 1].includes(info.volume);
-      if (item.volume === info.volume) return true;
-      return item.volume + 1 === info.volume;
-    })
-    // ポイントを算出してリストに含める
-    .map(data => ({
-      ...data,
-      point: POINT_RULES.map(({ rule, message }) => {
-        const result = rule(data.item, info);
-        if (result && isOutputInfo(info)) {
-          console.log(info.book.isbn, `+${result}`, data.item.book.isbn, message);
-        }
-        return result;
-      }).reduce((sum, point) => sum + point, 0),
-    }))
-    // 一覧の中で最も高いポイントを取った書籍情報の一覧を生成
-    .reduce<{
-      max: number;
-      list: { item: GroupingInfo[number]; groupIndex: number; itemIndex: number; point: number }[];
-    }>(
-      (res, cur) => {
-        if (res.max < cur.point) return { max: cur.point, list: [cur] };
-        if (res.max > cur.point) return res;
-        res.list.push(cur);
-        return res;
-      },
-      { max: 0, list: [] }
-    );
-
-  if (!pointObj.max) {
-    if (info.volume === -1) {
-      results[0].push(info);
-      output('マッチしない非グループ(0)', -1, 0);
-    } else {
-      results.push([info]);
-      output('マッチしないVolumed(0)', -1, 0);
+const calculateBookScore = (candidate: BookWithVolume, target: BookWithVolume): number =>
+  MATCHING_RULES.map(({ name, calculateScore }) => {
+    const score = calculateScore(candidate, target);
+    if (score && shouldLogDebugInfo(target)) {
+      console.log(target.book.isbn, `+${score}`, candidate.book.isbn, name);
     }
-    return;
+    return score;
+  }).reduce((totalScore, ruleScore) => totalScore + ruleScore, 0);
+
+const isValidCandidate = (
+  candidate: BookWithVolume,
+  target: BookWithVolume,
+  groupIndex: number,
+  groups: BookGroup[]
+): boolean => {
+  const lastVolumeInGroup = groups[groupIndex][groups[groupIndex].length - 1].volume;
+
+  if (candidate.volume === target.volume && lastVolumeInGroup === candidate.volume + 1) {
+    return true;
   }
 
-  // 付与されているindex情報に基づいてソート
-  const list = pointObj.list.sort((a, b) => {
-    if (a.groupIndex < b.groupIndex) return 1;
-    if (a.groupIndex > b.groupIndex) return -1;
-    if (a.itemIndex < b.itemIndex) return 1;
-    if (a.itemIndex > b.itemIndex) return -1;
-    return 0;
-  });
-
-  if (!list.length) {
-    if (info.volume === -1) {
-      results[0].push(info);
-      output('マッチしない非グループ(1)', -1, 0);
-    } else {
-      results.push([info]);
-      output('マッチしないVolumed(1)', -1, 0);
-    }
-    return;
+  if (candidate.volume !== lastVolumeInGroup) {
+    return false;
   }
 
-  const nextList = list.filter(({ item }) => item.volume !== -1 && item.volume + 1 === info.volume);
-  if (nextList.length) {
-    const { groupIndex, point } = nextList[0];
-    results[groupIndex].push(info);
-    output('next', groupIndex, point);
-    return;
-  }
-
-  const equalsList = list.filter(({ item }) => item.volume === info.volume);
-  if (equalsList.length) {
-    const { groupIndex, point } = equalsList[0];
-    results[groupIndex].push(info);
-    output('equals', groupIndex, point);
-    return;
-  }
-
-  const unSeriesList = list.filter(({ groupIndex }) => !groupIndex);
-  if (unSeriesList.length) {
-    const addList: GroupingInfo = [];
-    unSeriesList.forEach(({ itemIndex }) => {
-      addList.push(...results[0].splice(itemIndex, 1));
-    });
-    addList.forEach(item => (item.volume = 1));
-    addList.push(info);
-    results.push(addList);
-    output('unSeries', -1, unSeriesList[0].point);
-    return;
-  }
-
-  const { groupIndex, point } = list[0];
-  info.volume = info.volume === -1 ? 1 : info.volume;
-  results[groupIndex].push(info);
-  output('else', groupIndex, point);
+  if (candidate.volume === 1 && target.volume === -1) return true;
+  if (candidate.volume === -1) return [2, 1].includes(target.volume);
+  if (candidate.volume === target.volume) return true;
+  return candidate.volume + 1 === target.volume;
 };
 
-type GroupingInfo = { book: BookData; volume: number }[];
+const findBestMatchingCandidates = (target: BookWithVolume, groups: BookGroup[]): ScoredCandidate[] => {
+  const allCandidates = groups.flatMap((group, groupIndex) =>
+    group.map((bookWithVolume, itemIndex) => ({
+      bookWithVolume,
+      groupIndex,
+      itemIndex,
+    }))
+  );
 
-export const groupByVolume = (books: BookData[]): GroupingInfo[] => {
-  const results: GroupingInfo[] = [[]];
+  const validCandidates = allCandidates
+    .filter(({ bookWithVolume, groupIndex }) => isValidCandidate(bookWithVolume, target, groupIndex, groups))
+    .map(candidate => ({
+      ...candidate,
+      score: calculateBookScore(candidate.bookWithVolume, target),
+    }));
+
+  const maxScore = Math.max(0, ...validCandidates.map(c => c.score));
+
+  return validCandidates.filter(candidate => candidate.score === maxScore);
+};
+
+const logBookPlacement = (bookWithVolume: BookWithVolume, label: string, groupIndex: number, score: number) => {
+  if (!shouldLogDebugInfo(bookWithVolume)) return;
+
+  console.log(
+    label,
+    groupIndex,
+    bookWithVolume.book.isbn,
+    score,
+    `'${bookWithVolume.book.title}'`,
+    `'${bookWithVolume.book.volume}'`,
+    `'${bookWithVolume.book.volumeTitle}'`,
+    bookWithVolume.volume
+  );
+};
+
+const addBookToGroups = (bookWithVolume: BookWithVolume, groups: BookGroup[]): void => {
+  const bestCandidates = findBestMatchingCandidates(bookWithVolume, groups);
+
+  if (bestCandidates.length === 0) {
+    if (bookWithVolume.volume === -1) {
+      groups[0].push(bookWithVolume);
+      logBookPlacement(bookWithVolume, 'マッチしない非グループ(0)', -1, 0);
+    } else {
+      groups.push([bookWithVolume]);
+      logBookPlacement(bookWithVolume, 'マッチしないVolumed(0)', -1, 0);
+    }
+    return;
+  }
+
+  const sortedCandidates = bestCandidates.sort((a, b) => {
+    if (a.groupIndex !== b.groupIndex) return b.groupIndex - a.groupIndex;
+    return b.itemIndex - a.itemIndex;
+  });
+
+  const nextVolumeCandidates = sortedCandidates.filter(
+    ({ bookWithVolume: candidate }) => candidate.volume !== -1 && candidate.volume + 1 === bookWithVolume.volume
+  );
+
+  if (nextVolumeCandidates.length > 0) {
+    const { groupIndex, score } = nextVolumeCandidates[0];
+    groups[groupIndex].push(bookWithVolume);
+    logBookPlacement(bookWithVolume, 'next', groupIndex, score);
+    return;
+  }
+
+  const sameVolumeCandidates = sortedCandidates.filter(
+    ({ bookWithVolume: candidate }) => candidate.volume === bookWithVolume.volume
+  );
+
+  if (sameVolumeCandidates.length > 0) {
+    const { groupIndex, score } = sameVolumeCandidates[0];
+    groups[groupIndex].push(bookWithVolume);
+    logBookPlacement(bookWithVolume, 'equals', groupIndex, score);
+    return;
+  }
+
+  const unSeriesCandidates = sortedCandidates.filter(({ groupIndex }) => groupIndex === 0);
+
+  if (unSeriesCandidates.length > 0) {
+    const movedBooks: BookWithVolume[] = [];
+    unSeriesCandidates.forEach(({ itemIndex }) => {
+      movedBooks.push(...groups[0].splice(itemIndex, 1));
+    });
+    movedBooks.forEach(book => (book.volume = 1));
+    movedBooks.push(bookWithVolume);
+    groups.push(movedBooks);
+    logBookPlacement(bookWithVolume, 'unSeries', -1, unSeriesCandidates[0].score);
+    return;
+  }
+
+  const { groupIndex, score } = sortedCandidates[0];
+  if (bookWithVolume.volume === -1) bookWithVolume.volume = 1;
+  groups[groupIndex].push(bookWithVolume);
+  logBookPlacement(bookWithVolume, 'else', groupIndex, score);
+};
+
+export const groupByVolume = (books: BookData[]): BookGroup[] => {
+  const groups: BookGroup[] = [[]];
+
   books.forEach(book => {
     const volume = getVolumeNumber(book) ?? -1;
-    pushInfoToResults({ book, volume }, results);
+    const bookWithVolume: BookWithVolume = { book, volume };
+    addBookToGroups(bookWithVolume, groups);
   });
-  const unGroupList = results.shift();
-  if (unGroupList?.length) results.push(unGroupList);
-  // console.log(JSON.stringify(results, null, 2));
-  return results;
+
+  const unGroupedBooks = groups.shift();
+  if (unGroupedBooks?.length) {
+    groups.push(unGroupedBooks);
+  }
+
+  return groups;
 };
