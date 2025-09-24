@@ -40,8 +40,6 @@ export default function NdlCard({ ndl, filterSet, orIndex, selectedIsbn, setSele
     [orIndex, filterSet.filters]
   );
 
-  const title = [isViewTitle ? ndl.title : '', ndl.volume ?? '', ndl.volumeTitle ?? ''].join(' ').trim();
-
   return (
     <CardFrame className="flex-col gap-1 py-1 px-2">
       <div className="flex flex-wrap justify-start w-full">
@@ -67,7 +65,17 @@ export default function NdlCard({ ndl, filterSet, orIndex, selectedIsbn, setSele
             </OverPanel>
           ) : null}
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
-            <TempItem value={title} highLights={anywhereList} className="text-base/5 font-bold" />
+            <TempItem
+              value={isViewTitle ? ndl.title : null}
+              highLights={anywhereList}
+              className="text-base/5 font-bold"
+            />
+          </div>
+          <div className="w-full flex items-baseline flex-wrap gap-x-3">
+            <TempItem value={ndl.volume} highLights={anywhereList} className="text-base/5 font-bold" />
+          </div>
+          <div className="w-full flex items-baseline flex-wrap gap-x-3">
+            <TempItem value={ndl.volumeTitle} highLights={anywhereList} className="text-base/5 font-bold" />
           </div>
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
             {isViewCreator ? <TempItem value={creatorText} highLights={anywhereList} className="text-xs" /> : null}

@@ -33,7 +33,7 @@ const removeBrackets = (text: string): string => text.replaceAll(/[[\]()]/g, '')
 /**
  * 書籍情報から巻数抽出用の文字列を取得する
  */
-const getVolumeSourceText = (book: BookData): string => (book.volume || book.volumeTitle || book.title || '').trim();
+const getVolumeSourceText = (book: BookData): string => (book.volume || book.volumeTitle || '').trim();
 
 /**
  * 文字列を正規化する（全角数字変換、括弧除去、トリム）
@@ -45,8 +45,10 @@ const normalizeTextForVolumeExtraction = (text: string): string =>
  * 文字列から数字を抽出する
  */
 const extractNumberFromText = (text: string): string | undefined => {
+  // 完全一致
   const exactMatch = text.match(/^[0-9]+$/)?.at(0);
-  const endMatch = text.match(/[0-9]+$/)?.at(0);
+  // 末端一致
+  const endMatch = text.match(/[0-9]+/)?.at(0);
 
   return [exactMatch, endMatch].find(match => match !== undefined);
 };
@@ -59,9 +61,11 @@ export const getVolumeNumber = (book: BookData): number | null => {
   const normalizedText = normalizeTextForVolumeExtraction(sourceText);
   const numberString = extractNumberFromText(normalizedText);
 
-  if (numberString === undefined) return null;
+  const volume = numberString ? parseInt(numberString, 10) : null;
 
-  return parseInt(numberString, 10);
+  // console.log('volume', volume, book.volume, book.volumeTitle, book.title);
+
+  return volume;
 };
 
 /**

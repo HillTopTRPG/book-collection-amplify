@@ -16,7 +16,7 @@ interface ScoredCandidate extends MatchCandidate {
   score: number;
 }
 
-const DEBUG_ISBN = ['9784061996694'];
+const DEBUG_ISBN = ['9784086177849'];
 const shouldLogDebugInfo = (bookWithVolume: BookWithVolume) => DEBUG_ISBN.includes(bookWithVolume.book.isbn);
 
 /**
@@ -77,12 +77,15 @@ const MATCHING_RULES: MatchingRule[] = [
   {
     name: 'タイトル一致',
     calculateScore: (book1, book2) => {
+      if (shouldLogDebugInfo(book2)) {
+        console.log(book1.book.title, book2.book.title);
+      }
       if (arePropertiesEqual(book1, book2, 'title')) return 1;
       const similarity = calculateStringSimilarity(book1, book2, 'title');
       if (shouldLogDebugInfo(book2)) {
         console.log('calc:', similarity, book1.book.isbn);
       }
-      return similarity >= 0.9 ? 1 : -1;
+      return similarity >= 0.9 ? 1 : 0;
     },
   },
   {
@@ -117,7 +120,7 @@ const MATCHING_RULES: MatchingRule[] = [
               .split(/[+＋×]/g)
               .map(subPart => {
                 const trimmed = subPart.trim();
-                const matchResult = trimmed.match(/([0-9]+) *(cm)/g);
+                const matchResult = trimmed.match(/([0-9]+) *(cm)/);
 
                 return matchResult ? `${matchResult[1]}${matchResult[2]}` : trimmed;
               })
@@ -127,6 +130,11 @@ const MATCHING_RULES: MatchingRule[] = [
 
       const [extentParts1, extentParts2] = [book1, book2].map(parseExtent);
       if (!extentParts1 || !extentParts2) return 0;
+
+      if (shouldLogDebugInfo(book2)) {
+        console.log(JSON.stringify(extentParts1, null, 2));
+        console.log(JSON.stringify(extentParts2, null, 2));
+      }
 
       return extentParts1.filter(part => extentParts2.includes(part)).length;
     },
@@ -196,6 +204,9 @@ const isValidCandidate = (
   groups: BookGroup[]
 ): boolean => {
   const lastVolumeInGroup = groups[groupIndex][groups[groupIndex].length - 1].volume;
+  if (shouldLogDebugInfo(target) && target.volume - 2 <= candidate.volume && candidate.volume <= target.volume + 1) {
+    console.log(lastVolumeInGroup, groupIndex, candidate.volume, candidate.book.isbn, target.volume);
+  }
 
   if (candidate.volume === target.volume && lastVolumeInGroup === candidate.volume + 1) {
     return true;
@@ -229,7 +240,11 @@ const findBestMatchingCandidates = (target: BookWithVolume, groups: BookGroup[])
 
   const maxScore = Math.max(0, ...validCandidates.map(c => c.score));
 
-  return validCandidates.filter(candidate => candidate.score === maxScore);
+  if (shouldLogDebugInfo(target)) {
+    console.log(allCandidates.length, validCandidates.length, maxScore);
+  }
+
+  return validCandidates.filter(candidate => maxScore > 0 && candidate.score === maxScore);
 };
 
 const logBookPlacement = (bookWithVolume: BookWithVolume, label: string, groupIndex: number, score: number) => {
@@ -256,7 +271,7 @@ const addBookToGroups = (bookWithVolume: BookWithVolume, groups: BookGroup[]): v
       logBookPlacement(bookWithVolume, 'マッチしない非グループ(0)', -1, 0);
     } else {
       groups.push([bookWithVolume]);
-      logBookPlacement(bookWithVolume, 'マッチしないVolumed(0)', -1, 0);
+      logBookPlacement(bookWithVolume, 'マッチしないVolumed', -1, 0);
     }
     return;
   }
@@ -282,10 +297,19 @@ const addBookToGroups = (bookWithVolume: BookWithVolume, groups: BookGroup[]): v
   );
 
   if (sameVolumeCandidates.length > 0) {
-    const { groupIndex, score } = sameVolumeCandidates[0];
-    groups[groupIndex].push(bookWithVolume);
-    logBookPlacement(bookWithVolume, 'equals', groupIndex, score);
-    return;
+    const { groupIndex, score, bookWithVolume: item } = sameVolumeCandidates[0];
+    const itemList = groups[groupIndex];
+    if (shouldLogDebugInfo(bookWithVolume)) {
+      console.log(itemList[itemList.length - 1].volume, bookWithVolume.volume, item.volume);
+    }
+    if (itemList[itemList.length - 1].volume === bookWithVolume.volume) {
+      itemList.push(bookWithVolume);
+      logBookPlacement(bookWithVolume, 'equals', groupIndex, score);
+      return;
+    } else {
+      groups.push([bookWithVolume]);
+      return;
+    }
   }
 
   const unSeriesCandidates = sortedCandidates.filter(({ groupIndex }) => groupIndex === 0);
