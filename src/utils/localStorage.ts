@@ -1,5 +1,6 @@
 import type { Isbn13 } from '@/types/book.ts';
-import { deleteAllStrings, getIsbn13, unique } from '@/utils/primitive.ts';
+import { getIsbn13 } from '@/utils/isbn.ts';
+import { deleteAllStrings, unique } from '@/utils/primitive.ts';
 
 const LocalStorageKeys = {
   // スキャンしたISBNコードの配列

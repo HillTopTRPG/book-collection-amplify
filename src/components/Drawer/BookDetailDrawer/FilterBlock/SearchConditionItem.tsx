@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { updateFetchedFilterAnywhere } from '@/store/scannerSlice.ts';
 import type { FilterSet, Sign } from '@/store/subscriptionDataSlice.ts';
 import type { BookData, Isbn13 } from '@/types/book.ts';
-import { unique } from '@/utils/primitive.ts';
+import { removeNumberText, unique } from '@/utils/primitive.ts';
 import { getKeys } from '@/utils/type.ts';
 
 const SIGN_LABELS: Record<Sign, string> = {
@@ -17,20 +17,12 @@ const SIGN_LABELS: Record<Sign, string> = {
   ['!*']: '除く',
 } as const;
 
-export const convert = (v: string | null | undefined) =>
-  v
-    ?.trim()
-    .replace(/^[0-9()[\]a-zA-Z-.]+$/, '')
-    .replace(/^[0-9[(. ]+/, '')
-    .replace(/[0-9.)\] ]+$/, '')
-    .trim() ?? '';
-
 const setAllTag = <Property extends keyof Pick<BookData, 'title' | 'volume' | 'volumeTitle' | 'edition'>>(
   obj: Record<Property, string[]>,
   book: BookData,
   property: Property
 ) => {
-  const value = convert(book[property]);
+  const value = removeNumberText(book[property]);
   if (value && !obj[property].includes(value)) {
     obj[property].push(value);
   }
@@ -53,7 +45,7 @@ const setKeywords = (obj: KeywordInfo, book: BookData) => {
     obj.seriesTitle.push(
       ...unique(
         book.seriesTitle.split(';').flatMap(v => {
-          const after = convert(v);
+          const after = removeNumberText(v);
           if (!after || obj.seriesTitle.includes(after)) return [];
 
           return [after];

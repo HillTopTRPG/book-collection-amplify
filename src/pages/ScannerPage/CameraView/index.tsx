@@ -10,7 +10,8 @@ import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanSuccessCount } from '@/store/scannerSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
-import { getIsbnCode, getIsbn13, wait } from '@/utils/primitive.ts';
+import { getIsbnCode, getIsbn13 } from '@/utils/isbn.ts';
+import { wait } from '@/utils/primitive.ts';
 import CornerFrame from './CornerFrame.tsx';
 
 type Props = {

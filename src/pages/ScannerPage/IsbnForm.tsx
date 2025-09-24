@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanResultList } from '@/store/scannerSlice.ts';
-import { getIsbnCode, getIsbn13 } from '@/utils/primitive.ts';
+import { getIsbnCode, getIsbn13 } from '@/utils/isbn.ts';
 
 const FormSchema = z
   .object({

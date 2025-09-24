@@ -3,7 +3,7 @@ import ndc9Map from '@/assets/ndc9.json';
 import type { BookData } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/types/fetch.ts';
 import type { FetchProcessResult } from '@/utils/fetch';
-import { getIsbn13, getIsbnCode } from '@/utils/primitive.ts';
+import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
 import { getKeys } from '@/utils/type.ts';
 
 const NDC_MAPS = {

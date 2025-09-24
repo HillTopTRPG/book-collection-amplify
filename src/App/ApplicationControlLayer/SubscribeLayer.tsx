@@ -11,7 +11,7 @@ import {
   setFilterSets,
 } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
-import { getIsbn13 } from '@/utils/primitive.ts';
+import { getIsbn13 } from '@/utils/isbn.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({

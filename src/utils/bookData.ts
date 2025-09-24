@@ -1,9 +1,5 @@
+import { FULLWIDTH_TO_HALF_WIDTH_OFFSET, MILLISECONDS_PER_DAY } from '@/constant/system.ts';
 import type { BookData } from '@/types/book.ts';
-
-/**
- * 全角数字を半角数字に変換する定数
- */
-const FULLWIDTH_TO_HALFWIDTH_OFFSET = 0xfee0;
 
 /**
  * 日付差分の判定基準（日数）
@@ -16,11 +12,6 @@ const NEAR_DATE_THRESHOLD_DAYS = 50;
 const DEFAULT_DAY_OF_MONTH = 15;
 
 /**
- * 1日のミリ秒数
- */
-const MILLISECONDS_PER_DAY = 86400000;
-
-/**
  * 変数がBookData型かどうかを判定する型ガード関数
  */
 export const isBookData = (book: BookData | string | null): book is BookData => {
@@ -31,8 +22,8 @@ export const isBookData = (book: BookData | string | null): book is BookData => 
 /**
  * 全角数字を半角数字に変換する
  */
-const convertFullwidthToHalfwidth = (text: string): string =>
-  text.replace(/[０-９]/g, char => String.fromCharCode(char.charCodeAt(0) - FULLWIDTH_TO_HALFWIDTH_OFFSET));
+const convertFullwidthToHalfWidth = (text: string): string =>
+  text.replace(/[０-９]/g, char => String.fromCharCode(char.charCodeAt(0) - FULLWIDTH_TO_HALF_WIDTH_OFFSET));
 
 /**
  * 括弧文字を除去する
@@ -48,7 +39,7 @@ const getVolumeSourceText = (book: BookData): string => (book.volume || book.vol
  * 文字列を正規化する（全角数字変換、括弧除去、トリム）
  */
 const normalizeTextForVolumeExtraction = (text: string): string =>
-  removeBrackets(convertFullwidthToHalfwidth(text)).trim();
+  removeBrackets(convertFullwidthToHalfWidth(text)).trim();
 
 /**
  * 文字列から数字を抽出する

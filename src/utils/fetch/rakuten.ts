@@ -3,7 +3,7 @@ import type { BookData, Isbn13 } from '@/types/book.ts';
 import type { RakutenApiOption } from '@/types/fetch.ts';
 import type { FetchProcessResult } from '@/utils/fetch';
 import { fetchData } from '@/utils/fetch';
-import { getIsbnCode } from '@/utils/primitive.ts';
+import { getIsbnCode } from '@/utils/isbn.ts';
 import { getKeys } from '@/utils/type.ts';
 
 const RAKUTEN_API_APPLICATION_ID: string = import.meta.env.VITE_RAKUTEN_API_APPLICATION_ID;

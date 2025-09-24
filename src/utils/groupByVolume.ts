@@ -1,7 +1,7 @@
-import { convert } from '@/components/Drawer/BookDetailDrawer/FilterBlock/SearchConditionItem.tsx';
 import type { BookData } from '@/types/book.ts';
 import { getVolumeNumber, isNearDateBook } from '@/utils/bookData.ts';
 import { getStringSimilarity } from '@/utils/stringSimilarity.ts';
+import { removeNumberText } from './primitive.ts';
 
 type BookWithVolume = { book: BookData; volume: number };
 type BookGroup = BookWithVolume[];
@@ -171,7 +171,7 @@ const MATCHING_RULES: MatchingRule[] = [
       if (!arePropertiesEqual(book1, book2, 'title')) return 0;
 
       const getSeriesTitles = (bookWithVolume: BookWithVolume) =>
-        getBookProperty(bookWithVolume, 'seriesTitle')?.split(';').map(convert).filter(Boolean) ?? [];
+        getBookProperty(bookWithVolume, 'seriesTitle')?.split(';').map(removeNumberText).filter(Boolean) ?? [];
 
       const [seriesTitles1, seriesTitles2] = [book1, book2].map(getSeriesTitles);
 
