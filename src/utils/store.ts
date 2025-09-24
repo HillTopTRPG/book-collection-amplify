@@ -1,6 +1,6 @@
 import { omit } from 'es-toolkit/compat';
 import type { RootState } from '@/store';
-import { deleteAllStrings } from '@/utils/data.ts';
+import { deleteAllStrings } from '@/utils/primitive.ts';
 import { getKeys } from '@/utils/type.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 

@@ -11,7 +11,8 @@ import { useAppDispatch } from '@/store/hooks.ts';
 import { updateFetchedFilterAnywhere } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData, Isbn13 } from '@/types/book.ts';
-import { getFilteredItems, grouping } from '@/utils/data.ts';
+import { getFilteredItems } from '@/utils/filter.ts';
+import { groupByVolume } from '@/utils/groupByVolume.ts';
 
 type Props = {
   isbn: Isbn13;
@@ -48,7 +49,7 @@ export default function FilterBlock({
     [dispatch, filterSet.filters, filterSet.id, isbn, orIndex]
   );
 
-  const groupedBooks = useMemo(() => grouping(filteredResults), [filteredResults]);
+  const groupedBooks = useMemo(() => groupByVolume(filteredResults), [filteredResults]);
 
   return (
     <>

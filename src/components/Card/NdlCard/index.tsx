@@ -58,7 +58,7 @@ export default function NdlCard({ ndl, filterSet, orIndex, selectedIsbn, setSele
         <BookImage isbn={isbn} onClick={() => onOpenBookDetail(isbn)} />
         <div
           className="flex items-baseline flex-wrap gap-x-3 flex-1 pl-1.5 relative"
-          onClick={() => setSelectedIsbn(isbn)}
+          // onClick={() => setSelectedIsbn(isbn)}
         >
           {selectedIsbn === isbn ? (
             <OverPanel onClose={() => setSelectedIsbn(null)}>

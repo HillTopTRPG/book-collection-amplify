@@ -2,7 +2,6 @@ import ndc8Map from '@/assets/ndc8.json';
 import ndc9Map from '@/assets/ndc9.json';
 import type { BookData } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/types/fetch.ts';
-import { XmlProcessor } from '@/utils/data.ts';
 import type { FetchProcessResult } from '@/utils/fetch';
 import { getIsbn13, getIsbnCode } from '@/utils/primitive.ts';
 import { getKeys } from '@/utils/type.ts';
@@ -167,3 +166,37 @@ export const callNdlSearchApi = async (optionsStr: string): Promise<FetchProcess
     return { value: [], error: 'network?', retry: false };
   }
 };
+
+export class XmlProcessor<T extends Record<string, string>> {
+  constructor(
+    private readonly parentElm: Element,
+    private readonly queryMap: T
+  ) {
+    this.parentElm = parentElm;
+    this.queryMap = queryMap;
+  }
+
+  public getContents(query: keyof T) {
+    return this.parentElm?.querySelector(this.queryMap[query])?.textContent?.trim() ?? null;
+  }
+
+  public getAllContents(query: keyof T) {
+    return Array.from(this.parentElm?.querySelectorAll(this.queryMap[query]) ?? []).flatMap(elm =>
+      elm?.textContent ? [elm?.textContent] : []
+    );
+  }
+
+  public getContentsByAttribute(query: keyof T, attribute: keyof T, match: keyof T) {
+    return Array.from(this.parentElm?.querySelectorAll(this.queryMap[query]) ?? []).find(
+      elm => elm.getAttribute(this.queryMap[attribute]) === this.queryMap[match]
+    )?.textContent;
+  }
+
+  public getAllAttributes(query: keyof T, attribute: keyof T) {
+    return Array.from(this.parentElm?.querySelectorAll(this.queryMap[query]) ?? []).flatMap(elm => {
+      const attr = elm.getAttribute(this.queryMap[attribute]);
+
+      return attr ? [attr] : [];
+    });
+  }
+}

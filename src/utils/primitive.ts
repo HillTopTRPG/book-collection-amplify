@@ -102,3 +102,12 @@ export const excludeArrayByKey = <Array1 extends Record<string, unknown>[]>(
 ): Array1 => array1.filter(item1 => !array2.some(item2 => item1[property] === item2[property])) as Array1;
 
 export const wait = async (ms: number): Promise<void> => void (await new Promise(resolve => setTimeout(resolve, ms)));
+
+export const deleteAllStrings = <T extends string>(list: T[], values: T[]) => {
+  list
+    .flatMap((v, index) => (values.includes(v) ? [index] : []))
+    .reverse()
+    .forEach(deleteIndex => list.splice(deleteIndex, 1));
+};
+
+export const entries = <T extends string, U>(map: Map<T, U>): Record<T, U> => Object.fromEntries(map) as Record<T, U>;

@@ -4,7 +4,7 @@ import { enqueueGoogleSearch, selectGoogleSearchResults } from '@/store/fetchGoo
 import { enqueueRakutenSearch, selectRakutenSearchResults } from '@/store/fetchRakutenSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { BookData, Isbn13 } from '@/types/book.ts';
-import { isBookData } from '@/utils/data.ts';
+import { isBookData } from '@/utils/bookData.ts';
 import { checkImageExists } from '@/utils/fetch';
 import { getKeys } from '@/utils/type.ts';
 

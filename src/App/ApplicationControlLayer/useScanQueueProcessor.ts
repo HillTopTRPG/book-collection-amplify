@@ -5,8 +5,8 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { dequeueScan, type ScannedItemMapValue, selectScanQueueTargets } from '@/store/scannerSlice.ts';
 import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
-import { entries, getScannedItemMapValueByBookData, makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
-import { filterMatch } from '@/utils/primitive.ts';
+import { getScannedItemMapValueByBookData, makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
+import { entries, filterMatch } from '@/utils/primitive.ts';
 
 type Props = {
   filterSets: FilterSet[];
