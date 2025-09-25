@@ -55,10 +55,10 @@
 # 開発サーバー起動
 npm run dev
 
-# 本番ビルド
+# ビルド
 npm run build
 
-# 本番ビルドのプレビュー
+# ビルドのプレビュー
 npm run preview
 ```
 
