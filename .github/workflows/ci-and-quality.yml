@@ -124,7 +124,7 @@ jobs:
             amplify_outputs.json
           retention-days: 1
 
-  test:
+  lint:
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -151,6 +151,31 @@ jobs:
 
       - name: Run lint checks
         run: npm run lint
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_id }}
 
       - name: Run tests
         run: npm run test:run
@@ -192,53 +217,79 @@ jobs:
         run: |
           npx lhci autorun || echo "Lighthouse CI completed with issues"
 
-          # デバッグ: .lighthouseci ディレクトリの内容を確認
+          # 詳細デバッグ: ファイル生成状況を確認
           echo "=== Lighthouse CI Results Debug ==="
-          if [ -d ".lighthouseci" ]; then
-            echo "✅ .lighthouseci directory exists"
-            ls -la .lighthouseci/
-          else
-            echo "❌ .lighthouseci directory not found"
-            echo "Current directory contents:"
-            ls -la
-          fi
+          echo "Working directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+
+          # 可能性のあるすべての場所を確認
+          for dir in .lighthouseci lhci_reports lighthouse-reports; do
+            if [ -d "$dir" ]; then
+              echo "✅ $dir directory exists"
+              echo "Contents of $dir:"
+              ls -la "$dir/"
+            else
+              echo "❌ $dir directory not found"
+            fi
+          done
+
+          # Lighthouse関連のファイルを全検索
+          echo "Searching for Lighthouse files..."
+          find . -name "*.json" -o -name "*.html" | grep -E "(lh|lighthouse)" || echo "No lighthouse files found"
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
         continue-on-error: true
 
+      - name: Prepare artifacts directory
+        if: always()
+        run: |
+          # アーティファクト用ディレクトリを作成
+          mkdir -p lighthouse-artifacts
+
+          # 存在する結果をすべて収集
+          for dir in .lighthouseci lhci_reports lighthouse-reports; do
+            if [ -d "$dir" ] && [ -n "$(ls -A "$dir/" 2>/dev/null)" ]; then
+              echo "Copying contents from $dir"
+              cp -r "$dir"/* lighthouse-artifacts/ 2>/dev/null || echo "No files to copy from $dir"
+            fi
+          done
+
+          # 直接的なファイル検索もする
+          find . -maxdepth 2 -name "lhr-*.json" -exec cp {} lighthouse-artifacts/ \; 2>/dev/null || true
+          find . -maxdepth 2 -name "lhr-*.html" -exec cp {} lighthouse-artifacts/ \; 2>/dev/null || true
+
+          echo "Final artifacts directory contents:"
+          ls -la lighthouse-artifacts/
+
       - name: Generate Lighthouse summary
         if: always()
         run: |
-          if [ -d ".lighthouseci" ] && [ -n "$(ls -A .lighthouseci/ 2>/dev/null)" ]; then
-            echo "✅ Found Lighthouse results directory"
+          # アーティファクト用ディレクトリからJSONファイルを探す
+          LATEST_REPORT=""
+          if ls lighthouse-artifacts/lhr-*.json 1> /dev/null 2>&1; then
+            LATEST_REPORT=$(ls -t lighthouse-artifacts/lhr-*.json | head -n1)
+          elif ls lighthouse-artifacts/*.json 1> /dev/null 2>&1; then
+            LATEST_REPORT=$(ls -t lighthouse-artifacts/*.json | head -n1)
+          fi
 
-            # JSONファイルを探す
-            LATEST_REPORT=""
-            if ls .lighthouseci/lhr-*.json 1> /dev/null 2>&1; then
-              LATEST_REPORT=$(ls -t .lighthouseci/lhr-*.json | head -n1)
-            elif ls .lighthouseci/*.json 1> /dev/null 2>&1; then
-              LATEST_REPORT=$(ls -t .lighthouseci/*.json | head -n1)
-            fi
+          if [ -f "$LATEST_REPORT" ]; then
+            echo "✅ Found report file: $LATEST_REPORT"
+            echo "## 🚀 Lighthouse Performance Report" >> $GITHUB_STEP_SUMMARY
+            echo "| Category | Score |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
 
-            if [ -f "$LATEST_REPORT" ]; then
-              echo "## 🚀 Lighthouse Performance Report" >> $GITHUB_STEP_SUMMARY
-              echo "| Category | Score |" >> $GITHUB_STEP_SUMMARY
-              echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            PERFORMANCE=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.performance.score * 100)" 2>/dev/null || echo "N/A")
+            ACCESSIBILITY=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.accessibility.score * 100)" 2>/dev/null || echo "N/A")
+            BEST_PRACTICES=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories['best-practices'].score * 100)" 2>/dev/null || echo "N/A")
+            SEO=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.seo.score * 100)" 2>/dev/null || echo "N/A")
 
-              PERFORMANCE=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.performance.score * 100)" 2>/dev/null || echo "N/A")
-              ACCESSIBILITY=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.accessibility.score * 100)" 2>/dev/null || echo "N/A")
-              BEST_PRACTICES=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories['best-practices'].score * 100)" 2>/dev/null || echo "N/A")
-              SEO=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.seo.score * 100)" 2>/dev/null || echo "N/A")
-
-              echo "| 🚀 Performance | ${PERFORMANCE}% |" >> $GITHUB_STEP_SUMMARY
-              echo "| ♿ Accessibility | ${ACCESSIBILITY}% |" >> $GITHUB_STEP_SUMMARY
-              echo "| ⚡ Best Practices | ${BEST_PRACTICES}% |" >> $GITHUB_STEP_SUMMARY
-              echo "| 🔍 SEO | ${SEO}% |" >> $GITHUB_STEP_SUMMARY
-            else
-              echo "⚠️ No JSON report files found" >> $GITHUB_STEP_SUMMARY
-            fi
+            echo "| 🚀 Performance | ${PERFORMANCE}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ♿ Accessibility | ${ACCESSIBILITY}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⚡ Best Practices | ${BEST_PRACTICES}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔍 SEO | ${SEO}% |" >> $GITHUB_STEP_SUMMARY
           else
-            echo "⚠️ Lighthouse results directory not found or empty" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ No JSON report files found" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Upload Lighthouse reports
@@ -246,9 +297,6 @@ jobs:
         if: always()
         with:
           name: lighthouse-reports-${{ github.run_id }}
-          path: |
-            .lighthouseci/
-            lhci_reports/
-            lighthouse-reports/
-          if-no-files-found: warn
+          path: lighthouse-artifacts/
+          if-no-files-found: ignore
           retention-days: 7
