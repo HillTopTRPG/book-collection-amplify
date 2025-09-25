@@ -28,11 +28,11 @@ jobs:
           # Try npm ci first, fall back to npm install if it fails
           npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
 
+      - name: Run build
+        run: npm run build
+
       - name: Run lint checks
         run: npm run lint
 
       - name: Run tests
         run: npm run test:run
-
-      - name: Run build
-        run: npm run build
