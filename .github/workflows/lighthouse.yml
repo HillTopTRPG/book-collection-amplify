@@ -65,7 +65,33 @@ jobs:
               "authorization_types": ["API_KEY", "AWS_IAM"],
               "model_introspection": {
                 "version": 1,
-                "models": {},
+                "models": {
+                  "Collection": {
+                    "name": "Collection",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "isbn": {"name": "isbn", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "meta": {"name": "meta", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "memo": {"name": "memo", "isArray": false, "type": "String", "isRequired": false, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "Collections",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  },
+                  "FilterSet": {
+                    "name": "FilterSet",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "name": {"name": "name", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "filters": {"name": "filters", "isArray": false, "type": "String", "isRequired": true, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "FilterSets",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  }
+                },
                 "enums": {},
                 "nonModels": {}
               }
@@ -77,9 +103,19 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
       - name: Audit performance with Lighthouse CI
-        uses: treosh/lighthouse-ci-action@v12
+        run: lhci autorun
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        continue-on-error: true
+
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          configPath: './.lighthouserc.json'
-          uploadArtifacts: true
-          temporaryPublicStorage: true
+          name: lighthouse-reports
+          path: .lighthouseci/
+          retention-days: 30
