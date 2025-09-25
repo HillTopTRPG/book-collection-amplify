@@ -9,99 +9,99 @@ import {
   getIsbn13,
 } from '../isbn.ts';
 
-describe('ISBN Utilities', () => {
+describe('ISBNユーティリティ', () => {
   describe('getIsbnCode', () => {
-    describe('Valid ISBN-10', () => {
-      it('should accept valid ISBN-10 with numeric check digit', () => {
+    describe('有効なISBN-10', () => {
+      it('数字のチェックディジットを持つ有効なISBN-10を受け入れること', () => {
         expect(getIsbnCode('4873113946')).toBe('4873113946');
         expect(getIsbnCode('0131103628')).toBe('0131103628');
         expect(getIsbnCode('0596527675')).toBe('0596527675');
       });
 
-      it('should accept valid ISBN-10 with X check digit', () => {
+      it('Xチェックディジットを持つ有効なISBN-10を受け入れること', () => {
         expect(getIsbnCode('020161586X')).toBe('020161586X');
         expect(getIsbnCode('097522980X')).toBe('097522980X');
       });
 
-      it('should accept ISBN-10 with hyphens', () => {
+      it('ハイフン付きのISBN-10を受け入れること', () => {
         expect(getIsbnCode('4-87311-394-6')).toBe('4873113946');
         expect(getIsbnCode('0-13-110362-8')).toBe('0131103628');
         expect(getIsbnCode('0-9752298-0-X')).toBe('097522980X');
       });
     });
 
-    describe('Valid ISBN-13', () => {
-      it('should accept valid ISBN-13', () => {
+    describe('有効なISBN-13', () => {
+      it('有効なISBN-13を受け入れること', () => {
         expect(getIsbnCode('9784873113944')).toBe('9784873113944');
         expect(getIsbnCode('9780131103627')).toBe('9780131103627');
         expect(getIsbnCode('9780596527679')).toBe('9780596527679');
       });
 
-      it('should accept ISBN-13 with hyphens', () => {
+      it('ハイフン付きのISBN-13を受け入れること', () => {
         expect(getIsbnCode('978-4-87311-394-4')).toBe('9784873113944');
         expect(getIsbnCode('978-0-13-110362-7')).toBe('9780131103627');
       });
     });
 
-    describe('Invalid inputs', () => {
-      it('should return null for null/undefined input', () => {
+    describe('無効な入力', () => {
+      it('null/undefined入力に対してnullを返すこと', () => {
         expect(getIsbnCode(null)).toBe(null);
         expect(getIsbnCode(undefined)).toBe(null);
         expect(getIsbnCode('')).toBe(null);
       });
 
-      it('should return null for invalid length', () => {
+      it('無効な長さの場合にnullを返すこと', () => {
         expect(getIsbnCode('123')).toBe(null);
         expect(getIsbnCode('12345678901234')).toBe(null);
         expect(getIsbnCode('123456789')).toBe(null);
       });
 
-      it('should return null for invalid format', () => {
+      it('無効なフォーマットの場合にnullを返すこと', () => {
         expect(getIsbnCode('abcd123456')).toBe(null);
         expect(getIsbnCode('123456789a')).toBe(null);
         expect(getIsbnCode('978abc1234567')).toBe(null);
         expect(getIsbnCode('123456789Y')).toBe(null); // Only X is allowed for ISBN-10
       });
 
-      it('should return null for invalid check digit', () => {
+      it('無効なチェックディジットの場合にnullを返すこと', () => {
         expect(getIsbnCode('4873113947')).toBe(null); // Wrong check digit
         expect(getIsbnCode('9784873113945')).toBe(null); // Wrong check digit
       });
     });
 
-    describe('Edge cases', () => {
-      it('should handle whitespace', () => {
+    describe('エッジケース', () => {
+      it('空白文字を処理すること', () => {
         expect(getIsbnCode('  4873113946  ')).toBe(null); // No trimming in current implementation
       });
 
-      it('should handle multiple hyphens', () => {
+      it('複数のハイフンを処理すること', () => {
         expect(getIsbnCode('4-8-7-3-1-1-3-9-4-6')).toBe('4873113946');
       });
     });
   });
 
   describe('getIsbn10CheckDigit', () => {
-    it('should calculate correct numeric check digit', () => {
+    it('正しい数字のチェックディジットを計算すること', () => {
       expect(getIsbn10CheckDigit('487311394')).toBe('6');
       expect(getIsbn10CheckDigit('013110362')).toBe('8');
       expect(getIsbn10CheckDigit('059652767')).toBe('5');
     });
 
-    it('should calculate X check digit', () => {
+    it('Xチェックディジットを計算すること', () => {
       expect(getIsbn10CheckDigit('020161586')).toBe('X');
       expect(getIsbn10CheckDigit('097522980')).toBe('X');
     });
 
-    it('should calculate 0 check digit when sum results in multiple of 11', () => {
+    it('合計が11の倍数になる場合に0のチェックディジットを計算すること', () => {
       expect(getIsbn10CheckDigit('123456787')).toBe('3');
     });
 
-    describe('Edge cases', () => {
-      it('should handle all zeros', () => {
+    describe('エッジケース', () => {
+      it('全てゼロの場合を処理すること', () => {
         expect(getIsbn10CheckDigit('000000000')).toBe('0');
       });
 
-      it('should handle calculated check digit correctly', () => {
+      it('計算されたチェックディジットを正しく処理すること', () => {
         // Test the actual implementation behavior
         const result = getIsbn10CheckDigit('999999999');
         expect(typeof result).toBe('string');
@@ -111,22 +111,22 @@ describe('ISBN Utilities', () => {
   });
 
   describe('getIsbn13CheckDigit', () => {
-    it('should calculate correct check digit', () => {
+    it('正しいチェックディジットを計算すること', () => {
       expect(getIsbn13CheckDigit('978487311394')).toBe('4');
       expect(getIsbn13CheckDigit('978013110362')).toBe('7');
       expect(getIsbn13CheckDigit('978059652767')).toBe('9');
     });
 
-    it('should calculate 0 check digit when sum results in multiple of 10', () => {
+    it('合計が10の倍数になる場合に0のチェックディジットを計算すること', () => {
       expect(getIsbn13CheckDigit('978123456788')).toBe('0');
     });
 
-    describe('Edge cases', () => {
-      it('should handle all zeros', () => {
+    describe('エッジケース', () => {
+      it('全てゼロの場合を処理すること', () => {
         expect(getIsbn13CheckDigit('000000000000')).toBe('0');
       });
 
-      it('should handle different prefixes', () => {
+      it('異なるプレフィックスを処理すること', () => {
         // Test the actual implementation behavior
         const result = getIsbn13CheckDigit('979000000000');
         expect(typeof result).toBe('string');
@@ -136,55 +136,55 @@ describe('ISBN Utilities', () => {
   });
 
   describe('getIsbnWithHyphen', () => {
-    describe('ISBN-10 formatting', () => {
-      it('should format ISBN-10 with hyphens', () => {
+    describe('ISBN-10フォーマット', () => {
+      it('ISBN-10をハイフン付きでフォーマットすること', () => {
         expect(getIsbnWithHyphen('4873113946', 10)).toBe('4-87311-394-6');
         expect(getIsbnWithHyphen('0131103628', 10)).toBe('0-13-110362-8');
       });
 
-      it('should format ISBN-10 with X check digit', () => {
+      it('Xチェックディジットを持つISBN-10をフォーマットすること', () => {
         expect(getIsbnWithHyphen('097522980X', 10)).toBe('0-9752298-0-X');
       });
 
-      it('should handle input with existing hyphens', () => {
+      it('既存のハイフンを含む入力を処理すること', () => {
         expect(getIsbnWithHyphen('4-87311-394-6', 10)).toBe('4-87311-394-6');
       });
     });
 
-    describe('ISBN-13 formatting', () => {
-      it('should format ISBN-13 with hyphens', () => {
+    describe('ISBN-13フォーマット', () => {
+      it('ISBN-13をハイフン付きでフォーマットすること', () => {
         expect(getIsbnWithHyphen('9784873113944', 13)).toBe('978-4-87311-394-4');
         expect(getIsbnWithHyphen('9780131103627', 13)).toBe('978-0-13-110362-7');
       });
 
-      it('should handle input with existing hyphens', () => {
+      it('既存のハイフンを含む入力を処理すること', () => {
         expect(getIsbnWithHyphen('978-4-87311-394-4', 13)).toBe('978-4-87311-394-4');
       });
     });
   });
 
   describe('getIsbn13', () => {
-    it('should return ISBN-13 unchanged', () => {
+    it('ISBN-13を変更せずに返すこと', () => {
       const isbn13 = '9784873113944';
       expect(getIsbn13(isbn13)).toBe(isbn13);
     });
 
-    it('should convert ISBN-10 to ISBN-13', () => {
+    it('ISBN-10をISBN-13に変換すること', () => {
       expect(getIsbn13('4873113946')).toBe('9784873113944');
       expect(getIsbn13('0131103628')).toBe('9780131103627');
       expect(getIsbn13('097522980X')).toBe('9780975229804');
     });
 
-    it('should handle ISBN-10 with hyphens', () => {
+    it('ハイフン付きのISBN-10を処理すること', () => {
       expect(getIsbn13('4-87311-394-6')).toBe('9784873113944');
       expect(getIsbn13('0-9752298-0-X')).toBe('9780975229804');
     });
 
-    it('should handle ISBN-13 with hyphens', () => {
+    it('ハイフン付きのISBN-13を処理すること', () => {
       expect(getIsbn13('978-4-87311-394-4')).toBe('9784873113944');
     });
 
-    it('should maintain type safety', () => {
+    it('型安全性を維持すること', () => {
       const result = getIsbn13('4873113946');
       // Type assertion to check return type
       const typed: Isbn13 = result;
@@ -193,28 +193,28 @@ describe('ISBN Utilities', () => {
   });
 
   describe('getIsbn10', () => {
-    it('should return ISBN-10 unchanged', () => {
+    it('ISBN-10を変更せずに返すこと', () => {
       const isbn10 = '4873113946';
       expect(getIsbn10(isbn10)).toBe(isbn10);
     });
 
-    it('should convert ISBN-13 to ISBN-10', () => {
+    it('ISBN-13をISBN-10に変換すること', () => {
       expect(getIsbn10('9784873113944')).toBe('4873113946');
       expect(getIsbn10('9780131103627')).toBe('0131103628');
       expect(getIsbn10('9780975229804')).toBe('097522980X');
     });
 
-    it('should handle ISBN-13 with hyphens', () => {
+    it('ハイフン付きのISBN-13を処理すること', () => {
       expect(getIsbn10('978-4-87311-394-4')).toBe('4873113946');
       expect(getIsbn10('978-0-9752298-0-4')).toBe('097522980X');
     });
 
-    it('should handle ISBN-10 with hyphens', () => {
+    it('ハイフン付きのISBN-10を処理すること', () => {
       expect(getIsbn10('4-87311-394-6')).toBe('4873113946');
     });
   });
 
-  describe('Integration tests with real book examples', () => {
+  describe('実際の書籍例を使用した統合テスト', () => {
     const realBooks = [
       {
         title: 'JavaScript: The Good Parts',
@@ -248,24 +248,24 @@ describe('ISBN Utilities', () => {
 
     realBooks.forEach(book => {
       describe(`${book.title}`, () => {
-        it('should validate both ISBN formats', () => {
+        it('両方のISBNフォーマットを検証すること', () => {
           expect(getIsbnCode(book.isbn10)).toBe(book.isbn10);
           expect(getIsbnCode(book.isbn13)).toBe(book.isbn13);
           expect(getIsbnCode(book.isbn10Hyphen)).toBe(book.isbn10);
           expect(getIsbnCode(book.isbn13Hyphen)).toBe(book.isbn13);
         });
 
-        it('should convert between formats correctly', () => {
+        it('フォーマット間で正しく変換すること', () => {
           expect(getIsbn13(book.isbn10)).toBe(book.isbn13);
           expect(getIsbn10(book.isbn13)).toBe(book.isbn10);
         });
 
-        it('should format with hyphens correctly', () => {
+        it('ハイフン付きで正しくフォーマットすること', () => {
           expect(getIsbnWithHyphen(book.isbn10, 10)).toBe(book.isbn10Hyphen);
           expect(getIsbnWithHyphen(book.isbn13, 13)).toBe(book.isbn13Hyphen);
         });
 
-        it('should calculate correct check digits', () => {
+        it('正しいチェックディジットを計算すること', () => {
           const isbn10WithoutCheck = book.isbn10.slice(0, -1);
           const isbn13WithoutCheck = book.isbn13.slice(0, -1);
           const expectedCheck10 = book.isbn10.slice(-1);
@@ -278,8 +278,8 @@ describe('ISBN Utilities', () => {
     });
   });
 
-  describe('Publisher code boundary tests (Region Group 0)', () => {
-    describe('Publisher code length variations', () => {
+  describe('出版社コード境界テスト（地域グループ0）', () => {
+    describe('出版社コード長のバリエーション', () => {
       const boundaryTestCases = [
         {
           range: '00-19',
@@ -338,28 +338,28 @@ describe('ISBN Utilities', () => {
       ];
 
       boundaryTestCases.forEach(testCase => {
-        describe(`Range ${testCase.range} (${testCase.publisherDigits}+${testCase.bookDigits} digits)`, () => {
-          it(`should validate ISBN-10: ${testCase.example}`, () => {
+        describe(`範囲 ${testCase.range} (${testCase.publisherDigits}+${testCase.bookDigits} 桁)`, () => {
+          it(`ISBN-10を検証すること: ${testCase.example}`, () => {
             expect(getIsbnCode(testCase.example)).toBe(testCase.example);
           });
 
-          it(`should format with correct hyphenation: ${testCase.hyphenated}`, () => {
+          it(`正しいハイフネーションでフォーマットすること: ${testCase.hyphenated}`, () => {
             expect(getIsbnWithHyphen(testCase.example, 10)).toBe(testCase.hyphenated);
           });
 
-          it(`should extract ${testCase.publisherDigits}-digit publisher code: ${testCase.publisherCode}`, () => {
+          it(`${testCase.publisherDigits}桁の出版社コードを抽出すること: ${testCase.publisherCode}`, () => {
             const parts = testCase.hyphenated.split('-');
             expect(parts[1]).toBe(testCase.publisherCode);
             expect(parts[1].length).toBe(testCase.publisherDigits);
           });
 
-          it(`should extract ${testCase.bookDigits}-digit book code: ${testCase.bookCode}`, () => {
+          it(`${testCase.bookDigits}桁の書籍コードを抽出すること: ${testCase.bookCode}`, () => {
             const parts = testCase.hyphenated.split('-');
             expect(parts[2]).toBe(testCase.bookCode);
             expect(parts[2].length).toBe(testCase.bookDigits);
           });
 
-          it('should convert to ISBN-13 correctly', () => {
+          it('ISBN-13に正しく変換すること', () => {
             const isbn13 = getIsbn13(testCase.example);
             expect(isbn13.startsWith('978')).toBe(true);
             expect(getIsbn10(isbn13)).toBe(testCase.example);
@@ -368,7 +368,7 @@ describe('ISBN Utilities', () => {
       });
     });
 
-    it('should demonstrate book code compression as publisher code grows', () => {
+    it('出版社コードが長くなるにつれて書籍コードが短縮されることを実証すること', () => {
       const examples = [
         { isbn: '0198526636', publisherLen: 2, bookLen: 6 }, // 2+6=8 (excluding region & check)
         { isbn: '020161586X', publisherLen: 3, bookLen: 5 }, // 3+5=8
@@ -391,15 +391,15 @@ describe('ISBN Utilities', () => {
     });
   });
 
-  describe('Performance and edge cases', () => {
-    it('should handle large batch processing', () => {
+  describe('パフォーマンスとエッジケース', () => {
+    it('大量バッチ処理を処理すること', () => {
       const testCases = Array(1000).fill('4873113946');
       testCases.forEach(isbn => {
         expect(getIsbnCode(isbn)).toBe('4873113946');
       });
     });
 
-    it('should handle various invalid inputs consistently', () => {
+    it('様々な無効な入力を一貫して処理すること', () => {
       const invalidInputs = [
         '',
         '   ',
