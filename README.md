@@ -1,5 +1,36 @@
 ## AWS Amplify React+Vite スターターテンプレート
 
+<!-- Badges -->
+<div align="center">
+
+<!-- GitHub Stats -->
+
+[![GitHub Stars](https://img.shields.io/github/stars/HillTopTRPG/book-collection-amplify?style=for-the-badge&logo=github&color=yellow)](https://github.com/HillTopTRPG/book-collection-amplify/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/HillTopTRPG/book-collection-amplify?style=for-the-badge&logo=github&color=blue)](https://github.com/HillTopTRPG/book-collection-amplify/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/HillTopTRPG/book-collection-amplify?style=for-the-badge&logo=github&color=red)](https://github.com/HillTopTRPG/book-collection-amplify/issues)
+[![GitHub License](https://img.shields.io/github/license/HillTopTRPG/book-collection-amplify?style=for-the-badge&color=green)](https://github.com/HillTopTRPG/book-collection-amplify/blob/main/LICENSE)
+
+<!-- Tech Stack -->
+
+[![React](https://img.shields.io/badge/React-19.1.1-61DAFB?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5.4-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-6.0.7-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![AWS Amplify](https://img.shields.io/badge/AWS%20Amplify-FF9900?style=for-the-badge&logo=aws-amplify&logoColor=white)](https://aws.amazon.com/amplify/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+
+<!-- CI/CD -->
+
+[![CI Status](https://img.shields.io/github/actions/workflow/status/HillTopTRPG/book-collection-amplify/ci.yml?style=for-the-badge&logo=github-actions&logoColor=white)](https://github.com/HillTopTRPG/book-collection-amplify/actions/workflows/ci.yml)
+[![Lighthouse](https://img.shields.io/github/actions/workflow/status/HillTopTRPG/book-collection-amplify/lighthouse.yml?style=for-the-badge&logo=lighthouse&logoColor=white&label=Lighthouse)](https://github.com/HillTopTRPG/book-collection-amplify/actions/workflows/lighthouse.yml)
+
+<!-- Code Quality -->
+
+[![Code Size](https://img.shields.io/github/languages/code-size/HillTopTRPG/book-collection-amplify?style=for-the-badge&color=purple)](https://github.com/HillTopTRPG/book-collection-amplify)
+[![Top Language](https://img.shields.io/github/languages/top/HillTopTRPG/book-collection-amplify?style=for-the-badge&color=orange)](https://github.com/HillTopTRPG/book-collection-amplify)
+[![Last Commit](https://img.shields.io/github/last-commit/HillTopTRPG/book-collection-amplify?style=for-the-badge&color=brightgreen)](https://github.com/HillTopTRPG/book-collection-amplify/commits/main)
+
+</div>
+
 このリポジトリは、React+ViteとAWS Amplifyを使用してアプリケーションを作成するためのスターターテンプレートを提供しており、認証、API、データベース機能の簡単なセットアップに重点を置いています。
 
 ## 概要
