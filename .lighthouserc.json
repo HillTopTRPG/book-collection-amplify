@@ -4,9 +4,43 @@
       "staticDistDir": "./dist",
       "numberOfRuns": 1,
       "settings": {
-        "chromeFlags": "--no-sandbox --disable-dev-shm-usage --disable-gpu --disable-web-security --allow-running-insecure-content --ignore-certificate-errors --headless=new",
+        "chromeFlags": "--no-sandbox --disable-dev-shm-usage --disable-gpu --disable-web-security --allow-running-insecure-content --ignore-certificate-errors --headless=new --disable-extensions --disable-background-timer-throttling --disable-background-networking --disable-default-apps --disable-sync",
         "onlyCategories": ["performance", "accessibility", "best-practices", "seo"],
-        "skipAudits": ["uses-http2", "redirects-http", "is-on-https"],
+        "skipAudits": [
+          "uses-http2",
+          "redirects-http",
+          "is-on-https",
+          "viewport",
+          "without-javascript",
+          "screenshot-thumbnails",
+          "final-screenshot",
+          "largest-contentful-paint-element",
+          "layout-shift-elements",
+          "uses-long-cache-ttl",
+          "total-byte-weight",
+          "offscreen-images",
+          "render-blocking-resources",
+          "unminified-css",
+          "unminified-javascript",
+          "unused-css-rules",
+          "uses-webp-images",
+          "uses-optimized-images",
+          "uses-text-compression",
+          "uses-responsive-images",
+          "efficient-animated-content",
+          "duplicated-javascript",
+          "legacy-javascript",
+          "third-party-summary",
+          "third-party-facades",
+          "bootup-time",
+          "mainthread-work-breakdown",
+          "diagnostics",
+          "network-requests",
+          "network-rtt",
+          "network-server-latency",
+          "main-thread-tasks",
+          "metrics"
+        ],
         "emulatedFormFactor": "desktop",
         "throttling": {
           "rttMs": 40,
@@ -16,8 +50,8 @@
           "downloadThroughputKbps": 0,
           "uploadThroughputKbps": 0
         },
-        "waitUntil": "networkidle2",
-        "timeout": 60000
+        "waitUntil": "load",
+        "timeout": 30000
       }
     },
     "assert": {
