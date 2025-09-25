@@ -9,6 +9,7 @@ import filterDetailDrawerReducer from './filterDetailDrawerSlice.ts';
 import ndlSearchReducer from './ndlSearchSlice';
 import scannerReducer from './scannerSlice';
 import subscriptionDataReducer from './subscriptionDataSlice';
+import uiReducer from './uiSlice.ts';
 
 export const store = configureStore({
   reducer: {
@@ -21,6 +22,7 @@ export const store = configureStore({
     fetchNdlSearch: fetchNdlSearchReducer,
     fetchGoogleSearch: fetchGoogleSearchReducer,
     fetchRakutenSearch: fetchRakutenSearchReducer,
+    ui: uiReducer,
   },
 });
 

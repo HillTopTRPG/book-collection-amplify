@@ -63,7 +63,7 @@ export default function FilterDetailDrawer() {
   );
 
   const drawerContent = (
-    <DrawerFrame isVisible={isVisible} header={header} onClose={handleClose}>
+    <DrawerFrame drawerType="bookDetail" isVisible={isVisible} header={header} onClose={handleClose}>
       <DrawerContent filterSet={bufferedFilterSet} scannedItemMapValues={bufferedScannedItemMapValues} />
     </DrawerFrame>
   );

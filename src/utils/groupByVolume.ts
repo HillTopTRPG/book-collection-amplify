@@ -4,7 +4,7 @@ import { getStringSimilarity } from '@/utils/stringSimilarity.ts';
 import { removeNumberText } from './primitive.ts';
 
 type BookWithVolume = { book: BookData; volume: number };
-type BookGroup = BookWithVolume[];
+export type BookGroup = BookWithVolume[];
 
 interface MatchCandidate {
   bookWithVolume: BookWithVolume;

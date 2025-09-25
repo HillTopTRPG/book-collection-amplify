@@ -1,0 +1,225 @@
+name: Lighthouse Performance Audit
+
+on:
+  push:
+    branches: [main, feature/**]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          # Try npm ci first, fall back to npm install if it fails
+          npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
+
+      - name: Create mock amplify_outputs.json for build
+        run: |
+          cat > amplify_outputs.json << 'EOF'
+          {
+            "auth": {
+              "user_pool_id": "mock-user-pool-id",
+              "aws_region": "us-east-1",
+              "user_pool_client_id": "mock-client-id",
+              "identity_pool_id": "mock-identity-pool-id",
+              "mfa_methods": [],
+              "standard_required_attributes": ["email"],
+              "username_attributes": ["email"],
+              "user_verification_types": ["email"],
+              "groups": [],
+              "mfa_configuration": "NONE",
+              "password_policy": {
+                "min_length": 8,
+                "require_lowercase": true,
+                "require_numbers": true,
+                "require_symbols": true,
+                "require_uppercase": true
+              },
+              "unauthenticated_identities_enabled": true
+            },
+            "data": {
+              "url": "https://mock-api-url.amazonaws.com/graphql",
+              "aws_region": "us-east-1",
+              "api_key": "mock-api-key",
+              "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
+              "authorization_types": ["API_KEY", "AWS_IAM"],
+              "model_introspection": {
+                "version": 1,
+                "models": {
+                  "Collection": {
+                    "name": "Collection",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "isbn": {"name": "isbn", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "meta": {"name": "meta", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "memo": {"name": "memo", "isArray": false, "type": "String", "isRequired": false, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "Collections",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  },
+                  "FilterSet": {
+                    "name": "FilterSet",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "name": {"name": "name", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "filters": {"name": "filters", "isArray": false, "type": "String", "isRequired": true, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "FilterSets",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  }
+                },
+                "enums": {},
+                "nonModels": {}
+              }
+            },
+            "version": "1.4"
+          }
+          EOF
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Audit performance with Lighthouse CI
+        run: |
+          lhci autorun || echo "Lighthouse CI completed with issues"
+
+          # スコア表示のために結果ファイルを確認
+          if [ -f .lighthouseci/lhr-*.json ]; then
+            echo "## 🚀 Lighthouse Performance Report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # JSONファイルからスコアを抽出（最新のファイルを使用）
+            LATEST_REPORT=$(ls -t .lighthouseci/lhr-*.json | head -n1)
+
+            if [ -f "$LATEST_REPORT" ]; then
+              PERFORMANCE=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.performance.score * 100))" 2>/dev/null || echo "N/A")
+              ACCESSIBILITY=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.accessibility.score * 100))" 2>/dev/null || echo "N/A")
+              BEST_PRACTICES=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories['best-practices'].score * 100))" 2>/dev/null || echo "N/A")
+              SEO=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.seo.score * 100))" 2>/dev/null || echo "N/A")
+
+              echo "| Category | Score |" >> $GITHUB_STEP_SUMMARY
+              echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| 🚀 Performance | ${PERFORMANCE}% |" >> $GITHUB_STEP_SUMMARY
+              echo "| ♿ Accessibility | ${ACCESSIBILITY}% |" >> $GITHUB_STEP_SUMMARY
+              echo "| ⚡ Best Practices | ${BEST_PRACTICES}% |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔍 SEO | ${SEO}% |" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "📊 詳細なレポートは以下のアーティファクトからダウンロードできます。" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "⚠️ Lighthouse report not found. Check the build logs for errors." >> $GITHUB_STEP_SUMMARY
+          fi
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        continue-on-error: true
+
+      - name: Format Lighthouse Report for Comment
+        id: lighthouse-comment
+        if: always()
+        run: |
+          if [ -f .lighthouseci/lhr-*.json ]; then
+            LATEST_REPORT=$(ls -t .lighthouseci/lhr-*.json | head -n1)
+
+            if [ -f "$LATEST_REPORT" ]; then
+              PERFORMANCE=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.performance.score * 100))" 2>/dev/null || echo "N/A")
+              ACCESSIBILITY=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.accessibility.score * 100))" 2>/dev/null || echo "N/A")
+              BEST_PRACTICES=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories['best-practices'].score * 100))" 2>/dev/null || echo "N/A")
+              SEO=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.seo.score * 100))" 2>/dev/null || echo "N/A")
+
+              # コメント内容を作成
+              echo "## 🚀 Lighthouse Performance Report" > comment.md
+              echo "" >> comment.md
+              echo "| Category | Score |" >> comment.md
+              echo "|----------|-------|" >> comment.md
+              echo "| 🚀 Performance | ${PERFORMANCE}% |" >> comment.md
+              echo "| ♿ Accessibility | ${ACCESSIBILITY}% |" >> comment.md
+              echo "| ⚡ Best Practices | ${BEST_PRACTICES}% |" >> comment.md
+              echo "| 🔍 SEO | ${SEO}% |" >> comment.md
+              echo "" >> comment.md
+              echo "📊 詳細なレポートは [GitHub Actions Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) からダウンロードできます。" >> comment.md
+
+              # outputに設定
+              echo "comment<<GITHUB_OUTPUT_EOF" >> $GITHUB_OUTPUT
+              cat comment.md >> $GITHUB_OUTPUT
+              echo "GITHUB_OUTPUT_EOF" >> $GITHUB_OUTPUT
+              echo "has-report=true" >> $GITHUB_OUTPUT
+
+              # 一時ファイルを削除
+              rm comment.md
+            else
+              echo "has-report=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "has-report=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment PR with Lighthouse results
+        if: github.event_name == 'pull_request' && steps.lighthouse-comment.outputs.has-report == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = `${{ steps.lighthouse-comment.outputs.comment }}`;
+
+            // 既存のLighthouseコメントを検索
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const lighthouseComment = comments.find(comment =>
+              comment.body.includes('🚀 Lighthouse Performance Report')
+            );
+
+            if (lighthouseComment) {
+              // 既存のコメントを更新
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: lighthouseComment.id,
+                body: comment
+              });
+            } else {
+              // 新しいコメントを作成
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports-${{ github.run_id }}
+          path: .lighthouseci/
+          retention-days: 30
