@@ -16,9 +16,11 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-aws': ['aws-amplify', '@aws-amplify/ui-react'],
-          'vendor-libs': [
+          'vendor': [
+            'react',
+            'react-dom',
+            'aws-amplify',
+            '@aws-amplify/ui-react',
             '@radix-ui/react-checkbox',
             '@radix-ui/react-collapsible',
             '@radix-ui/react-dialog',
