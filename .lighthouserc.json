@@ -13,33 +13,7 @@
           "viewport",
           "without-javascript",
           "screenshot-thumbnails",
-          "final-screenshot",
-          "largest-contentful-paint-element",
-          "layout-shift-elements",
-          "uses-long-cache-ttl",
-          "total-byte-weight",
-          "offscreen-images",
-          "render-blocking-resources",
-          "unminified-css",
-          "unminified-javascript",
-          "unused-css-rules",
-          "uses-webp-images",
-          "uses-optimized-images",
-          "uses-text-compression",
-          "uses-responsive-images",
-          "efficient-animated-content",
-          "duplicated-javascript",
-          "legacy-javascript",
-          "third-party-summary",
-          "third-party-facades",
-          "bootup-time",
-          "mainthread-work-breakdown",
-          "diagnostics",
-          "network-requests",
-          "network-rtt",
-          "network-server-latency",
-          "main-thread-tasks",
-          "metrics"
+          "final-screenshot"
         ],
         "emulatedFormFactor": "desktop",
         "throttling": {
@@ -61,9 +35,6 @@
         "categories:best-practices": ["warn", { "minScore": 0.6 }],
         "categories:seo": ["warn", { "minScore": 0.6 }]
       }
-    },
-    "upload": {
-      "target": "temporary-public-storage"
     }
   }
 }

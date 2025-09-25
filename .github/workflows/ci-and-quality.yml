@@ -10,15 +10,6 @@ on:
       - '.gitignore'
       - 'LICENSE'
       - 'CONTRIBUTING.md'
-  pull_request:
-    branches: [main]
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.yml'
-      - '**/*.yaml'
-      - '.gitignore'
-      - 'LICENSE'
-      - 'CONTRIBUTING.md'
 
 jobs:
   build:
@@ -198,7 +189,19 @@ jobs:
           name: build-artifacts-${{ github.run_id }}
 
       - name: Audit performance with Lighthouse CI
-        run: npx lhci autorun || echo "Lighthouse CI completed with issues"
+        run: |
+          npx lhci autorun || echo "Lighthouse CI completed with issues"
+
+          # デバッグ: .lighthouseci ディレクトリの内容を確認
+          echo "=== Lighthouse CI Results Debug ==="
+          if [ -d ".lighthouseci" ]; then
+            echo "✅ .lighthouseci directory exists"
+            ls -la .lighthouseci/
+          else
+            echo "❌ .lighthouseci directory not found"
+            echo "Current directory contents:"
+            ls -la
+          fi
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
         continue-on-error: true
@@ -206,8 +209,17 @@ jobs:
       - name: Generate Lighthouse summary
         if: always()
         run: |
-          if [ -f .lighthouseci/lhr-*.json ]; then
-            LATEST_REPORT=$(ls -t .lighthouseci/lhr-*.json | head -n1)
+          if [ -d ".lighthouseci" ] && [ -n "$(ls -A .lighthouseci/ 2>/dev/null)" ]; then
+            echo "✅ Found Lighthouse results directory"
+
+            # JSONファイルを探す
+            LATEST_REPORT=""
+            if ls .lighthouseci/lhr-*.json 1> /dev/null 2>&1; then
+              LATEST_REPORT=$(ls -t .lighthouseci/lhr-*.json | head -n1)
+            elif ls .lighthouseci/*.json 1> /dev/null 2>&1; then
+              LATEST_REPORT=$(ls -t .lighthouseci/*.json | head -n1)
+            fi
+
             if [ -f "$LATEST_REPORT" ]; then
               echo "## 🚀 Lighthouse Performance Report" >> $GITHUB_STEP_SUMMARY
               echo "| Category | Score |" >> $GITHUB_STEP_SUMMARY
@@ -222,9 +234,11 @@ jobs:
               echo "| ♿ Accessibility | ${ACCESSIBILITY}% |" >> $GITHUB_STEP_SUMMARY
               echo "| ⚡ Best Practices | ${BEST_PRACTICES}% |" >> $GITHUB_STEP_SUMMARY
               echo "| 🔍 SEO | ${SEO}% |" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "⚠️ No JSON report files found" >> $GITHUB_STEP_SUMMARY
             fi
           else
-            echo "⚠️ Lighthouse report not found" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ Lighthouse results directory not found or empty" >> $GITHUB_STEP_SUMMARY
           fi
 
       - name: Upload Lighthouse reports
@@ -232,5 +246,9 @@ jobs:
         if: always()
         with:
           name: lighthouse-reports-${{ github.run_id }}
-          path: .lighthouseci/
+          path: |
+            .lighthouseci/
+            lhci_reports/
+            lighthouse-reports/
+          if-no-files-found: warn
           retention-days: 7
