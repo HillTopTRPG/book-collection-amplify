@@ -1,4 +1,4 @@
-name: Lighthouse Performance Audit
+name: CI and Quality Checks
 
 on:
   push:
@@ -21,7 +21,7 @@ on:
       - 'CONTRIBUTING.md'
 
 jobs:
-  lighthouse:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -47,7 +47,7 @@ jobs:
           # Try npm ci first, fall back to npm install if it fails
           npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
 
-      - name: Create mock amplify_outputs.json for build
+      - name: Create mock amplify_outputs.json
         run: |
           cat > amplify_outputs.json << 'EOF'
           {
@@ -117,12 +117,74 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Install Lighthouse CI
-        run: npm install -g @lhci/cli
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_id }}
+          path: |
+            dist/
+            amplify_outputs.json
+          retention-days: 1
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_id }}
+
+      - name: Run lint checks
+        run: npm run lint
+
+      - name: Run tests
+        run: npm run test:run
+
+  lighthouse:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Cache node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-20.x-
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_id }}
 
       - name: Audit performance with Lighthouse CI
         run: |
-          lhci autorun || echo "Lighthouse CI completed with issues"
+          npx lhci autorun || echo "Lighthouse CI completed with issues"
 
           # スコア表示のために結果ファイルを確認
           if [ -f .lighthouseci/lhr-*.json ]; then
