@@ -1,5 +1,5 @@
 import type { ReactNode, RefObject } from 'react';
-import { useRef, useEffect, useState } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 import { ChevronsDownUp, ChevronsUpDown, UnfoldVertical } from 'lucide-react';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookGroup } from '@/utils/groupByVolume';
@@ -42,34 +42,44 @@ export default function GroupByBlock({
 }: Props) {
   const stickyRef = useRef<HTMLDivElement>(null);
   const countRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [openType, setOpenType] = useState<CollapseOpenType>(list.length < 6 ? 'full' : 'collapse');
 
   useEffect(() => {
     setOpenType(list.length < 6 ? 'full' : 'collapse');
   }, [list.length]);
 
-  const onOpenChange = () => {
+  const scrollToRef = useCallback(
+    (ref: RefObject<HTMLDivElement | null>) => {
+      setTimeout(() => {
+        if (!stickyRef.current) return;
+        if (!ref.current) return;
+        if (!scrollParentRef.current) return;
+        const stickyRect = stickyRef.current.getBoundingClientRect();
+        const countRect = ref.current.getBoundingClientRect();
+        scrollParentRef.current?.scrollBy(0, countRect.top - stickyRect.bottom);
+      });
+    },
+    [scrollParentRef]
+  );
+
+  const onOpenChange = useCallback(() => {
     if (openType === 'full') {
       setOpenType('close');
 
-      // 閉じられたら、「〜件」が見える位置までスクロールする
-      setTimeout(() => {
-        if (!stickyRef.current) return;
-        if (!countRef.current) return;
-        if (!scrollParentRef.current) return;
-        const stickyRect = stickyRef.current.getBoundingClientRect();
-        const countRect = countRef.current.getBoundingClientRect();
-        scrollParentRef.current?.scrollBy(0, countRect.top - stickyRect.bottom);
-      });
+      // 「〜件」が見える位置までスクロールする
+      scrollToRef(countRef);
+      return;
+    }
 
-      return;
-    }
-    if (openType === 'collapse') {
+    if (openType === 'close' && list.length >= 6) {
+      setOpenType('collapse');
+      // コンテンツが見える位置までスクロールする
+      scrollToRef(contentRef);
+    } else {
       setOpenType('full');
-      return;
     }
-    setOpenType(list.length < 6 ? 'full' : 'collapse');
-  };
+  }, [list.length, openType, scrollToRef]);
 
   return (
     <>
@@ -87,7 +97,7 @@ export default function GroupByBlock({
         {COLLAPSE_ICON_MAP[openType]}
       </div>
       <div className="flex">
-        <div className="dark:bg-green-800 w-2"></div>
+        <div ref={contentRef} className="dark:bg-green-800 w-2"></div>
         <div className="flex flex-col flex-1">
           <NdlCardList
             countRef={countRef}
