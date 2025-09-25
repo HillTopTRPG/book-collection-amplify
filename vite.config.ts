@@ -9,7 +9,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      '$/amplify_outputs': path.resolve(__dirname, './amplify_outputs.json'),
       '$/amplify/*': path.resolve(__dirname, './amplify/*'),
     },
   },
