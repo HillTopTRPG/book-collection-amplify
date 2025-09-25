@@ -12,4 +12,51 @@ export default defineConfig({
       '$/amplify/*': path.resolve(__dirname, './amplify/*'),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-aws': ['aws-amplify', '@aws-amplify/ui-react'],
+          'vendor-ui': [
+            '@radix-ui/react-checkbox',
+            '@radix-ui/react-collapsible',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-icons',
+            '@radix-ui/react-label',
+            '@radix-ui/react-navigation-menu',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-scroll-area',
+            '@radix-ui/react-select',
+            '@radix-ui/react-separator',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-switch',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-toast'
+          ],
+          'vendor-dnd': [
+            '@dnd-kit/core',
+            '@dnd-kit/modifiers',
+            '@dnd-kit/sortable',
+            '@dnd-kit/utilities'
+          ],
+          'vendor-form': [
+            'react-hook-form',
+            '@hookform/resolvers',
+            'zod'
+          ],
+          'vendor-animation': ['framer-motion', 'motion'],
+          'vendor-utils': [
+            'clsx',
+            'class-variance-authority',
+            'tailwind-merge',
+            'es-toolkit',
+            'uuid',
+            'usehooks-ts'
+          ]
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
+  }
 });

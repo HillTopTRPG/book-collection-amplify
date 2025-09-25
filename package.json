@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
-    "build": "tsc && vite build",
+    "build": "tsc & vite build & wait",
     "lint": "eslint . && tsc",
     "lint:fix": "prettier --write --log-level=silent . && eslint . --fix",
     "preview": "vite preview",
