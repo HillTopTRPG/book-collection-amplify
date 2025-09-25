@@ -38,7 +38,7 @@ export default function QueueProcessLayer({ children }: Props) {
     const isbnList = getKeys(results).flatMap(optionsStr => {
       const books = results[optionsStr];
 
-      return books === 'retrying' ? [] : books.map(b => b.isbn);
+      return books === 'retrying' ? [] : books.list.map(b => b.isbn);
     });
 
     if (isbnList.length) dispatch(enqueueBookImage({ type: 'new', list: isbnList }));

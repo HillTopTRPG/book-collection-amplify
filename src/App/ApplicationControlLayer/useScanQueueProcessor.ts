@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { enqueueNdlSearch, selectNdlSearchResults } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { enqueueAllNdlSearch, selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
 import { dequeueScan, type ScannedItemMapValue, selectScanQueueTargets } from '@/store/scannerSlice.ts';
 import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
@@ -16,17 +16,15 @@ type Props = {
 export default function useScanQueueProcessor({ filterSets, collections }: Props) {
   const dispatch = useAppDispatch();
 
-  const filterQueueResults = useAppSelector(selectNdlSearchResults);
-
   // スキャンキューの対象
   const scanQueueTargets = useAppSelector(selectScanQueueTargets);
 
   // NDL検索キューの結果
-  const ndlSearchQueueResults = useAppSelector(selectNdlSearchResults);
+  const allNdlSearchQueueResults = useAppSelector(selectAllNdlSearchResults);
 
   // スキャンキューの処理1 - NDL検索キューへのenqueue
   useEffect(() => {
-    dispatch(enqueueNdlSearch({ type: 'priority', list: scanQueueTargets.map(isbn => JSON.stringify({ isbn })) }));
+    dispatch(enqueueAllNdlSearch({ type: 'priority', list: scanQueueTargets.map(isbn => JSON.stringify({ isbn })) }));
   }, [dispatch, scanQueueTargets]);
 
   // スキャンキューの処理2 - NDL検索結果から取得できたらスキャンキューからdequeue
@@ -34,8 +32,8 @@ export default function useScanQueueProcessor({ filterSets, collections }: Props
     if (!scanQueueTargets.length) return;
     const results = scanQueueTargets.reduce<Map<Isbn13, ScannedItemMapValue | null>>((acc, isbn) => {
       const key = JSON.stringify({ isbn });
-      if (ndlSearchQueueResults[key] === undefined) return acc;
-      const ndlSearchQueueResult = ndlSearchQueueResults[key];
+      if (allNdlSearchQueueResults[key] === undefined) return acc;
+      const ndlSearchQueueResult = allNdlSearchQueueResults[key];
       if (typeof ndlSearchQueueResult === 'string') return acc;
       if (!ndlSearchQueueResult.length) {
         acc.set(isbn, null);
@@ -43,7 +41,7 @@ export default function useScanQueueProcessor({ filterSets, collections }: Props
       }
       const result = getScannedItemMapValueByBookData(collections, ndlSearchQueueResult[0]);
       const _filterSets: FilterSet[] = filterSets.filter(filterSet => {
-        const result = filterQueueResults[JSON.stringify(filterSet.fetch)];
+        const result = allNdlSearchQueueResults[JSON.stringify(filterSet.fetch)];
         if (typeof result === 'string') return false;
         return result?.some(filterMatch({ isbn }));
       });
@@ -61,7 +59,7 @@ export default function useScanQueueProcessor({ filterSets, collections }: Props
                   usePublisher: true,
                   useCreator: true,
                 },
-                filters: [{ list: [{ keyword: '', sign: '*=' }], grouping: null }],
+                filters: [{ list: [{ keyword: '', sign: '*=' }], grouping: 'date' }],
                 primary: isbn,
                 createdAt: '',
                 updatedAt: '',
@@ -81,7 +79,7 @@ export default function useScanQueueProcessor({ filterSets, collections }: Props
       return result.filterSets.map(filterSet => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch));
     });
     if (list.length) {
-      dispatch(enqueueNdlSearch({ type: 'new', list }));
+      dispatch(enqueueAllNdlSearch({ type: 'new', list }));
     }
-  }, [dispatch, scanQueueTargets, ndlSearchQueueResults, collections, filterSets, filterQueueResults]);
+  }, [dispatch, scanQueueTargets, allNdlSearchQueueResults, collections, filterSets]);
 }

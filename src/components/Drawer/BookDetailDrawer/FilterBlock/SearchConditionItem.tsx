@@ -2,8 +2,8 @@ import { useMemo } from 'react';
 import ComboInput from '@/components/ComboInput.tsx';
 import type { SelectBoxOption } from '@/components/SelectBox.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
-import { selectFetchedAllBooks } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { selectFetchedAllBooks } from '@/store/ndlSearchSlice.ts';
 import { updateFetchedFilterAnywhere } from '@/store/scannerSlice.ts';
 import type { FilterSet, Sign } from '@/store/subscriptionDataSlice.ts';
 import type { BookData, Isbn13 } from '@/types/book.ts';
@@ -133,7 +133,7 @@ export default function SearchConditionItem({ isbn, filterSet, orIndex, andIndex
     if (orIndex === 0) {
       // プライマリブロックのための処理
       if (newFilters.length === 1 && newFilters[orIndex].list[0]) {
-        newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: null });
+        newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: 'date' });
       }
     } else {
       // ORブロックのための処理
@@ -141,7 +141,7 @@ export default function SearchConditionItem({ isbn, filterSet, orIndex, andIndex
         newFilters.splice(orIndex, 1);
       } else {
         if (orIndex === newFilters.length - 1 && newFilters[orIndex].list[0]) {
-          newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: null });
+          newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: 'date' });
         }
       }
     }

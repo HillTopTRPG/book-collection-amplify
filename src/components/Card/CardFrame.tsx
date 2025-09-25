@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { cn } from '@/lib/utils.ts';
 
 // const BASE = 'relative rounded-lg p-2 cursor-pointer select-none';
-const BASE = 'relative rounded-lg p-2';
+const BASE = 'relative p-2';
 const FLEX = 'flex items-center justify-center';
 const COLOR = 'hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200';
 const TOUCH = 'touch-manipulation min-h-[44px] active:bg-gray-100 dark:active:bg-gray-700';

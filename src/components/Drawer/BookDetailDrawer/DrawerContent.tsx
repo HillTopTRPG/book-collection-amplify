@@ -3,8 +3,9 @@ import BookCard from '@/components/Card/BookCard.tsx';
 import BookDetailDialog from '@/components/Drawer/BookDetailDrawer/BookDetailDialog.tsx';
 import FilterBlock from '@/components/Drawer/BookDetailDrawer/FilterBlock';
 import FilterSets from '@/components/Drawer/BookDetailDrawer/FilterSets';
-import { enqueueNdlSearch, selectNdlSearchResults } from '@/store/fetchNdlSearchSlice.ts';
+import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
@@ -16,7 +17,7 @@ type Props = {
 
 export default function DrawerContent({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
-  const ndlSearchQueueResults = useAppSelector(selectNdlSearchResults);
+  const allNdlSearchQueueResults = useAppSelector(selectAllNdlSearchResults);
   const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
   const [detailIsbn, setDetailIsbn] = useState<string | null>(null);
 
@@ -40,10 +41,10 @@ export default function DrawerContent({ scannedItemMapValue }: Props) {
   );
 
   const fetchedBooks = useMemo(() => {
-    const result = ndlSearchQueueResults[stringifyFetchOptions] ?? null;
+    const result = allNdlSearchQueueResults[stringifyFetchOptions] ?? null;
     if (typeof result === 'string') return [];
     return result;
-  }, [ndlSearchQueueResults, stringifyFetchOptions]);
+  }, [allNdlSearchQueueResults, stringifyFetchOptions]);
 
   useEffect(() => {
     if (!stringifyFetchOptions) return;

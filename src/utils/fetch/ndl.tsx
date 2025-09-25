@@ -1,5 +1,6 @@
 import ndc8Map from '@/assets/ndc8.json';
 import ndc9Map from '@/assets/ndc9.json';
+import type { NdlSearchResult } from '@/store/fetchNdlSearchSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/types/fetch.ts';
 import type { FetchProcessResult } from '@/utils/fetch';
@@ -13,6 +14,8 @@ const NDC_MAPS = {
 
 const NDL_XML_QUERY = {
   resource: 'recordData > RDF > BibResource',
+  numberOfRecords: 'numberOfRecords',
+  nextRecordPosition: 'nextRecordPosition',
   records: 'records > record',
   isbn: 'identifier',
   datatype: 'rdf:datatype',
@@ -129,7 +132,7 @@ const getNdlQueryStr = (options: NdlFetchOptions): string => {
   );
 };
 
-export const callNdlSearchApi = async (optionsStr: string): Promise<FetchProcessResult<BookData[]>> => {
+export const callNdlSearchApi = async (optionsStr: string): Promise<FetchProcessResult<NdlSearchResult>> => {
   const options = JSON.parse(optionsStr) as NdlFetchOptions;
   const query = getNdlQueryStr(options);
   console.log(query);
@@ -138,7 +141,7 @@ export const callNdlSearchApi = async (optionsStr: string): Promise<FetchProcess
     ['version', '1.2'],
     ['recordPacking', 'xml'],
     ['recordSchema', 'dcndl'],
-    ['startRecord', '1'],
+    ['startRecord', options.startRecord?.toString() ?? '1'],
     ['maximumRecords', '200'],
     ['query', encodeURIComponent(query)],
   ]
@@ -151,19 +154,30 @@ export const callNdlSearchApi = async (optionsStr: string): Promise<FetchProcess
     const response = await fetch(url);
     if (response.status === 429) {
       console.log('Too Many Requests', url);
-      return { value: [], error: 'Too Many Requests', retry: true };
+      return {
+        value: { list: [], numberOfRecords: null, nextRecordPosition: null },
+        error: 'Too Many Requests',
+        retry: true,
+      };
     }
     const text = await response.text();
     const document = parser.parseFromString(text, 'text/xml');
 
+    const numberOfRecordsStr = document.querySelector(NDL_XML_QUERY.numberOfRecords)?.textContent;
+    const nextRecordPositionStr = document.querySelector(NDL_XML_QUERY.nextRecordPosition)?.textContent;
+
     return {
-      value: Array.from(document.querySelectorAll(NDL_XML_QUERY.records)).flatMap(getNdlBooks),
+      value: {
+        list: Array.from(document.querySelectorAll(NDL_XML_QUERY.records)).flatMap(getNdlBooks),
+        numberOfRecords: numberOfRecordsStr ? parseInt(numberOfRecordsStr) : null,
+        nextRecordPosition: nextRecordPositionStr ? parseInt(nextRecordPositionStr) : null,
+      },
       error: null,
       retry: false,
     };
   } catch (error) {
     console.log(JSON.stringify(error, null, 2));
-    return { value: [], error: 'network?', retry: false };
+    return { value: { list: [], numberOfRecords: null, nextRecordPosition: null }, error: 'network?', retry: false };
   }
 };
 

@@ -6,6 +6,7 @@ export type NdlFetchOptions = {
   dpid?: string;
   mediatype?: string;
   anywhere?: string;
+  startRecord?: number;
 };
 
 export type RakutenApiOption = {

@@ -77,9 +77,6 @@ const MATCHING_RULES: MatchingRule[] = [
   {
     name: 'タイトル一致',
     calculateScore: (book1, book2) => {
-      if (shouldLogDebugInfo(book2)) {
-        console.log(book1.book.title, book2.book.title);
-      }
       if (arePropertiesEqual(book1, book2, 'title')) return 1;
       const similarity = calculateStringSimilarity(book1, book2, 'title');
       if (shouldLogDebugInfo(book2)) {
@@ -130,11 +127,6 @@ const MATCHING_RULES: MatchingRule[] = [
 
       const [extentParts1, extentParts2] = [book1, book2].map(parseExtent);
       if (!extentParts1 || !extentParts2) return 0;
-
-      if (shouldLogDebugInfo(book2)) {
-        console.log(JSON.stringify(extentParts1, null, 2));
-        console.log(JSON.stringify(extentParts2, null, 2));
-      }
 
       return extentParts1.filter(part => extentParts2.includes(part)).length;
     },
@@ -204,9 +196,9 @@ const isValidCandidate = (
   groups: BookGroup[]
 ): boolean => {
   const lastVolumeInGroup = groups[groupIndex][groups[groupIndex].length - 1].volume;
-  if (shouldLogDebugInfo(target) && target.volume - 2 <= candidate.volume && candidate.volume <= target.volume + 1) {
-    console.log(lastVolumeInGroup, groupIndex, candidate.volume, candidate.book.isbn, target.volume);
-  }
+  // if (shouldLogDebugInfo(target) && target.volume - 2 <= candidate.volume && candidate.volume <= target.volume + 1) {
+  //   console.log(lastVolumeInGroup, groupIndex, candidate.volume, candidate.book.isbn, target.volume);
+  // }
 
   if (candidate.volume === target.volume && lastVolumeInGroup === candidate.volume + 1) {
     return true;
@@ -304,10 +296,11 @@ const addBookToGroups = (bookWithVolume: BookWithVolume, groups: BookGroup[]): v
     }
     if (itemList[itemList.length - 1].volume === bookWithVolume.volume) {
       itemList.push(bookWithVolume);
-      logBookPlacement(bookWithVolume, 'equals', groupIndex, score);
+      logBookPlacement(bookWithVolume, 'equals(1)', groupIndex, score);
       return;
     } else {
       groups.push([bookWithVolume]);
+      logBookPlacement(bookWithVolume, 'equals(2)', groupIndex, score);
       return;
     }
   }
