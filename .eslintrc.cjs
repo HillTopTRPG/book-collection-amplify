@@ -10,15 +10,7 @@ module.exports = {
     'plugin:import/typescript',
     'plugin:prettier/recommended',
   ],
-  ignorePatterns: [
-    'dist',
-    '.eslintrc.cjs',
-    'amplify',
-    'vite.config.ts',
-    'tailwind.config.js',
-    'postcss.config.js',
-    'scripts',
-  ],
+  ignorePatterns: ['dist', '.eslintrc.cjs', 'amplify', '*.config.ts', '*.config.js', 'scripts', 'coverage'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     project: './tsconfig.json',

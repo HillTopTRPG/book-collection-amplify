@@ -1,19 +1,18 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
-import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { FilterAndGroup, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
 import type { QueueState } from '@/types/queue.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
+import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import {
-  createSimpleReducers,
-  deleteAllStrings,
-  dequeue,
-  enqueue,
-  makeNdlOptionsStringByNdlFullOptions,
-  simpleSelector,
-} from '@/utils/data.ts';
-import { unique } from '@/utils/primitive.ts';
+  deleteScannedIsbnToLocalStorage,
+  pushScannedIsbnToLocalStorage,
+  resetScannedIsbnToLocalStorage,
+} from '@/utils/localStorage.ts';
+import { unique, deleteAllStrings } from '@/utils/primitive.ts';
+import { dequeue, enqueue, createSimpleReducers, simpleSelector } from '@/utils/store.ts';
 import type { PickRequired } from '@/utils/type.ts';
 import { getKeys } from '@/utils/type.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
@@ -59,40 +58,40 @@ export const scannerSlice = createSlice({
     ) => {
       const addList = enqueue(state, action);
       state.queueViewList.push(...addList);
+      // localStorageにも反映
+      pushScannedIsbnToLocalStorage(action.payload.list);
     },
     dequeueScan: (state, action: PayloadAction<Record<QueueType, QueueResult>>) => {
       dequeue(state, action);
-      deleteAllStrings(
-        state.queueViewList,
-        getKeys(action.payload).filter(isbn => !action.payload[isbn])
-      );
+      const deleteIsbnList = getKeys(action.payload).filter(isbn => !action.payload[isbn]);
+      deleteAllStrings(state.queueViewList, deleteIsbnList);
+      // localStorageにも反映
+      deleteScannedIsbnToLocalStorage(deleteIsbnList);
     },
     clearScanViewList: state => {
       state.queueViewList.splice(0, state.queueViewList.length);
+      // localStorageにも反映
+      resetScannedIsbnToLocalStorage();
     },
     updateFetchedFetchOption: (
       state,
-      action: PayloadAction<{ isbn: QueueType; filterSetIndex: number; fetch: NdlFullOptions }>
+      action: PayloadAction<{ isbn: QueueType; filterSetId: string; fetch: NdlFullOptions }>
     ) => {
       const scanningItemMapValue = state.results[action.payload.isbn];
       if (!scanningItemMapValue) return;
-      if (scanningItemMapValue.filterSets.length <= action.payload.filterSetIndex) return;
-      const filterSet = scanningItemMapValue.filterSets[action.payload.filterSetIndex];
+      const filterSet = scanningItemMapValue.filterSets.find(({ id }) => id === action.payload.filterSetId);
+      if (!filterSet) return;
       filterSet.fetch = action.payload.fetch;
-      scanningItemMapValue.filterSets.splice(action.payload.filterSetIndex, 1, filterSet);
     },
     updateFetchedFilterAnywhere: (
       state,
-      action: PayloadAction<{ key: QueueType; index: number; anywhere: string }>
+      action: PayloadAction<{ key: QueueType; filterSetId: string; filters: FilterAndGroup[] }>
     ) => {
       const scanningItemMapValue = state.results[action.payload.key];
       if (!scanningItemMapValue) return;
-      if (scanningItemMapValue.filterSets.length <= action.payload.index) return;
-      const filterSet = scanningItemMapValue.filterSets[action.payload.index];
-      const anywhere = action.payload.anywhere;
-      const addFilter = { anywhere };
-      if (!filterSet.filters.length) filterSet.filters.push([]);
-      filterSet.filters[0].splice(0, 1, addFilter);
+      const filterSet = scanningItemMapValue.filterSets.find(({ id }) => id === action.payload.filterSetId);
+      if (!filterSet) return;
+      filterSet.filters = action.payload.filters;
     },
     updateSelectedScanIsbn: createSimpleReducers('selectedIsbn'),
   },

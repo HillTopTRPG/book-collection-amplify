@@ -5,7 +5,6 @@ import { useDispatch } from 'react-redux';
 import DrawerFrame from '@/components/Drawer/DrawerFrame.tsx';
 import { Button } from '@/components/ui/button';
 import { useDrawerAnimation } from '@/hooks/useDrawerAnimation';
-import { updateFetchResult } from '@/store/fetchResultSlice.ts';
 import {
   closeDrawer,
   selectScannedItemMapValueBySelectedFilterSet,
@@ -14,7 +13,6 @@ import {
 import { useAppSelector } from '@/store/hooks.ts';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import { fetchNdlSearch } from '@/utils/fetch.ts';
 import DrawerContent from './DrawerContent.tsx';
 
 export default function FilterDetailDrawer() {
@@ -22,14 +20,14 @@ export default function FilterDetailDrawer() {
   const filterSet = useAppSelector(selectSelectedFilterSet);
   const scannedItemMapValueBySelectedFilterSet = useAppSelector(selectScannedItemMapValueBySelectedFilterSet);
 
-  const filterSetId = filterSet?.id;
+  // const filterSetId = filterSet?.id;
 
-  useEffect(() => {
-    if (!filterSet) return;
-    fetchNdlSearch(filterSet.fetch).then(fetchResult => {
-      dispatch(updateFetchResult({ [filterSet.id]: fetchResult }));
-    });
-  }, [dispatch, filterSet, filterSetId]);
+  // useEffect(() => {
+  //   if (!filterSet) return;
+  //   fetchNdlSearch(filterSet.fetch).then(({ books }) => {
+  //     dispatch(updateFetchResult({ [filterSet.id]: books }));
+  //   });
+  // }, [dispatch, filterSet, filterSetId]);
 
   const onClose = useCallback(() => {
     dispatch(closeDrawer());

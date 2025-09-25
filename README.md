@@ -1,25 +1,25 @@
-## AWS Amplify React+Vite Starter Template
+## AWS Amplify React+Vite スターターテンプレート
 
-This repository provides a starter template for creating applications using React+Vite and AWS Amplify, emphasizing easy setup for authentication, API, and database capabilities.
+このリポジトリは、React+ViteとAWS Amplifyを使用してアプリケーションを作成するためのスターターテンプレートを提供しており、認証、API、データベース機能の簡単なセットアップに重点を置いています。
 
-## Overview
+## 概要
 
-This template equips you with a foundational React application integrated with AWS Amplify, streamlined for scalability and performance. It is ideal for developers looking to jumpstart their project with pre-configured AWS services like Cognito, AppSync, and DynamoDB.
+このテンプレートは、AWS Amplifyと統合された基盤的なReactアプリケーションを提供し、スケーラビリティとパフォーマンスのために最適化されています。Cognito、AppSync、DynamoDBなどの事前設定されたAWSサービスでプロジェクトを迅速に開始したい開発者に最適です。
 
-## Features
+## 機能
 
-- **Authentication**: Setup with Amazon Cognito for secure user authentication.
-- **API**: Ready-to-use GraphQL endpoint with AWS AppSync.
-- **Database**: Real-time database powered by Amazon DynamoDB.
+- **認証**: 安全なユーザー認証のためのAmazon Cognitoとのセットアップ。
+- **API**: AWS AppSyncを使用したすぐに使用可能なGraphQLエンドポイント。
+- **データベース**: Amazon DynamoDBを使用したリアルタイムデータベース。
 
-## Deploying to AWS
+## AWSへのデプロイ
 
-For detailed instructions on deploying your application, refer to the [deployment section](https://docs.amplify.aws/react/start/quickstart/#deploy-a-fullstack-app-to-aws) of our documentation.
+アプリケーションのデプロイに関する詳細な手順については、ドキュメントの[デプロイセクション](https://docs.amplify.aws/react/start/quickstart/#deploy-a-fullstack-app-to-aws)を参照してください。
 
-## Security
+## セキュリティ
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+詳細については[CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications)を参照してください。
 
-## License
+## ライセンス
 
-This library is licensed under the MIT-0 License. See the LICENSE file.
+このライブラリはMIT-0ライセンスの下でライセンスされています。LICENSEファイルを参照してください。

@@ -6,10 +6,10 @@ type Props = {
   className?: string;
   children?: (value: string) => ReactNode;
   label?: string;
-  highLight?: string;
+  highLights?: string[];
 };
 
-export default function TempItem({ value, className, children, label, highLight }: Props) {
+export default function TempItem({ value, className, children, label, highLights }: Props) {
   if (!value) return null;
   const staticValue = label ? `${label}: ${value}` : value;
 
@@ -18,7 +18,7 @@ export default function TempItem({ value, className, children, label, highLight 
       {children ? (
         children(value)
       ) : (
-        <HighLightText value={staticValue} subStr={highLight} subClassName="bg-yellow-700" />
+        <HighLightText value={staticValue} subStrList={highLights} subClassName="bg-yellow-700" />
       )}
     </span>
   );

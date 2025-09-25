@@ -32,7 +32,7 @@ export default function DrawerFrame({ isVisible, onClose, header, children, useF
           <div className="border-b p-4 flex items-center gap-3">{header}</div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto w-full h-full px-2 py-1">{children}</div>
+          <div className="flex-1 overflow-y-auto w-full h-full">{children}</div>
 
           {/* Footer */}
           {useFooter ? (

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Import } from 'lucide-react';
+import { RotateCw } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,8 @@ const FormSchema = z.object({
   usePublisher: z.boolean(),
 });
 
-export type NdlOptions = z.infer<typeof FormSchema>;
-export type NdlFullOptions = NdlOptions & { creator: string; publisher: string };
+export type NdlFormOptions = z.infer<typeof FormSchema>;
+export type NdlFullOptions = NdlFormOptions & { creator: string; publisher: string };
 
 type Props = {
   defaultValues: NdlFullOptions;
@@ -23,30 +23,32 @@ type Props = {
 };
 
 export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
-  const form = useForm<NdlOptions>({
+  const form = useForm<NdlFormOptions>({
     resolver: zodResolver(FormSchema),
     defaultValues,
     mode: 'onChange',
   });
 
   const onSubmit = useCallback(
-    (data: NdlOptions) => {
-      onChange({ ...defaultValues, ...data });
+    (data: NdlFormOptions) => {
+      const newData = { ...defaultValues, ...data };
+      form.reset(newData);
+      onChange(newData);
     },
-    [defaultValues, onChange]
+    [defaultValues, form, onChange]
   );
 
   return (
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="bg-background rounded-xl p-3 flex flex-col items-center gap-1"
+        className="bg-background rounded-xl flex flex-col w-full gap-1 items-stretch"
       >
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
-            <FormItem className="flex items-center gap-3 space-y-0 flex-1">
+            <FormItem className="flex items-center gap-2 space-y-0 flex-1">
               <FormLabel>タイトル</FormLabel>
               <div className="flex flex-col flex-1">
                 <FormControl>
@@ -57,13 +59,13 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
             </FormItem>
           )}
         />
-        <div className="flex gap-3 items-end">
-          <div className="flex flex-col gap-1">
+        <div className="flex gap-3 items-end w-full">
+          <div className="flex flex-col gap-1 flex-1 pl-4">
             <FormField
               control={form.control}
               name="useCreator"
               render={({ field }) => (
-                <FormItem className="flex items-center gap-3 space-y-0 flex-1">
+                <FormItem className="flex items-center gap-2 space-y-0 flex-1">
                   <div className="flex flex-col">
                     <FormControl>
                       <Checkbox checked={field.value} onCheckedChange={checked => field.onChange(checked)} />
@@ -78,7 +80,7 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
               control={form.control}
               name="usePublisher"
               render={({ field }) => (
-                <FormItem className="flex items-center gap-3 space-y-0 flex-1">
+                <FormItem className="flex items-center gap-2 space-y-0 flex-1">
                   <div className="flex flex-col">
                     <FormControl>
                       <Checkbox checked={field.value} onCheckedChange={checked => field.onChange(checked)} />
@@ -90,9 +92,9 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
               )}
             />
           </div>
-          <Button size="sm" type="submit">
-            <Import />
-            読み込む
+          <Button size="sm" type="submit" disabled={!form.formState.isDirty}>
+            <RotateCw />
+            再読込
           </Button>
         </div>
       </form>

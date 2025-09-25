@@ -9,14 +9,13 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanResultList } from '@/store/scannerSlice.ts';
-import { getIsbn13 } from '@/utils/primitive.ts';
-import { checkIsbnCode } from '@/utils/validate.ts';
+import { getIsbnCode, getIsbn13 } from '@/utils/isbn.ts';
 
 const FormSchema = z
   .object({
     isbn: z.string(),
   })
-  .refine(data => checkIsbnCode(data.isbn), {
+  .refine(data => getIsbnCode(data.isbn), {
     message: 'ISBNコードじゃない',
     path: ['isbn'],
   });
@@ -36,13 +35,12 @@ export default function IsbnForm() {
 
   const onSubmit = useCallback(
     (data: z.infer<typeof FormSchema>) => {
-      const maybeIsbn = data.isbn.replaceAll('-', '');
-
-      if (!checkIsbnCode(maybeIsbn)) return;
-
-      form.setValue('isbn', '');
+      const maybeIsbn = getIsbnCode(data.isbn);
+      if (!maybeIsbn) return;
 
       const isbn13 = getIsbn13(maybeIsbn);
+
+      form.setValue('isbn', '');
 
       // 既に存在する場合はスキップ
       if (scanResultList.some(sr => sr.isbn === isbn13)) {

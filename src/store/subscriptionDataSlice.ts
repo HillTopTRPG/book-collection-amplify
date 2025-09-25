@@ -1,8 +1,8 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { generateClient } from 'aws-amplify/data';
-import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
 import type { Isbn13, BookData } from '@/types/book.ts';
-import { createSimpleReducers } from '@/utils/data.ts';
+import { createSimpleReducers } from '@/utils/store.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { RootState } from './index.ts';
 
@@ -19,9 +19,14 @@ export type Collection = Omit<Schema['Collection']['type'], 'isbn' | 'meta'> & {
   };
 };
 
-export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters'> & {
+export type Sign = '==' | '*=' | '!=' | '!*';
+export type FilterBean = { keyword: string; sign: Sign };
+export type FilterAndGroup = { list: FilterBean[]; grouping: 'date' | null };
+
+export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters' | 'primary'> & {
   fetch: NdlFullOptions;
-  filters: { anywhere: string }[][];
+  filters: FilterAndGroup[];
+  primary: Isbn13;
 };
 
 type State = {
