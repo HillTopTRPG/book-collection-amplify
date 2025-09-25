@@ -1,0 +1,99 @@
+import type { ReactNode, RefObject } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { ChevronsDownUp, ChevronsUpDown, UnfoldVertical } from 'lucide-react';
+import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { BookGroup } from '@/utils/groupByVolume';
+import NdlCardList from './NdlCardList.tsx';
+
+type CollapseOpenType = 'full' | 'collapse' | 'close';
+
+const COLLAPSE_ICON_MAP: Record<CollapseOpenType, ReactNode> = {
+  full: <ChevronsDownUp />,
+  collapse: <UnfoldVertical />,
+  close: <ChevronsUpDown />,
+};
+
+type Props = {
+  scrollParentRef: RefObject<HTMLDivElement | null>;
+  list: BookGroup;
+  idx: number;
+  stickyTop: number;
+  filterSet: FilterSet;
+  orIndex: number;
+  selectedIsbn: string | null;
+  setSelectedIsbn: (isbn: string | null) => void;
+  setDetailIsbn: (isbn: string | null) => void;
+};
+
+export default function GroupByBlock({
+  scrollParentRef,
+  list,
+  idx,
+  stickyTop,
+  filterSet,
+  orIndex,
+  selectedIsbn,
+  setSelectedIsbn,
+  setDetailIsbn,
+}: Props) {
+  const stickyRef = useRef<HTMLDivElement>(null);
+  const countRef = useRef<HTMLDivElement>(null);
+  const [openType, setOpenType] = useState<CollapseOpenType>(list.length < 6 ? 'full' : 'collapse');
+
+  useEffect(() => {
+    setOpenType(list.length < 6 ? 'full' : 'collapse');
+  }, [list.length]);
+
+  const onOpenChange = () => {
+    if (openType === 'full') {
+      setOpenType('close');
+
+      // 閉じられたら、「〜件」が見える位置までスクロールする
+      setTimeout(() => {
+        if (!stickyRef.current) return;
+        if (!countRef.current) return;
+        if (!scrollParentRef.current) return;
+        const stickyRect = stickyRef.current.getBoundingClientRect();
+        const countRect = countRef.current.getBoundingClientRect();
+        scrollParentRef.current?.scrollBy(0, countRect.top - stickyRect.bottom);
+      });
+
+      return;
+    }
+    if (openType === 'collapse') {
+      setOpenType('full');
+      return;
+    }
+    setOpenType(list.length < 6 ? 'full' : 'collapse');
+  };
+
+  return (
+    <>
+      <div
+        ref={stickyRef}
+        className="flex dark:bg-green-800 px-2 py-1 sticky z-[100] cursor-pointer"
+        style={{ top: stickyTop }}
+        onClick={onOpenChange}
+      >
+        <div className="flex-1">
+          {list[0].volume === -1
+            ? 'グルーピングなし'
+            : `グルーピング${idx + 1} (${list[0].volume}~${list[list.length - 1].volume}) ${list.length}件`}
+        </div>
+        {COLLAPSE_ICON_MAP[openType]}
+      </div>
+      <div className="flex">
+        <div className="dark:bg-green-800 w-2"></div>
+        <div className="flex flex-col flex-1">
+          <NdlCardList
+            books={list.map(({ book }) => book)}
+            {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn, openType, setOpenType }}
+          />
+          <div ref={countRef} className="px-2 py-1">
+            {list.length}件
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}

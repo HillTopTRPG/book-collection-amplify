@@ -55,7 +55,7 @@ export default function BookDetailDrawer() {
 
   const drawerContent = (
     <DrawerFrame isVisible={isVisible} header={header} onClose={handleClose}>
-      <DrawerContent scannedItemMapValue={bufferedValue} />
+      {scrollParentRef => <DrawerContent scrollParentRef={scrollParentRef} scannedItemMapValue={bufferedValue} />}
     </DrawerFrame>
   );
 

@@ -1,16 +1,17 @@
-import type { ReactNode } from 'react';
-import { Fragment, useMemo } from 'react';
+import type { ReactNode, RefObject } from 'react';
+import { isValidElement, useRef, Fragment, useMemo } from 'react';
 import { Button } from '@/components/ui/button.tsx';
 
 type Props = {
   isVisible: boolean;
   onClose?: () => void;
   header: ReactNode;
-  children: ReactNode;
+  children: ReactNode | ((scrollParentRef: RefObject<HTMLDivElement | null>) => ReactNode);
   useFooter?: boolean;
 };
 
 export default function DrawerFrame({ isVisible, onClose, header, children, useFooter }: Props) {
+  const scrollParentRef = useRef<HTMLDivElement>(null);
   const overlayClassName = useMemo(
     () =>
       `fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`,
@@ -23,6 +24,8 @@ export default function DrawerFrame({ isVisible, onClose, header, children, useF
     [isVisible]
   );
 
+  const isReactNode = (c: Props['children']): c is ReactNode => isValidElement(c);
+
   return (
     <Fragment>
       <div className={overlayClassName} onClick={onClose} />
@@ -32,7 +35,9 @@ export default function DrawerFrame({ isVisible, onClose, header, children, useF
           <div className="border-b p-4 flex items-center gap-3">{header}</div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto w-full h-full">{children}</div>
+          <div ref={scrollParentRef} className="flex-1 overflow-y-auto w-full h-full">
+            {isReactNode(children) ? children : children(scrollParentRef)}
+          </div>
 
           {/* Footer */}
           {useFooter ? (

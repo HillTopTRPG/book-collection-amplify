@@ -1,4 +1,3 @@
-import BookDetailContent from '@/components/Drawer/BookDetailDrawer/BookDetailContent.tsx';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { BookData } from '@/types/book.ts';
+import BookDetailDialogContent from './BookDetailDialogContent.tsx';
 
 type Props = {
   book: BookData | null;
@@ -26,7 +26,7 @@ export default function BookDetailDialog({ book, onClose }: Props) {
           </DialogTitle>
           <DialogDescription>書籍の詳細情報を表示します</DialogDescription>
         </DialogHeader>
-        {book ? <BookDetailContent book={book} /> : null}
+        {book ? <BookDetailDialogContent book={book} /> : null}
         <DialogFooter>
           <DialogClose asChild>
             <Button>閉じる</Button>
