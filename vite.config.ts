@@ -18,7 +18,7 @@ export default defineConfig({
         manualChunks: {
           'vendor-react': ['react', 'react-dom'],
           'vendor-aws': ['aws-amplify', '@aws-amplify/ui-react'],
-          'vendor-ui': [
+          'vendor-libs': [
             '@radix-ui/react-checkbox',
             '@radix-ui/react-collapsible',
             '@radix-ui/react-dialog',
@@ -32,21 +32,16 @@ export default defineConfig({
             '@radix-ui/react-slot',
             '@radix-ui/react-switch',
             '@radix-ui/react-tabs',
-            '@radix-ui/react-toast'
-          ],
-          'vendor-dnd': [
+            '@radix-ui/react-toast',
             '@dnd-kit/core',
             '@dnd-kit/modifiers',
             '@dnd-kit/sortable',
-            '@dnd-kit/utilities'
-          ],
-          'vendor-form': [
+            '@dnd-kit/utilities',
             'react-hook-form',
             '@hookform/resolvers',
-            'zod'
-          ],
-          'vendor-animation': ['framer-motion', 'motion'],
-          'vendor-utils': [
+            'zod',
+            'framer-motion',
+            'motion',
             'clsx',
             'class-variance-authority',
             'tailwind-merge',
