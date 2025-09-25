@@ -64,6 +64,8 @@ export default function FilterBlock({
         {!filterSet.filters[orIndex].grouping ? (
           <NdlCardList
             books={filteredResults}
+            conditionsFormRef={ref}
+            isLastBlock
             {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
           />
         ) : (
@@ -72,17 +74,14 @@ export default function FilterBlock({
               {idx ? <Separator /> : null}
               <GroupByBlock
                 stickyTop={size.height}
+                conditionsFormRef={ref}
+                isLastBlock={idx === groupedBooks.length - 1}
                 {...{ scrollParentRef, list, idx, filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
               />
             </Fragment>
           ))
         )}
       </div>
-
-      {/* 最後のブロックなら下に余白を入れる */}
-      {orIndex === filterSet.filters.length - 1 ? (
-        <div style={{ minHeight: filteredResults.length ? '2rem' : 'calc(100vh - 7rem + 2px)' }}></div>
-      ) : null}
     </>
   );
 }

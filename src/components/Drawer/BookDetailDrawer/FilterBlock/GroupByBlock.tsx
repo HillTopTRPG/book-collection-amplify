@@ -14,9 +14,11 @@ const COLLAPSE_ICON_MAP: Record<CollapseOpenType, ReactNode> = {
 };
 
 type Props = {
+  conditionsFormRef: RefObject<HTMLDivElement | null>;
   scrollParentRef: RefObject<HTMLDivElement | null>;
   list: BookGroup;
   idx: number;
+  isLastBlock: boolean;
   stickyTop: number;
   filterSet: FilterSet;
   orIndex: number;
@@ -26,9 +28,11 @@ type Props = {
 };
 
 export default function GroupByBlock({
+  conditionsFormRef,
   scrollParentRef,
   list,
   idx,
+  isLastBlock,
   stickyTop,
   filterSet,
   orIndex,
@@ -86,12 +90,12 @@ export default function GroupByBlock({
         <div className="dark:bg-green-800 w-2"></div>
         <div className="flex flex-col flex-1">
           <NdlCardList
+            countRef={countRef}
             books={list.map(({ book }) => book)}
+            conditionsFormRef={conditionsFormRef}
+            isLastBlock={isLastBlock}
             {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn, openType, setOpenType }}
           />
-          <div ref={countRef} className="px-2 py-1">
-            {list.length}件
-          </div>
         </div>
       </div>
     </>
