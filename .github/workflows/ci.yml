@@ -69,11 +69,11 @@ jobs:
           }
           EOF
 
-      - name: Run build
-        run: npm run build
-
       - name: Run lint checks
         run: npm run lint
 
       - name: Run tests
         run: npm run test:run
+
+      - name: Run build
+        run: npm run build
