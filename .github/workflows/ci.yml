@@ -4,6 +4,11 @@ on:
   push:
     paths-ignore:
       - '**/*.md'
+      - '**/*.yml'
+      - '**/*.yaml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'CONTRIBUTING.md'
 
 jobs:
   test:
