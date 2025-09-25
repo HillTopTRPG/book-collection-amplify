@@ -28,6 +28,47 @@ jobs:
           # Try npm ci first, fall back to npm install if it fails
           npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
 
+      - name: Create mock amplify_outputs.json for CI
+        run: |
+          cat > amplify_outputs.json << 'EOF'
+          {
+            "auth": {
+              "user_pool_id": "mock-user-pool-id",
+              "aws_region": "us-east-1",
+              "user_pool_client_id": "mock-client-id",
+              "identity_pool_id": "mock-identity-pool-id",
+              "mfa_methods": [],
+              "standard_required_attributes": ["email"],
+              "username_attributes": ["email"],
+              "user_verification_types": ["email"],
+              "groups": [],
+              "mfa_configuration": "NONE",
+              "password_policy": {
+                "min_length": 8,
+                "require_lowercase": true,
+                "require_numbers": true,
+                "require_symbols": true,
+                "require_uppercase": true
+              },
+              "unauthenticated_identities_enabled": true
+            },
+            "data": {
+              "url": "https://mock-api-url.amazonaws.com/graphql",
+              "aws_region": "us-east-1",
+              "api_key": "mock-api-key",
+              "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
+              "authorization_types": ["API_KEY", "AWS_IAM"],
+              "model_introspection": {
+                "version": 1,
+                "models": {},
+                "enums": {},
+                "nonModels": {}
+              }
+            },
+            "version": "1.4"
+          }
+          EOF
+
       - name: Run build
         run: npm run build
 
