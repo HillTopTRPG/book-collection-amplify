@@ -1,4 +1,4 @@
-name: Create Release Pull Request
+name: Create Feature Pull Request
 
 on:
   push:

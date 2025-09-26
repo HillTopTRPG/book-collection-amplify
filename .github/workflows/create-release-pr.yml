@@ -1,4 +1,4 @@
-name: Create Release PR and Tag
+name: Create PR and Tag and Release
 
 on:
   workflow_dispatch:
