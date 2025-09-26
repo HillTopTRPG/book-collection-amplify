@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host",
+    "dev:mock": "VITE_MOCK_MODE=true vite --host",
     "build": "tsc & vite build & wait",
     "lint": "eslint . && tsc --noEmit",
     "lint:fix": "prettier --write --log-level=silent . && eslint . --fix",

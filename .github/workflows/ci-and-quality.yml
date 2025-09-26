@@ -69,9 +69,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-lts-
 
-      - name: Build application
-        run: npm run build
-
       - name: Create mock amplify_outputs.json
         run: |
           cat > amplify_outputs.json << 'EOF'
@@ -138,6 +135,9 @@ jobs:
             "version": "1.4"
           }
           EOF
+
+      - name: Build application
+        run: npm run build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
