@@ -27,6 +27,19 @@ jobs:
             echo "❌ Comment does not contain exactly '/squash'"
           fi
 
+      - name: Acknowledge squash command
+        if: steps.check_command.outputs.valid_command == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: '🤖 `/squash` コマンドを検知しました。スカッシュマージを実行します...'
+            });
+
       - name: Check user permissions
         id: check_permissions
         if: steps.check_command.outputs.valid_command == 'true'
@@ -122,6 +135,14 @@ jobs:
                 content: '+1'
               });
 
+              // Add success comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `✅ **スカッシュマージが完了しました！**\n\nPR #${prData.number} を正常にマージしました。\n\n- マージコミット: \`${mergeResult.sha}\`\n- マージ方式: Squash merge`
+              });
+
             } catch (error) {
               console.error('Error during merge:', error);
 
@@ -131,6 +152,15 @@ jobs:
                 repo: context.repo.repo,
                 comment_id: context.payload.comment.id,
                 content: '-1'
+              });
+
+              // Add error comment with details
+              const errorMessage = error.message || 'Unknown error occurred';
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: `❌ **スカッシュマージに失敗しました**\n\n**エラー内容:**\n\`\`\`\n${errorMessage}\n\`\`\`\n\n**可能な原因:**\n- PRにマージコンフリクトが存在する\n- PRが既にクローズされている\n- チェックが完了していない\n- その他のマージ制約に違反している\n\n手動でマージを確認してください。`
               });
 
               throw error;
