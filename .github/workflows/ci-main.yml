@@ -1,0 +1,373 @@
+name: CI - main
+
+permissions:
+  contents: read
+  actions: write
+
+on:
+  push:
+    branches: [main, feature/**]
+    paths-ignore:
+      - '**/*.md'
+      # - '**/*.yml'
+      - '**/*.yaml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'CONTRIBUTING.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js lts
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          # Try npm ci first, fall back to npm install if it fails
+          npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
+
+      - name: Save node_modules to cache
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules
+          key: ${{ steps.cache-key.outputs.key }}
+
+      - name: Create mock amplify_outputs.json
+        run: |
+          cat > amplify_outputs.json << 'EOF'
+          {
+            "auth": {
+              "user_pool_id": "mock-user-pool-id",
+              "aws_region": "us-east-1",
+              "user_pool_client_id": "mock-client-id",
+              "identity_pool_id": "mock-identity-pool-id",
+              "mfa_methods": [],
+              "standard_required_attributes": ["email"],
+              "username_attributes": ["email"],
+              "user_verification_types": ["email"],
+              "groups": [],
+              "mfa_configuration": "NONE",
+              "password_policy": {
+                "min_length": 8,
+                "require_lowercase": true,
+                "require_numbers": true,
+                "require_symbols": true,
+                "require_uppercase": true
+              },
+              "unauthenticated_identities_enabled": true
+            },
+            "data": {
+              "url": "https://mock-api-url.amazonaws.com/graphql",
+              "aws_region": "us-east-1",
+              "api_key": "mock-api-key",
+              "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
+              "authorization_types": ["API_KEY", "AWS_IAM"],
+              "model_introspection": {
+                "version": 1,
+                "models": {
+                  "Collection": {
+                    "name": "Collection",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "isbn": {"name": "isbn", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "meta": {"name": "meta", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "memo": {"name": "memo", "isArray": false, "type": "String", "isRequired": false, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "Collections",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  },
+                  "FilterSet": {
+                    "name": "FilterSet",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "name": {"name": "name", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "filters": {"name": "filters", "isArray": false, "type": "String", "isRequired": true, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "FilterSets",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  }
+                },
+                "enums": {},
+                "nonModels": {}
+              }
+            },
+            "version": "1.4"
+          }
+          EOF
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_id }}
+          path: |
+            dist/
+            amplify_outputs.json
+          retention-days: 1
+
+  lint:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js lts
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: ${{ needs.build.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Create mock amplify_outputs.json
+        run: |
+          cat > amplify_outputs.json << 'EOF'
+          {
+            "auth": {
+              "user_pool_id": "mock-user-pool-id",
+              "aws_region": "us-east-1",
+              "user_pool_client_id": "mock-client-id",
+              "identity_pool_id": "mock-identity-pool-id",
+              "mfa_methods": [],
+              "standard_required_attributes": ["email"],
+              "username_attributes": ["email"],
+              "user_verification_types": ["email"],
+              "groups": [],
+              "mfa_configuration": "NONE",
+              "password_policy": {
+                "min_length": 8,
+                "require_lowercase": true,
+                "require_numbers": true,
+                "require_symbols": true,
+                "require_uppercase": true
+              },
+              "unauthenticated_identities_enabled": true
+            },
+            "data": {
+              "url": "https://mock-api-url.amazonaws.com/graphql",
+              "aws_region": "us-east-1",
+              "api_key": "mock-api-key",
+              "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
+              "authorization_types": ["API_KEY", "AWS_IAM"],
+              "model_introspection": {
+                "version": 1,
+                "models": {
+                  "Collection": {
+                    "name": "Collection",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "isbn": {"name": "isbn", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "meta": {"name": "meta", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "memo": {"name": "memo", "isArray": false, "type": "String", "isRequired": false, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "Collections",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  },
+                  "FilterSet": {
+                    "name": "FilterSet",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "name": {"name": "name", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "filters": {"name": "filters", "isArray": false, "type": "String", "isRequired": true, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "FilterSets",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  }
+                },
+                "enums": {},
+                "nonModels": {}
+              }
+            },
+            "version": "1.4"
+          }
+          EOF
+
+      - name: Run lint checks
+        run: npm run lint
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js lts
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: ${{ needs.build.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Run tests
+        run: npm run test:run
+
+  lighthouse:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js lts
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Cache Chrome
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/puppeteer
+          key: ${{ runner.os }}-chrome-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-chrome-
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules
+          key: ${{ needs.build.outputs.cache-key }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_id }}
+
+      - name: Audit performance with Lighthouse CI
+        run: |
+          npx lhci autorun || echo "Lighthouse CI completed with issues"
+
+          # 詳細デバッグ: ファイル生成状況を確認
+          echo "=== Lighthouse CI Results Debug ==="
+          echo "Working directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
+
+          # 可能性のあるすべての場所を確認
+          for dir in .lighthouseci lhci_reports lighthouse-reports; do
+            if [ -d "$dir" ]; then
+              echo "✅ $dir directory exists"
+              echo "Contents of $dir:"
+              ls -la "$dir/"
+            else
+              echo "❌ $dir directory not found"
+            fi
+          done
+
+          # Lighthouse関連のファイルを全検索
+          echo "Searching for Lighthouse files..."
+          find . -name "*.json" -o -name "*.html" | grep -E "(lh|lighthouse)" || echo "No lighthouse files found"
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+        continue-on-error: true
+
+      - name: Prepare artifacts directory
+        if: always()
+        run: |
+          # アーティファクト用ディレクトリを作成
+          mkdir -p lighthouse-artifacts
+
+          # 存在する結果をすべて収集
+          for dir in .lighthouseci lhci_reports lighthouse-reports; do
+            if [ -d "$dir" ] && [ -n "$(ls -A "$dir/" 2>/dev/null)" ]; then
+              echo "Copying contents from $dir"
+              cp -r "$dir"/* lighthouse-artifacts/ 2>/dev/null || echo "No files to copy from $dir"
+            fi
+          done
+
+          # 直接的なファイル検索もする
+          find . -maxdepth 2 -name "lhr-*.json" -exec cp {} lighthouse-artifacts/ \; 2>/dev/null || true
+          find . -maxdepth 2 -name "lhr-*.html" -exec cp {} lighthouse-artifacts/ \; 2>/dev/null || true
+
+          echo "Final artifacts directory contents:"
+          ls -la lighthouse-artifacts/
+
+      - name: Generate Lighthouse summary
+        if: always()
+        run: |
+          # アーティファクト用ディレクトリからJSONファイルを探す
+          LATEST_REPORT=""
+          if ls lighthouse-artifacts/lhr-*.json 1> /dev/null 2>&1; then
+            LATEST_REPORT=$(ls -t lighthouse-artifacts/lhr-*.json | head -n1)
+          elif ls lighthouse-artifacts/*.json 1> /dev/null 2>&1; then
+            LATEST_REPORT=$(ls -t lighthouse-artifacts/*.json | head -n1)
+          fi
+
+          if [ -f "$LATEST_REPORT" ]; then
+            echo "✅ Found report file: $LATEST_REPORT"
+            echo "## 🚀 Lighthouse Performance Report" >> $GITHUB_STEP_SUMMARY
+            echo "| Category | Score |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+
+            PERFORMANCE=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.performance.score * 100)" 2>/dev/null || echo "N/A")
+            ACCESSIBILITY=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.accessibility.score * 100)" 2>/dev/null || echo "N/A")
+            BEST_PRACTICES=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories['best-practices'].score * 100)" 2>/dev/null || echo "N/A")
+            SEO=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.seo.score * 100)" 2>/dev/null || echo "N/A")
+
+            echo "| 🚀 Performance | ${PERFORMANCE}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ♿ Accessibility | ${ACCESSIBILITY}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⚡ Best Practices | ${BEST_PRACTICES}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔍 SEO | ${SEO}% |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No JSON report files found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Lighthouse reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports-${{ github.run_id }}
+          path: lighthouse-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
