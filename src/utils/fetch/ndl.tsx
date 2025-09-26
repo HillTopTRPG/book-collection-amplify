@@ -124,6 +124,7 @@ const getNdlQueryStr = (options: NdlFetchOptions): string => {
             return [`${key}="${value}"`];
           case 'isbn':
             return [`${key}=${value}`];
+          case 'startRecord':
           default:
             return [];
         }

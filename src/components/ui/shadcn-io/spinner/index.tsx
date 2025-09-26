@@ -210,6 +210,12 @@ export const Spinner = ({ variant, ...props }: SpinnerProps) => {
       return <Bars {...props} />;
     case 'infinite':
       return <Infinite {...props} />;
+    case undefined: {
+      throw new Error('Not implemented yet: undefined case');
+    }
+    case 'default': {
+      throw new Error('Not implemented yet: "default" case');
+    }
     default:
       return <Default {...props} />;
   }
