@@ -1,14 +1,9 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { generateClient } from 'aws-amplify/data';
 import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
 import type { Isbn13, BookData } from '@/types/book.ts';
 import { createSimpleReducers } from '@/utils/store.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { RootState } from './index.ts';
-
-const userPoolClient = generateClient<Schema>({
-  authMode: 'userPool',
-});
 
 export type Collection = Omit<Schema['Collection']['type'], 'isbn' | 'meta'> & {
   isbn: Isbn13;
@@ -32,7 +27,7 @@ export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters' | 
 type State = {
   collections: Array<Collection>;
   filterSets: Array<FilterSet>;
-  createFilterSet: Parameters<typeof userPoolClient.models.FilterSet.create>[0] | null;
+  createFilterSet: Schema['FilterSet']['type'] | null;
 };
 
 const initialState: State = {
