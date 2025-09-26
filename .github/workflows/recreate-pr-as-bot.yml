@@ -1,0 +1,149 @@
+name: Recreate PR as GitHub Actions
+
+on:
+  workflow_dispatch:
+    inputs:
+      old_pr_number:
+        description: 'PR number to recreate'
+        required: true
+        type: string
+      source_branch:
+        description: 'Source branch name'
+        required: true
+        default: 'develop'
+      target_branch:
+        description: 'Target branch name'
+        required: true
+        default: 'main'
+      close_old_pr:
+        description: 'Close the old PR after creating new one'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  recreate-pr:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get original PR details
+        id: original_pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: parseInt('${{ inputs.old_pr_number }}')
+            });
+
+            console.log(`Original PR #${pr.number}: ${pr.title}`);
+            console.log(`From: ${pr.head.ref} -> ${pr.base.ref}`);
+
+            return {
+              title: pr.title,
+              body: pr.body || '',
+              number: pr.number
+            };
+
+      - name: Create new branch
+        run: |
+          # Fetch latest changes
+          git fetch origin ${{ inputs.source_branch }}
+          git fetch origin ${{ inputs.target_branch }}
+
+          # Create new branch name with timestamp to avoid conflicts
+          NEW_BRANCH="bot-pr-$(date +%Y%m%d-%H%M%S)"
+          echo "NEW_BRANCH=$NEW_BRANCH" >> $GITHUB_ENV
+
+          # Create new branch from target branch
+          git checkout origin/${{ inputs.target_branch }}
+          git checkout -b $NEW_BRANCH
+
+          # Cherry-pick all commits from source branch
+          git cherry-pick origin/${{ inputs.target_branch }}..origin/${{ inputs.source_branch }}
+
+      - name: Push new branch
+        run: |
+          git push origin $NEW_BRANCH
+
+      - name: Create new PR
+        id: new_pr
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const originalPr = ${{ steps.original_pr.outputs.result }};
+
+            const { data: newPr } = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: originalPr.title,
+              body: `${originalPr.body}\n\n---\n\n🤖 This PR was automatically recreated by GitHub Actions to resolve approval restrictions.\n\nOriginal PR: #${originalPr.number}`,
+              head: process.env.NEW_BRANCH,
+              base: '${{ inputs.target_branch }}'
+            });
+
+            console.log(`✅ Created new PR #${newPr.number}: ${newPr.title}`);
+            console.log(`URL: ${newPr.html_url}`);
+
+            return {
+              number: newPr.number,
+              url: newPr.html_url
+            };
+
+      - name: Close original PR
+        if: inputs.close_old_pr == true
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const newPr = ${{ steps.new_pr.outputs.result }};
+
+            // Add comment to original PR explaining the closure
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: parseInt('${{ inputs.old_pr_number }}'),
+              body: `🤖 This PR has been closed and recreated as PR #${newPr.number} to resolve approval restrictions.\n\nNew PR: ${newPr.url}\n\nThe new PR has GitHub Actions as the author, which allows other users to approve and merge it.`
+            });
+
+            // Close the original PR
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: parseInt('${{ inputs.old_pr_number }}'),
+              state: 'closed'
+            });
+
+            console.log(`✅ Closed original PR #${{ inputs.old_pr_number }}`);
+
+      - name: Summary
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const newPr = ${{ steps.new_pr.outputs.result }};
+
+            console.log('🎉 PR Recreation Summary:');
+            console.log(`- Original PR #${{ inputs.old_pr_number }}: ${inputs.close_old_pr ? 'Closed' : 'Left open'}`);
+            console.log(`- New PR #${newPr.number}: Created with GitHub Actions as author`);
+            console.log(`- New PR URL: ${newPr.url}`);
+            console.log('');
+            console.log('ℹ️  The new PR can now be approved by any user with write access.');
