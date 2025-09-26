@@ -25,27 +25,10 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
-      - name: Restore node_modules cache
-        id: cache-node-modules
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-lts-
-
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: |
           # Try npm ci first, fall back to npm install if it fails
           npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
-
-      - name: Save node_modules cache
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
 
   build:
     needs: node
@@ -61,13 +44,8 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
-      - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-lts-
+      - name: Install dependencies
+        run: npm ci
 
       - name: Create mock amplify_outputs.json
         run: |
@@ -162,6 +140,9 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Create mock amplify_outputs.json
         run: |
           cat > amplify_outputs.json << 'EOF'
@@ -229,14 +210,6 @@ jobs:
           }
           EOF
 
-      - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-lts-
-
       - name: Run lint checks
         run: npm run lint
 
@@ -254,13 +227,8 @@ jobs:
           cache: 'npm'
           cache-dependency-path: 'package-lock.json'
 
-      - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-lts-
+      - name: Install dependencies
+        run: npm ci
 
       - name: Run tests
         run: npm run test:run
@@ -287,13 +255,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-chrome-
 
-      - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-lts-
+      - name: Install dependencies
+        run: npm ci
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
