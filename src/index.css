@@ -55,11 +55,13 @@
   }
   body {
     @apply bg-background text-foreground;
-    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: auto;
     touch-action: manipulation;
   }
   html {
-    overscroll-behavior: none;
+    overscroll-behavior-y: none;
+    overscroll-behavior-x: auto;
     touch-action: manipulation;
   }
 }
