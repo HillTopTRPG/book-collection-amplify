@@ -6,7 +6,7 @@ updates:
     schedule:
       interval: "daily"
     target-branch: "develop"
-    open-pull-requests-limit: 1
+    open-pull-requests-limit: 5
     pull-request-branch-name:
       separator: "_"
     labels:
@@ -23,7 +23,7 @@ updates:
     schedule:
       interval: "daily"
     target-branch: "develop"
-    open-pull-requests-limit: 1
+    open-pull-requests-limit: 5
     pull-request-branch-name:
       separator: "_"
     labels:
