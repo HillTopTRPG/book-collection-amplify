@@ -4,9 +4,10 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"  # daily → weekly に変更
     target-branch: "develop"
     open-pull-requests-limit: 5
+    versioning-strategy: increase-if-necessary  # メジャーアップデートを慎重に
     pull-request-branch-name:
       separator: "_"
     labels:
@@ -16,14 +17,40 @@ updates:
     commit-message:
       prefix: "deps"
       include: "scope"
+    # 重要パッケージの除外設定
+    ignore:
+      # フロントエンドフレームワーク関連（メジャーアップデートのみ除外）
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "vite"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitejs/plugin-react"
+        update-types: ["version-update:semver-major"]
+      # ビルドツール関連
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@typescript-eslint/eslint-plugin"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@typescript-eslint/parser"
+        update-types: ["version-update:semver-major"]
+      # AWS Amplify関連
+      - dependency-name: "@aws-amplify/*"
+        update-types: ["version-update:semver-major"]
 
   # GitHub Actions dependencies
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "weekly"  # daily → weekly に変更
     target-branch: "develop"
     open-pull-requests-limit: 5
+    versioning-strategy: increase-if-necessary  # メジャーアップデートを慎重に
     pull-request-branch-name:
       separator: "_"
     labels:
