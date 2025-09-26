@@ -18,7 +18,6 @@
     "test:coverage": "vitest run --coverage",
     "gh:clean-ci": "./scripts/delete-workflow-runs.sh 'CI and Quality Checks' 10",
     "gh:clean-ci-batch": "./scripts/delete-workflow-runs.sh 'CI and Quality Checks' 30",
-    "gh:clean-ci-all": "./scripts/delete-all-workflow-runs.sh 'CI and Quality Checks' 50",
     "gh:list-runs": "gh run list --workflow='CI and Quality Checks' --limit 20"
   },
   "dependencies": {
