@@ -12,31 +12,49 @@ on:
       - 'CONTRIBUTING.md'
 
 jobs:
-  build:
+  node:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
+      - name: Setup Node.js lts
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Restore node_modules cache
         id: cache-node-modules
         uses: actions/cache/restore@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-lts-
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: |
           # Try npm ci first, fall back to npm install if it fails
           npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
+
+      - name: Save node_modules cache
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_id }}
+          path: |
+            dist/
+            amplify_outputs.json
+          retention-days: 1
 
       - name: Create mock amplify_outputs.json
         run: |
@@ -105,15 +123,30 @@ jobs:
           }
           EOF
 
-      - name: Build application
-        run: npm run build
+  build:
+    needs: node
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Save node_modules cache
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
+      - name: Setup Node.js lts
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+
+      - name: Restore node_modules cache
+        uses: actions/cache/restore@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-lts-
+
+      - name: Build application
+        run: npm run build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -125,57 +158,51 @@ jobs:
           retention-days: 1
 
   lint:
-    needs: build
+    needs: node
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
+      - name: Setup Node.js lts
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Restore node_modules cache
         uses: actions/cache/restore@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts-${{ github.run_id }}
+            ${{ runner.os }}-lts-
 
       - name: Run lint checks
         run: npm run lint
 
   test:
-    needs: build
+    needs: node
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
+      - name: Setup Node.js lts
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Restore node_modules cache
         uses: actions/cache/restore@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-artifacts-${{ github.run_id }}
+            ${{ runner.os }}-lts-
 
       - name: Run tests
         run: npm run test:run
@@ -187,10 +214,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
+      - name: Setup Node.js lts
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
 
       - name: Cache Chrome
         uses: actions/cache@v4
@@ -204,9 +233,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-lts-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-lts-
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
