@@ -160,15 +160,20 @@ jobs:
       - name: Create Pull Request
         id: create_pr
         uses: actions/github-script@v7
+        env:
+          TEMPLATE_CONTENT: ${{ steps.changelog.outputs.template_content }}
+          COMMIT_CHANGES: ${{ steps.changelog.outputs.commit_changes }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repoOwner = ${{ steps.repo_info.outputs.result }};
             const newVersion = "${{ steps.version.outputs.new_version }}";
             const versionType = "${{ steps.version.outputs.version_type }}";
-            const templateContent = String.raw`${{ steps.changelog.outputs.template_content }}`;
-            const commitChanges = String.raw`${{ steps.changelog.outputs.commit_changes }}`;
             const description = "${{ inputs.description }}" || "";
+
+            // Read the outputs directly from environment
+            const templateContent = process.env.TEMPLATE_CONTENT || "";
+            const commitChanges = process.env.COMMIT_CHANGES || "";
 
             let prBody = `🚀 **Release ${newVersion}** (${versionType} version bump)\n\n`;
 
