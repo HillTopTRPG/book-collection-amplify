@@ -166,20 +166,21 @@ jobs:
             const repoOwner = ${{ steps.repo_info.outputs.result }};
             const newVersion = "${{ steps.version.outputs.new_version }}";
             const versionType = "${{ steps.version.outputs.version_type }}";
-            const templateContent = `${{ steps.changelog.outputs.template_content }}`;
-            const commitChanges = `${{ steps.changelog.outputs.commit_changes }}`;
+            const templateContent = String.raw`${{ steps.changelog.outputs.template_content }}`;
+            const commitChanges = String.raw`${{ steps.changelog.outputs.commit_changes }}`;
             const description = "${{ inputs.description }}" || "";
 
-            const prBody = `🚀 **Release ${newVersion}** (${versionType} version bump)
+            let prBody = `🚀 **Release ${newVersion}** (${versionType} version bump)\n\n`;
 
-            ${description ? description + '\n\n' : ''}${templateContent}
+            if (description) {
+              prBody += description + '\n\n';
+            }
 
-            ${commitChanges}
-
-            ---
-
-            ⚡ This PR was automatically created by GitHub Actions.
-            🏷️ Merging this PR will create tag \`${newVersion}\` and release.`;
+            prBody += templateContent + '\n\n';
+            prBody += commitChanges + '\n\n';
+            prBody += '---\n\n';
+            prBody += `⚡ This PR was automatically created by GitHub Actions.\n`;
+            prBody += `🏷️ Merging this PR will create tag \`${newVersion}\` and release.`;
 
             try {
               const { data: pr } = await github.rest.pulls.create({
