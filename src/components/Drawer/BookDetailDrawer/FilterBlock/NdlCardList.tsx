@@ -93,7 +93,16 @@ export default function NdlCardList({
         {books.length}件
       </div>
       {/* 最後のブロックなら下に余白を入れる */}
-      {isEndOfTotal ? <div style={{ minHeight: `calc(100vh - ${contentEndY}px)` }}></div> : null}
+      {isEndOfTotal ? (
+        <div
+          className="min-h-viewport-with-offset"
+          style={
+            {
+              '--content-end-y': `${contentEndY}px`,
+            } as React.CSSProperties
+          }
+        ></div>
+      ) : null}
     </>
   );
 }

@@ -70,6 +70,7 @@ body {
   display: flex;
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
 }
 
@@ -146,6 +147,7 @@ a {
   align-items: center;
   width: 100vw;
   height: 100vh;
+  height: 100dvh;
 }
 
 #scanner-container canvas.drawingBuffer {
@@ -186,6 +188,7 @@ a {
   top: 0 !important;
   right: 0 !important;
   height: 100vh !important;
+  height: 100dvh !important;
   width: 20rem !important;
   background: hsl(var(--background)) !important;
   border-left: 1px solid hsl(var(--border)) !important;
@@ -222,4 +225,15 @@ a {
 
 .translate-x-0 {
   transform: translateX(0);
+}
+
+/* Mobile viewport safe height utilities */
+.min-h-viewport-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.min-h-viewport-with-offset {
+  min-height: calc(100vh - var(--content-end-y, 0px));
+  min-height: calc(100dvh - var(--content-end-y, 0px));
 }
