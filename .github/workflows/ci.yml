@@ -1,4 +1,4 @@
-name: CI - feature
+name: CI
 
 permissions:
   contents: read
@@ -6,7 +6,7 @@ permissions:
 
 on:
   push:
-    branches: [feature/**]
+    branches: [main, feature/**]
     paths-ignore:
       - '**/*.md'
       # - '**/*.yml'
