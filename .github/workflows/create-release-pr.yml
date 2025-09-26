@@ -160,26 +160,32 @@ jobs:
       - name: Create Pull Request
         id: create_pr
         uses: actions/github-script@v7
+        env:
+          TEMPLATE_CONTENT: ${{ steps.changelog.outputs.template_content }}
+          COMMIT_CHANGES: ${{ steps.changelog.outputs.commit_changes }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repoOwner = ${{ steps.repo_info.outputs.result }};
             const newVersion = "${{ steps.version.outputs.new_version }}";
             const versionType = "${{ steps.version.outputs.version_type }}";
-            const templateContent = `${{ steps.changelog.outputs.template_content }}`;
-            const commitChanges = `${{ steps.changelog.outputs.commit_changes }}`;
             const description = "${{ inputs.description }}" || "";
 
-            const prBody = `🚀 **Release ${newVersion}** (${versionType} version bump)
+            // Read the outputs directly from environment
+            const templateContent = process.env.TEMPLATE_CONTENT || "";
+            const commitChanges = process.env.COMMIT_CHANGES || "";
 
-            ${description ? description + '\n\n' : ''}${templateContent}
+            let prBody = `🚀 **Release ${newVersion}** (${versionType} version bump)\n\n`;
 
-            ${commitChanges}
+            if (description) {
+              prBody += description + '\n\n';
+            }
 
-            ---
-
-            ⚡ This PR was automatically created by GitHub Actions.
-            🏷️ Merging this PR will create tag \`${newVersion}\` and release.`;
+            prBody += templateContent + '\n\n';
+            prBody += commitChanges + '\n\n';
+            prBody += '---\n\n';
+            prBody += `⚡ This PR was automatically created by GitHub Actions.\n`;
+            prBody += `🏷️ Merging this PR will create tag \`${newVersion}\` and release.`;
 
             try {
               const { data: pr } = await github.rest.pulls.create({
