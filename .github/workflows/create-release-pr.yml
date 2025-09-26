@@ -1,28 +1,24 @@
-name: Recreate PR as GitHub Actions
+name: Create Release PR and Tag
 
 on:
   workflow_dispatch:
     inputs:
-      old_pr_number:
-        description: 'PR number to recreate'
+      version_type:
+        description: 'Version bump type'
         required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+      description:
+        description: 'Release description (optional)'
+        required: false
         type: string
-      source_branch:
-        description: 'Source branch name'
-        required: true
-        default: 'develop'
-      target_branch:
-        description: 'Target branch name'
-        required: true
-        default: 'main'
-      close_old_pr:
-        description: 'Close the old PR after creating new one'
-        required: true
-        type: boolean
-        default: true
 
 jobs:
-  recreate-pr:
+  create-release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -41,109 +37,368 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Get original PR details
-        id: original_pr
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: parseInt('${{ inputs.old_pr_number }}')
-            });
-
-            console.log(`Original PR #${pr.number}: ${pr.title}`);
-            console.log(`From: ${pr.head.ref} -> ${pr.base.ref}`);
-
-            return {
-              title: pr.title,
-              body: pr.body || '',
-              number: pr.number
-            };
-
-      - name: Create new branch
+      - name: Get latest tag and calculate new version
+        id: version
         run: |
-          # Fetch latest changes
-          git fetch origin ${{ inputs.source_branch }}
-          git fetch origin ${{ inputs.target_branch }}
+          # Get the latest tag (fallback to 0.0.0 if no tags exist)
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+          echo "Latest tag: $LATEST_TAG"
 
-          # Create new branch name with timestamp to avoid conflicts
-          NEW_BRANCH="bot-pr-$(date +%Y%m%d-%H%M%S)"
-          echo "NEW_BRANCH=$NEW_BRANCH" >> $GITHUB_ENV
+          # Remove 'v' prefix if present
+          LATEST_TAG=${LATEST_TAG#v}
 
-          # Create new branch from target branch
-          git checkout origin/${{ inputs.target_branch }}
-          git checkout -b $NEW_BRANCH
+          # Split version into parts
+          IFS='.' read -r -a VERSION_PARTS <<< "$LATEST_TAG"
+          MAJOR=${VERSION_PARTS[0]:-0}
+          MINOR=${VERSION_PARTS[1]:-0}
+          PATCH=${VERSION_PARTS[2]:-0}
 
-          # Cherry-pick all commits from source branch
-          git cherry-pick origin/${{ inputs.target_branch }}..origin/${{ inputs.source_branch }}
+          echo "Current version: $MAJOR.$MINOR.$PATCH"
 
-      - name: Push new branch
+          # Calculate new version based on input
+          case "${{ inputs.version_type }}" in
+            major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            patch)
+              PATCH=$((PATCH + 1))
+              ;;
+          esac
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+
+          # Set outputs
+          echo "current_version=$LATEST_TAG" >> $GITHUB_OUTPUT
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "version_type=${{ inputs.version_type }}" >> $GITHUB_OUTPUT
+
+      - name: Check for changes between develop and main
+        id: check_changes
         run: |
-          git push origin $NEW_BRANCH
+          git fetch origin develop
+          git fetch origin main
 
-      - name: Create new PR
-        id: new_pr
+          # Check if there are differences
+          if git diff --quiet origin/main...origin/develop; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No changes found between main and develop branches"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Changes found between main and develop branches"
+          fi
+
+      - name: Exit if no changes
+        if: steps.check_changes.outputs.has_changes == 'false'
+        run: |
+          echo "❌ No changes found between main and develop branches. Exiting..."
+          exit 1
+
+      - name: Get repository owner
+        id: repo_info
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const originalPr = ${{ steps.original_pr.outputs.result }};
-
-            const { data: newPr } = await github.rest.pulls.create({
+            const { data: repo } = await github.rest.repos.get({
               owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: originalPr.title,
-              body: `${originalPr.body}\n\n---\n\n🤖 This PR was automatically recreated by GitHub Actions to resolve approval restrictions.\n\nOriginal PR: #${originalPr.number}`,
-              head: process.env.NEW_BRANCH,
-              base: '${{ inputs.target_branch }}'
+              repo: context.repo.repo
             });
 
-            console.log(`✅ Created new PR #${newPr.number}: ${newPr.title}`);
-            console.log(`URL: ${newPr.html_url}`);
+            console.log(`Repository owner: ${repo.owner.login}`);
+            return repo.owner.login;
 
-            return {
-              number: newPr.number,
-              url: newPr.html_url
-            };
+      - name: Read release template and generate changelog
+        id: changelog
+        run: |
+          # Read the release template
+          if [ -f ".github/RELEASE_WORKFLOW_TEMPLATE.md" ]; then
+            TEMPLATE_CONTENT=$(cat .github/RELEASE_WORKFLOW_TEMPLATE.md)
+            echo "✅ Found release template"
+          else
+            echo "⚠️ Release template not found, using default format"
+            # Create default template content
+            echo "## 要点" > temp_template.md
+            echo "" >> temp_template.md
+            echo "## 変更点" >> temp_template.md
+            echo "" >> temp_template.md
+            echo "| before | after |" >> temp_template.md
+            echo "| ------ | ----- |" >> temp_template.md
+            echo "" >> temp_template.md
+            echo "## チェックリスト" >> temp_template.md
+            echo "" >> temp_template.md
+            echo "- [ ] マージ対象のブランチは合っているか" >> temp_template.md
+            echo "- [ ] 余計な標準出力などが混じっていないか" >> temp_template.md
+            TEMPLATE_CONTENT=$(cat temp_template.md)
+            rm temp_template.md
+          fi
 
-      - name: Close original PR
-        if: inputs.close_old_pr == true
+          # Get commits between main and develop for changelog
+          git fetch origin main
+          git fetch origin develop
+
+          echo "## 📝 Changes in this release" > changelog.md
+          echo "" >> changelog.md
+          git log origin/main..origin/develop --pretty=format:"- %s (%h)" >> changelog.md
+          COMMIT_CHANGES=$(cat changelog.md)
+
+          # Set outputs
+          echo "template_content<<EOF" >> $GITHUB_OUTPUT
+          echo "$TEMPLATE_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "commit_changes<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMIT_CHANGES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        id: create_pr
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const newPr = ${{ steps.new_pr.outputs.result }};
+            const repoOwner = ${{ steps.repo_info.outputs.result }};
+            const newVersion = "${{ steps.version.outputs.new_version }}";
+            const versionType = "${{ steps.version.outputs.version_type }}";
+            const templateContent = `${{ steps.changelog.outputs.template_content }}`;
+            const commitChanges = `${{ steps.changelog.outputs.commit_changes }}`;
+            const description = "${{ inputs.description }}" || "";
 
-            // Add comment to original PR explaining the closure
-            await github.rest.issues.createComment({
+            const prBody = `🚀 **Release ${newVersion}** (${versionType} version bump)
+
+            ${description ? description + '\n\n' : ''}${templateContent}
+
+            ${commitChanges}
+
+            ---
+
+            ⚡ This PR was automatically created by GitHub Actions.
+            🏷️ Merging this PR will create tag \`${newVersion}\` and release.`;
+
+            try {
+              const { data: pr } = await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `[v${newVersion}]`,
+                head: 'develop',
+                base: 'main',
+                body: prBody,
+                draft: false
+              });
+
+              // Create release label if it doesn't exist
+              try {
+                await github.rest.issues.getLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: 'release'
+                });
+                console.log('✅ Release label already exists');
+              } catch (error) {
+                if (error.status === 404) {
+                  await github.rest.issues.createLabel({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    name: 'release',
+                    color: 'ff6b6b',
+                    description: 'Release pull requests'
+                  });
+                  console.log('✅ Created release label');
+                }
+              }
+
+              // Add release label to PR
+              try {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: pr.number,
+                  labels: ['release']
+                });
+                console.log('✅ Added release label to PR');
+              } catch (labelError) {
+                console.log(`⚠️ Could not add release label: ${labelError.message}`);
+              }
+
+              // Add reviewer (repository owner)
+              if (repoOwner !== 'github-actions[bot]') {
+                try {
+                  await github.rest.pulls.requestReviewers({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: pr.number,
+                    reviewers: [repoOwner]
+                  });
+                  console.log(`✅ Added ${repoOwner} as reviewer`);
+                } catch (reviewerError) {
+                  console.log(`⚠️ Could not add reviewer: ${reviewerError.message}`);
+                }
+              }
+
+              // Enable auto-merge with squash
+              try {
+                await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  merge_method: 'squash',
+                  commit_title: pr.title
+                });
+                console.log('✅ Enabled auto-merge (squash) for PR');
+              } catch (mergeError) {
+                // If direct merge fails, try to enable auto-merge
+                try {
+                  await github.rest.pulls.update({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    pull_number: pr.number,
+                    auto_merge: {
+                      merge_method: 'squash',
+                      commit_title: pr.title
+                    }
+                  });
+                  console.log('✅ Enabled auto-merge for PR');
+                } catch (autoMergeError) {
+                  console.log(`⚠️ Could not enable auto-merge: ${autoMergeError.message}`);
+                  console.log('Manual merge will be required');
+                }
+              }
+
+              console.log(`✅ Created PR #${pr.number}: ${pr.title}`);
+              console.log(`🔗 URL: ${pr.html_url}`);
+
+              return {
+                number: pr.number,
+                url: pr.html_url,
+                title: pr.title
+              };
+
+            } catch (error) {
+              if (error.status === 422 && error.message.includes('No commits between')) {
+                throw new Error('No commits between main and develop branches');
+              }
+              throw error;
+            }
+
+      - name: Create Tag and Release
+        id: create_release
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const newVersion = "${{ steps.version.outputs.new_version }}";
+            const changelogContent = `${{ steps.changelog.outputs.changelog_content }}`;
+            const description = "${{ inputs.description }}" || "";
+            const prInfo = ${{ steps.create_pr.outputs.result }};
+
+            // Get the latest commit from develop branch
+            const { data: developBranch } = await github.rest.repos.getBranch({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: parseInt('${{ inputs.old_pr_number }}'),
-              body: `🤖 This PR has been closed and recreated as PR #${newPr.number} to resolve approval restrictions.\n\nNew PR: ${newPr.url}\n\nThe new PR has GitHub Actions as the author, which allows other users to approve and merge it.`
+              branch: 'develop'
             });
 
-            // Close the original PR
-            await github.rest.pulls.update({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: parseInt('${{ inputs.old_pr_number }}'),
-              state: 'closed'
-            });
+            const tagSha = developBranch.commit.sha;
 
-            console.log(`✅ Closed original PR #${{ inputs.old_pr_number }}`);
+            try {
+              // Create tag
+              await github.rest.git.createTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: newVersion,
+                message: `Release ${newVersion}`,
+                object: tagSha,
+                type: 'commit'
+              });
+
+              // Create tag reference
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: `refs/tags/${newVersion}`,
+                sha: tagSha
+              });
+
+              console.log(`✅ Created tag: ${newVersion}`);
+
+              // Create release
+              const releaseBody = `${description ? description + '\n\n' : ''}${changelogContent}
+
+              ---
+
+              🔗 **Related Pull Request:** #${prInfo.number}
+              📅 **Released:** ${new Date().toISOString().split('T')[0]}`;
+
+              const { data: release } = await github.rest.repos.createRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag_name: newVersion,
+                name: newVersion,
+                body: releaseBody,
+                draft: false,
+                prerelease: false
+              });
+
+              console.log(`✅ Created release: ${release.name}`);
+              console.log(`🔗 Release URL: ${release.html_url}`);
+
+              return {
+                tag: newVersion,
+                release_url: release.html_url,
+                release_id: release.id
+              };
+
+            } catch (error) {
+              console.error('Error creating tag/release:', error);
+              throw error;
+            }
 
       - name: Summary
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const newPr = ${{ steps.new_pr.outputs.result }};
+            const prInfo = ${{ steps.create_pr.outputs.result }};
+            const releaseInfo = ${{ steps.create_release.outputs.result }};
+            const newVersion = "${{ steps.version.outputs.new_version }}";
 
-            console.log('🎉 PR Recreation Summary:');
-            console.log(`- Original PR #${{ inputs.old_pr_number }}: ${inputs.close_old_pr ? 'Closed' : 'Left open'}`);
-            console.log(`- New PR #${newPr.number}: Created with GitHub Actions as author`);
-            console.log(`- New PR URL: ${newPr.url}`);
+            console.log('🎉 Release Process Completed!');
             console.log('');
-            console.log('ℹ️  The new PR can now be approved by any user with write access.');
+            console.log('📋 Summary:');
+            console.log(`- Version: ${newVersion}`);
+            console.log(`- Pull Request: #${prInfo.number} (${prInfo.url})`);
+            console.log(`- Tag: ${releaseInfo.tag}`);
+            console.log(`- Release: ${releaseInfo.release_url}`);
+            console.log('');
+            console.log('✅ Next steps:');
+            console.log('1. Review the Pull Request');
+            console.log('2. Merge the PR when ready');
+            console.log('3. The release is already published!');
+
+      - name: Comment on PR with release info
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prInfo = ${{ steps.create_pr.outputs.result }};
+            const releaseInfo = ${{ steps.create_release.outputs.result }};
+            const newVersion = "${{ steps.version.outputs.new_version }}";
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prInfo.number,
+              body: `🏷️ **Tag and Release Created!**
+
+              - **Tag:** \`${newVersion}\`
+              - **Release:** [${newVersion}](${releaseInfo.release_url})
+
+              The release has been published and is ready! 🎉
+              Merge this PR to complete the release process.`
+            });
