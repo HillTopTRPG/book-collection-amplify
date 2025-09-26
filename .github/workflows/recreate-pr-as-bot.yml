@@ -1,4 +1,4 @@
-name: Recreate PR as GitHub Actions
+name: Recreate PR as Bot
 
 on:
   workflow_dispatch:
