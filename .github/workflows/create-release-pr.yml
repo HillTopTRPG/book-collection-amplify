@@ -37,47 +37,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Get latest tag and calculate new version
-        id: version
-        run: |
-          # Get the latest tag (fallback to 0.0.0 if no tags exist)
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
-          echo "Latest tag: $LATEST_TAG"
-
-          # Remove 'v' prefix if present
-          LATEST_TAG=${LATEST_TAG#v}
-
-          # Split version into parts
-          IFS='.' read -r -a VERSION_PARTS <<< "$LATEST_TAG"
-          MAJOR=${VERSION_PARTS[0]:-0}
-          MINOR=${VERSION_PARTS[1]:-0}
-          PATCH=${VERSION_PARTS[2]:-0}
-
-          echo "Current version: $MAJOR.$MINOR.$PATCH"
-
-          # Calculate new version based on input
-          case "${{ inputs.version_type }}" in
-            major)
-              MAJOR=$((MAJOR + 1))
-              MINOR=0
-              PATCH=0
-              ;;
-            minor)
-              MINOR=$((MINOR + 1))
-              PATCH=0
-              ;;
-            patch)
-              PATCH=$((PATCH + 1))
-              ;;
-          esac
-
-          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
-          echo "New version: $NEW_VERSION"
-
-          # Set outputs
-          echo "current_version=$LATEST_TAG" >> $GITHUB_OUTPUT
-          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "version_type=${{ inputs.version_type }}" >> $GITHUB_OUTPUT
 
       - name: Check for changes between develop and main
         id: check_changes
@@ -113,6 +72,85 @@ jobs:
 
             console.log(`Repository owner: ${repo.owner.login}`);
             return repo.owner.login;
+
+      - name: Calculate Final Version
+        id: final_version
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const versionType = "${{ inputs.version_type }}";
+
+            // Get all tags to find the latest version
+            const { data: tags } = await github.rest.repos.listTags({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            console.log(`Found ${tags.length} existing tags`);
+            if (tags.length > 0) {
+              console.log('Existing tags:', tags.map(tag => tag.name).join(', '));
+            }
+
+            // Function to parse version string
+            function parseVersion(version) {
+              const cleanVersion = version.replace(/^v/, ''); // Remove 'v' prefix if present
+              const parts = cleanVersion.split('.').map(num => parseInt(num) || 0);
+              return {
+                major: parts[0] || 0,
+                minor: parts[1] || 0,
+                patch: parts[2] || 0,
+                original: version
+              };
+            }
+
+            // Function to compare versions
+            function compareVersions(a, b) {
+              if (a.major !== b.major) return b.major - a.major;
+              if (a.minor !== b.minor) return b.minor - a.minor;
+              return b.patch - a.patch;
+            }
+
+            // Find the latest version
+            let latestVersion = { major: 0, minor: 0, patch: 0 };
+            if (tags.length > 0) {
+              const versions = tags.map(tag => parseVersion(tag.name)).filter(v =>
+                !isNaN(v.major) && !isNaN(v.minor) && !isNaN(v.patch)
+              );
+
+              console.log('Parsed versions:', versions.map(v => `${v.major}.${v.minor}.${v.patch}`).join(', '));
+
+              if (versions.length > 0) {
+                versions.sort(compareVersions);
+                latestVersion = versions[0];
+                console.log(`Latest version found: ${latestVersion.major}.${latestVersion.minor}.${latestVersion.patch}`);
+                console.log('All versions after sorting:', versions.map(v => `${v.major}.${v.minor}.${v.patch}`).join(', '));
+              }
+            } else {
+              console.log('No existing tags found, starting from 0.0.0');
+            }
+
+            // Calculate new version based on version type
+            let newVersion;
+            switch (versionType) {
+              case 'major':
+                newVersion = `${latestVersion.major + 1}.0.0`;
+                break;
+              case 'minor':
+                newVersion = `${latestVersion.major}.${latestVersion.minor + 1}.0`;
+                break;
+              case 'patch':
+              default:
+                newVersion = `${latestVersion.major}.${latestVersion.minor}.${latestVersion.patch + 1}`;
+                break;
+            }
+
+            console.log(`Calculated final version: ${newVersion}`);
+
+            // Set output for the step
+            core.setOutput('version', newVersion);
+            return newVersion;
 
       - name: Read release template and generate changelog
         id: changelog
@@ -167,8 +205,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const repoOwner = ${{ steps.repo_info.outputs.result }};
-            const newVersion = "${{ steps.version.outputs.new_version }}";
-            const versionType = "${{ steps.version.outputs.version_type }}";
+            const newVersion = "${{ steps.final_version.outputs.version }}";
+            const versionType = "${{ inputs.version_type }}";
             const description = "${{ inputs.description }}" || "";
 
             // Read the outputs directly from environment
@@ -249,30 +287,21 @@ jobs:
 
               // Enable auto-merge with squash
               try {
-                await github.rest.pulls.merge({
+                await github.rest.pulls.enableAutoMerge({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: pr.number,
-                  merge_method: 'squash',
-                  commit_title: pr.title
+                  merge_method: 'squash'
                 });
                 console.log('✅ Enabled auto-merge (squash) for PR');
-              } catch (mergeError) {
-                // If direct merge fails, try to enable auto-merge
-                try {
-                  await github.rest.pulls.update({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: pr.number,
-                    auto_merge: {
-                      merge_method: 'squash',
-                      commit_title: pr.title
-                    }
-                  });
-                  console.log('✅ Enabled auto-merge for PR');
-                } catch (autoMergeError) {
-                  console.log(`⚠️ Could not enable auto-merge: ${autoMergeError.message}`);
-                  console.log('Manual merge will be required');
+              } catch (autoMergeError) {
+                console.log(`⚠️ Could not enable auto-merge: ${autoMergeError.message}`);
+                console.log('Manual merge will be required');
+
+                // Log detailed error information for debugging
+                if (autoMergeError.response) {
+                  console.log(`Error status: ${autoMergeError.response.status}`);
+                  console.log(`Error data:`, JSON.stringify(autoMergeError.response.data, null, 2));
                 }
               }
 
@@ -298,10 +327,12 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const newVersion = "${{ steps.version.outputs.new_version }}";
             const changelogContent = `${{ steps.changelog.outputs.changelog_content }}`;
             const description = "${{ inputs.description }}" || "";
+            const newVersion = "${{ steps.final_version.outputs.version }}";
             const prInfo = ${{ steps.create_pr.outputs.result }};
+
+            console.log(`Using final version: ${newVersion}`);
 
             // Get the latest commit from develop branch
             const { data: developBranch } = await github.rest.repos.getBranch({
@@ -372,12 +403,11 @@ jobs:
           script: |
             const prInfo = ${{ steps.create_pr.outputs.result }};
             const releaseInfo = ${{ steps.create_release.outputs.result }};
-            const newVersion = "${{ steps.version.outputs.new_version }}";
 
             console.log('🎉 Release Process Completed!');
             console.log('');
             console.log('📋 Summary:');
-            console.log(`- Version: ${newVersion}`);
+            console.log(`- Version: ${releaseInfo.tag}`);
             console.log(`- Pull Request: #${prInfo.number} (${prInfo.url})`);
             console.log(`- Tag: ${releaseInfo.tag}`);
             console.log(`- Release: ${releaseInfo.release_url}`);
@@ -394,7 +424,6 @@ jobs:
           script: |
             const prInfo = ${{ steps.create_pr.outputs.result }};
             const releaseInfo = ${{ steps.create_release.outputs.result }};
-            const newVersion = "${{ steps.version.outputs.new_version }}";
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,
@@ -402,8 +431,8 @@ jobs:
               issue_number: prInfo.number,
               body: `🏷️ **Tag and Release Created!**
 
-              - **Tag:** \`${newVersion}\`
-              - **Release:** [${newVersion}](${releaseInfo.release_url})
+              - **Tag:** \`${releaseInfo.tag}\`
+              - **Release:** [${releaseInfo.tag}](${releaseInfo.release_url})
 
               The release has been published and is ready! 🎉
               Merge this PR to complete the release process.`

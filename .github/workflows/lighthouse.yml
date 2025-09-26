@@ -9,7 +9,7 @@ on:
     branches: [main, feature/**]
     paths-ignore:
       - '**/*.md'
-      # - '**/*.yml'
+      - '**/*.yml'
       - '**/*.yaml'
       - '.gitignore'
       - 'LICENSE'
