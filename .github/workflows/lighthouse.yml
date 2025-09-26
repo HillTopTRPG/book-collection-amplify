@@ -1,10 +1,19 @@
-name: Lighthouse Performance Audit
+name: Lighthouse
+
+permissions:
+  contents: read
+  actions: write
 
 on:
   push:
     branches: [main, feature/**]
-  pull_request:
-    branches: [main]
+    paths-ignore:
+      - '**/*.md'
+      # - '**/*.yml'
+      - '**/*.yaml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'CONTRIBUTING.md'
 
 jobs:
   lighthouse:
@@ -13,19 +22,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
+      - name: Setup Node.js lts
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
 
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -33,7 +47,14 @@ jobs:
           # Try npm ci first, fall back to npm install if it fails
           npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
 
-      - name: Create mock amplify_outputs.json for build
+      - name: Save node_modules to cache
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules
+          key: ${{ steps.cache-key.outputs.key }}
+
+      - name: Create mock amplify_outputs.json
         run: |
           cat > amplify_outputs.json << 'EOF'
           {
@@ -103,123 +124,90 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Install Lighthouse CI
-        run: npm install -g @lhci/cli
-
       - name: Audit performance with Lighthouse CI
         run: |
-          lhci autorun || echo "Lighthouse CI completed with issues"
+          npx lhci autorun || echo "Lighthouse CI completed with issues"
 
-          # スコア表示のために結果ファイルを確認
-          if [ -f .lighthouseci/lhr-*.json ]; then
-            echo "## 🚀 Lighthouse Performance Report" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
+          # 詳細デバッグ: ファイル生成状況を確認
+          echo "=== Lighthouse CI Results Debug ==="
+          echo "Working directory: $(pwd)"
+          echo "Directory contents:"
+          ls -la
 
-            # JSONファイルからスコアを抽出（最新のファイルを使用）
-            LATEST_REPORT=$(ls -t .lighthouseci/lhr-*.json | head -n1)
-
-            if [ -f "$LATEST_REPORT" ]; then
-              PERFORMANCE=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.performance.score * 100))" 2>/dev/null || echo "N/A")
-              ACCESSIBILITY=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.accessibility.score * 100))" 2>/dev/null || echo "N/A")
-              BEST_PRACTICES=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories['best-practices'].score * 100))" 2>/dev/null || echo "N/A")
-              SEO=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.seo.score * 100))" 2>/dev/null || echo "N/A")
-
-              echo "| Category | Score |" >> $GITHUB_STEP_SUMMARY
-              echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-              echo "| 🚀 Performance | ${PERFORMANCE}% |" >> $GITHUB_STEP_SUMMARY
-              echo "| ♿ Accessibility | ${ACCESSIBILITY}% |" >> $GITHUB_STEP_SUMMARY
-              echo "| ⚡ Best Practices | ${BEST_PRACTICES}% |" >> $GITHUB_STEP_SUMMARY
-              echo "| 🔍 SEO | ${SEO}% |" >> $GITHUB_STEP_SUMMARY
-              echo "" >> $GITHUB_STEP_SUMMARY
-              echo "📊 詳細なレポートは以下のアーティファクトからダウンロードできます。" >> $GITHUB_STEP_SUMMARY
+          # 可能性のあるすべての場所を確認
+          for dir in .lighthouseci lhci_reports lighthouse-reports; do
+            if [ -d "$dir" ]; then
+              echo "✅ $dir directory exists"
+              echo "Contents of $dir:"
+              ls -la "$dir/"
+            else
+              echo "❌ $dir directory not found"
             fi
-          else
-            echo "⚠️ Lighthouse report not found. Check the build logs for errors." >> $GITHUB_STEP_SUMMARY
-          fi
+          done
+
+          # Lighthouse関連のファイルを全検索
+          echo "Searching for Lighthouse files..."
+          find . -name "*.json" -o -name "*.html" | grep -E "(lh|lighthouse)" || echo "No lighthouse files found"
         env:
           LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
         continue-on-error: true
 
-      - name: Format Lighthouse Report for Comment
-        id: lighthouse-comment
+      - name: Prepare artifacts directory
         if: always()
         run: |
-          if [ -f .lighthouseci/lhr-*.json ]; then
-            LATEST_REPORT=$(ls -t .lighthouseci/lhr-*.json | head -n1)
+          # アーティファクト用ディレクトリを作成
+          mkdir -p lighthouse-artifacts
 
-            if [ -f "$LATEST_REPORT" ]; then
-              PERFORMANCE=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.performance.score * 100))" 2>/dev/null || echo "N/A")
-              ACCESSIBILITY=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.accessibility.score * 100))" 2>/dev/null || echo "N/A")
-              BEST_PRACTICES=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories['best-practices'].score * 100))" 2>/dev/null || echo "N/A")
-              SEO=$(node -e "console.log(Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.seo.score * 100))" 2>/dev/null || echo "N/A")
-
-              # コメント内容を作成
-              echo "## 🚀 Lighthouse Performance Report" > comment.md
-              echo "" >> comment.md
-              echo "| Category | Score |" >> comment.md
-              echo "|----------|-------|" >> comment.md
-              echo "| 🚀 Performance | ${PERFORMANCE}% |" >> comment.md
-              echo "| ♿ Accessibility | ${ACCESSIBILITY}% |" >> comment.md
-              echo "| ⚡ Best Practices | ${BEST_PRACTICES}% |" >> comment.md
-              echo "| 🔍 SEO | ${SEO}% |" >> comment.md
-              echo "" >> comment.md
-              echo "📊 詳細なレポートは [GitHub Actions Artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) からダウンロードできます。" >> comment.md
-
-              # outputに設定
-              echo "comment<<GITHUB_OUTPUT_EOF" >> $GITHUB_OUTPUT
-              cat comment.md >> $GITHUB_OUTPUT
-              echo "GITHUB_OUTPUT_EOF" >> $GITHUB_OUTPUT
-              echo "has-report=true" >> $GITHUB_OUTPUT
-
-              # 一時ファイルを削除
-              rm comment.md
-            else
-              echo "has-report=false" >> $GITHUB_OUTPUT
+          # 存在する結果をすべて収集
+          for dir in .lighthouseci lhci_reports lighthouse-reports; do
+            if [ -d "$dir" ] && [ -n "$(ls -A "$dir/" 2>/dev/null)" ]; then
+              echo "Copying contents from $dir"
+              cp -r "$dir"/* lighthouse-artifacts/ 2>/dev/null || echo "No files to copy from $dir"
             fi
-          else
-            echo "has-report=false" >> $GITHUB_OUTPUT
+          done
+
+          # 直接的なファイル検索もする
+          find . -maxdepth 2 -name "lhr-*.json" -exec cp {} lighthouse-artifacts/ \; 2>/dev/null || true
+          find . -maxdepth 2 -name "lhr-*.html" -exec cp {} lighthouse-artifacts/ \; 2>/dev/null || true
+
+          echo "Final artifacts directory contents:"
+          ls -la lighthouse-artifacts/
+
+      - name: Generate Lighthouse summary
+        if: always()
+        run: |
+          # アーティファクト用ディレクトリからJSONファイルを探す
+          LATEST_REPORT=""
+          if ls lighthouse-artifacts/lhr-*.json 1> /dev/null 2>&1; then
+            LATEST_REPORT=$(ls -t lighthouse-artifacts/lhr-*.json | head -n1)
+          elif ls lighthouse-artifacts/*.json 1> /dev/null 2>&1; then
+            LATEST_REPORT=$(ls -t lighthouse-artifacts/*.json | head -n1)
           fi
 
-      - name: Comment PR with Lighthouse results
-        if: github.event_name == 'pull_request' && steps.lighthouse-comment.outputs.has-report == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const comment = `${{ steps.lighthouse-comment.outputs.comment }}`;
+          if [ -f "$LATEST_REPORT" ]; then
+            echo "✅ Found report file: $LATEST_REPORT"
+            echo "## 🚀 Lighthouse Performance Report" >> $GITHUB_STEP_SUMMARY
+            echo "| Category | Score |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
 
-            // 既存のLighthouseコメントを検索
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
+            PERFORMANCE=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.performance.score * 100)" 2>/dev/null || echo "N/A")
+            ACCESSIBILITY=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.accessibility.score * 100)" 2>/dev/null || echo "N/A")
+            BEST_PRACTICES=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories['best-practices'].score * 100)" 2>/dev/null || echo "N/A")
+            SEO=$(node -p "Math.round(JSON.parse(require('fs').readFileSync('$LATEST_REPORT')).categories.seo.score * 100)" 2>/dev/null || echo "N/A")
 
-            const lighthouseComment = comments.find(comment =>
-              comment.body.includes('🚀 Lighthouse Performance Report')
-            );
-
-            if (lighthouseComment) {
-              // 既存のコメントを更新
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: lighthouseComment.id,
-                body: comment
-              });
-            } else {
-              // 新しいコメントを作成
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: comment
-              });
-            }
+            echo "| 🚀 Performance | ${PERFORMANCE}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ♿ Accessibility | ${ACCESSIBILITY}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⚡ Best Practices | ${BEST_PRACTICES}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔍 SEO | ${SEO}% |" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ No JSON report files found" >> $GITHUB_STEP_SUMMARY
+          fi
 
       - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: lighthouse-reports-${{ github.run_id }}
-          path: .lighthouseci/
-          retention-days: 30
+          path: lighthouse-artifacts/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -14,6 +14,23 @@ jobs:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check and Create Develop Branch
+        run: |
+          # リモートブランチ情報を取得
+          git fetch origin
+          # developブランチが存在するかチェック
+          if ! git show-ref --verify --quiet refs/remotes/origin/develop; then
+            echo "develop branch does not exist. Creating it..."
+            # mainから新しいdevelopブランチを作成
+            git checkout main
+            git checkout -b develop
+            git push origin develop
+          else
+            echo "develop branch already exists."
+          fi
 
       - name: Check PullRequest Exists
         id: check_pr
@@ -29,9 +46,10 @@ jobs:
         if: ${{ steps.check_pr.outputs.count == 0 }}
         run: |
           gh pr create \
-            -B main \
+            -B develop \
             -t '【本番反映】${{ steps.check_pr.outputs.message }}' \
             -a ${{ github.actor }}  \
+            -r ${{ github.repository_owner }} \
             --body-file ./.github/RELEASE_WORKFLOW_TEMPLATE.md
 
       - name: Edit Release Pull Request
@@ -44,3 +62,9 @@ jobs:
           echo $TITLE
           gh pr edit  ${{ github.ref_name }} \
             -t "${TITLE} / ${{ steps.check_pr.outputs.message }}"
+
+      - name: Enable auto-merge for Pull Request
+        if: ${{ steps.check_pr.outputs.count == 0 }}
+        run: |
+          pr_number=$(gh pr list -H ${{ github.ref_name }} --json number | jq -r '.[0].number')
+          gh pr merge --auto --squash "$pr_number"

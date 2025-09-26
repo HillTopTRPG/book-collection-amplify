@@ -12,4 +12,8 @@ export default defineConfig({
       '$/amplify/*': path.resolve(__dirname, './amplify/*'),
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1000,
+    sourcemap: true,
+  }
 });
