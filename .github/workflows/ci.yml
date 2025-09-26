@@ -16,10 +16,8 @@ on:
       - 'CONTRIBUTING.md'
 
 jobs:
-  node:
+  build:
     runs-on: ubuntu-latest
-    outputs:
-      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,27 +53,6 @@ jobs:
         with:
           path: node_modules
           key: ${{ steps.cache-key.outputs.key }}
-
-  build:
-    needs: node
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js lts
-        uses: actions/setup-node@v4
-        with:
-          node-version: 'lts/*'
-          cache: 'npm'
-
-      - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules
-          key: ${{ needs.node.outputs.cache-key }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Create mock amplify_outputs.json
         run: |
@@ -157,7 +134,6 @@ jobs:
           retention-days: 1
 
   lint:
-    needs: node
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -169,13 +145,24 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
-      - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ needs.node.outputs.cache-key }}
+          key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          # Try npm ci first, fall back to npm install if it fails
+          npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
 
       - name: Create mock amplify_outputs.json
         run: |
@@ -248,7 +235,6 @@ jobs:
         run: npm run lint
 
   test:
-    needs: node
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -260,13 +246,24 @@ jobs:
           node-version: 'lts/*'
           cache: 'npm'
 
-      - name: Restore node_modules cache
-        uses: actions/cache/restore@v4
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ needs.node.outputs.cache-key }}
+          key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          # Try npm ci first, fall back to npm install if it fails
+          npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
 
       - name: Run tests
         run: npm run test:run
