@@ -363,6 +363,13 @@ jobs:
             echo "⚠️ No JSON report files found" >> $GITHUB_STEP_SUMMARY
           fi
 
+      - name: Save Chrome cache
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/puppeteer
+          key: ${{ runner.os }}-chrome-${{ hashFiles('**/package-lock.json') }}
+
       - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4
         if: always()
