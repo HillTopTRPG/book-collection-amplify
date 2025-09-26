@@ -272,7 +272,7 @@ jobs:
         run: npm run test:run
 
   lighthouse:
-    needs: build
+    needs: [build, node]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
