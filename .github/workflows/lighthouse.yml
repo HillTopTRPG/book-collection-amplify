@@ -124,14 +124,6 @@ jobs:
       - name: Build application
         run: npm run build
 
-      - name: Cache Chrome
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/puppeteer
-          key: ${{ runner.os }}-chrome-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-chrome-
-
       - name: Audit performance with Lighthouse CI
         run: |
           npx lhci autorun || echo "Lighthouse CI completed with issues"
@@ -210,46 +202,6 @@ jobs:
           else
             echo "⚠️ No JSON report files found" >> $GITHUB_STEP_SUMMARY
           fi
-
-      - name: Check and save Chrome cache
-        if: always()
-        run: |
-          echo "=== Chrome Cache Debug ==="
-
-          # 複数の可能なPuppeteerキャッシュ場所をチェック
-          CACHE_PATHS=(
-            "$HOME/.cache/puppeteer"
-            "$HOME/.cache/ms-playwright"
-            "$HOME/Library/Caches/puppeteer"
-            "./node_modules/puppeteer/.local-chromium"
-            "$HOME/.local/share/puppeteer"
-          )
-
-          FOUND_CACHE=""
-          for path in "${CACHE_PATHS[@]}"; do
-            if [ -d "$path" ] && [ -n "$(ls -A "$path" 2>/dev/null)" ]; then
-              echo "✅ Found Chrome cache at: $path"
-              ls -la "$path"
-              FOUND_CACHE="$path"
-              break
-            else
-              echo "❌ No cache found at: $path"
-            fi
-          done
-
-          if [ -n "$FOUND_CACHE" ]; then
-            echo "CHROME_CACHE_PATH=$FOUND_CACHE" >> $GITHUB_ENV
-            echo "Cache will be saved from: $FOUND_CACHE"
-          else
-            echo "⚠️ No Puppeteer cache found to save"
-          fi
-
-      - name: Save Chrome cache
-        if: always() && env.CHROME_CACHE_PATH != ''
-        uses: actions/cache/save@v4
-        with:
-          path: ${{ env.CHROME_CACHE_PATH }}
-          key: ${{ runner.os }}-chrome-${{ hashFiles('**/package-lock.json') }}
 
       - name: Upload Lighthouse reports
         uses: actions/upload-artifact@v4
