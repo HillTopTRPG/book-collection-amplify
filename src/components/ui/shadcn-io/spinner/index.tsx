@@ -210,6 +210,8 @@ export const Spinner = ({ variant, ...props }: SpinnerProps) => {
       return <Bars {...props} />;
     case 'infinite':
       return <Infinite {...props} />;
+    case undefined:
+    case 'default':
     default:
       return <Default {...props} />;
   }
