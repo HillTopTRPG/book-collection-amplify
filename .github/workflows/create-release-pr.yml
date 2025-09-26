@@ -287,30 +287,21 @@ jobs:
 
               // Enable auto-merge with squash
               try {
-                await github.rest.pulls.merge({
+                await github.rest.pulls.enableAutoMerge({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
                   pull_number: pr.number,
-                  merge_method: 'squash',
-                  commit_title: pr.title
+                  merge_method: 'squash'
                 });
                 console.log('✅ Enabled auto-merge (squash) for PR');
-              } catch (mergeError) {
-                // If direct merge fails, try to enable auto-merge
-                try {
-                  await github.rest.pulls.update({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: pr.number,
-                    auto_merge: {
-                      merge_method: 'squash',
-                      commit_title: pr.title
-                    }
-                  });
-                  console.log('✅ Enabled auto-merge for PR');
-                } catch (autoMergeError) {
-                  console.log(`⚠️ Could not enable auto-merge: ${autoMergeError.message}`);
-                  console.log('Manual merge will be required');
+              } catch (autoMergeError) {
+                console.log(`⚠️ Could not enable auto-merge: ${autoMergeError.message}`);
+                console.log('Manual merge will be required');
+
+                // Log detailed error information for debugging
+                if (autoMergeError.response) {
+                  console.log(`Error status: ${autoMergeError.response.status}`);
+                  console.log(`Error data:`, JSON.stringify(autoMergeError.response.data, null, 2));
                 }
               }
 
