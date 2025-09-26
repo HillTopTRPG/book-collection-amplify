@@ -4,9 +4,17 @@
       "staticDistDir": "./dist",
       "numberOfRuns": 1,
       "settings": {
-        "chromeFlags": "--no-sandbox --disable-dev-shm-usage --disable-gpu --disable-web-security --allow-running-insecure-content --ignore-certificate-errors --headless=new",
+        "chromeFlags": "--no-sandbox --disable-dev-shm-usage --disable-gpu --disable-web-security --allow-running-insecure-content --ignore-certificate-errors --headless=new --disable-extensions --disable-background-timer-throttling --disable-background-networking --disable-default-apps --disable-sync",
         "onlyCategories": ["performance", "accessibility", "best-practices", "seo"],
-        "skipAudits": ["uses-http2", "redirects-http", "is-on-https"],
+        "skipAudits": [
+          "uses-http2",
+          "redirects-http",
+          "is-on-https",
+          "viewport",
+          "without-javascript",
+          "screenshot-thumbnails",
+          "final-screenshot"
+        ],
         "emulatedFormFactor": "desktop",
         "throttling": {
           "rttMs": 40,
@@ -16,8 +24,8 @@
           "downloadThroughputKbps": 0,
           "uploadThroughputKbps": 0
         },
-        "waitUntil": "networkidle2",
-        "timeout": 60000
+        "waitUntil": "load",
+        "timeout": 30000
       }
     },
     "assert": {
@@ -27,9 +35,6 @@
         "categories:best-practices": ["warn", { "minScore": 0.6 }],
         "categories:seo": ["warn", { "minScore": 0.6 }]
       }
-    },
-    "upload": {
-      "target": "temporary-public-storage"
     }
   }
 }

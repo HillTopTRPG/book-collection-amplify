@@ -17,13 +17,11 @@ jobs:
         run: |
           BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
           REPO_NAME="${{ github.repository }}"
-
           # Skip deletion if branch is main or master
           if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "master" ]]; then
             echo "Skipping deletion of protected branch: $BRANCH_NAME"
             exit 0
           fi
-
           echo "Deleting merged branch: $BRANCH_NAME"
           gh api \
             --method DELETE \

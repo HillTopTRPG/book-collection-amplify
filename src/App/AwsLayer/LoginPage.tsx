@@ -16,7 +16,7 @@ const components = {
           height="60px"
         />
         <Heading level={3} style={{ color: '#7c3aed' }}>
-          マイ書目
+          マイ書目コンシェルジュ
         </Heading>
         <Text style={{ color: '#6b7280' }}>ログインして蔵書コレクションを管理しましょう</Text>
       </View>

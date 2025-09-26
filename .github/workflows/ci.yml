@@ -1,31 +1,45 @@
 name: CI
 
+permissions:
+  contents: read
+  actions: write
+
 on:
   push:
+    branches: [main, feature/**]
     paths-ignore:
       - '**/*.md'
+      # - '**/*.yml'
+      - '**/*.yaml'
+      - '.gitignore'
+      - 'LICENSE'
+      - 'CONTRIBUTING.md'
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20.x
+      - name: Setup Node.js lts
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
 
       - name: Cache node_modules
         id: cache-node-modules
         uses: actions/cache@v4
         with:
           path: node_modules
-          key: ${{ runner.os }}-node-20.x-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
-            ${{ runner.os }}-node-20.x-
+            ${{ runner.os }}-node-
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -33,7 +47,14 @@ jobs:
           # Try npm ci first, fall back to npm install if it fails
           npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
 
-      - name: Create mock amplify_outputs.json for CI
+      - name: Save node_modules to cache
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules
+          key: ${{ steps.cache-key.outputs.key }}
+
+      - name: Create mock amplify_outputs.json
         run: |
           cat > amplify_outputs.json << 'EOF'
           {
@@ -65,7 +86,143 @@ jobs:
               "authorization_types": ["API_KEY", "AWS_IAM"],
               "model_introspection": {
                 "version": 1,
-                "models": {},
+                "models": {
+                  "Collection": {
+                    "name": "Collection",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "isbn": {"name": "isbn", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "meta": {"name": "meta", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "memo": {"name": "memo", "isArray": false, "type": "String", "isRequired": false, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "Collections",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  },
+                  "FilterSet": {
+                    "name": "FilterSet",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "name": {"name": "name", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "filters": {"name": "filters", "isArray": false, "type": "String", "isRequired": true, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "FilterSets",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  }
+                },
+                "enums": {},
+                "nonModels": {}
+              }
+            },
+            "version": "1.4"
+          }
+          EOF
+
+      - name: Build application
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ github.run_id }}
+          path: |
+            dist/
+            amplify_outputs.json
+          retention-days: 1
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js lts
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          # Try npm ci first, fall back to npm install if it fails
+          npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
+
+      - name: Create mock amplify_outputs.json
+        run: |
+          cat > amplify_outputs.json << 'EOF'
+          {
+            "auth": {
+              "user_pool_id": "mock-user-pool-id",
+              "aws_region": "us-east-1",
+              "user_pool_client_id": "mock-client-id",
+              "identity_pool_id": "mock-identity-pool-id",
+              "mfa_methods": [],
+              "standard_required_attributes": ["email"],
+              "username_attributes": ["email"],
+              "user_verification_types": ["email"],
+              "groups": [],
+              "mfa_configuration": "NONE",
+              "password_policy": {
+                "min_length": 8,
+                "require_lowercase": true,
+                "require_numbers": true,
+                "require_symbols": true,
+                "require_uppercase": true
+              },
+              "unauthenticated_identities_enabled": true
+            },
+            "data": {
+              "url": "https://mock-api-url.amazonaws.com/graphql",
+              "aws_region": "us-east-1",
+              "api_key": "mock-api-key",
+              "default_authorization_type": "AMAZON_COGNITO_USER_POOLS",
+              "authorization_types": ["API_KEY", "AWS_IAM"],
+              "model_introspection": {
+                "version": 1,
+                "models": {
+                  "Collection": {
+                    "name": "Collection",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "isbn": {"name": "isbn", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "meta": {"name": "meta", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "memo": {"name": "memo", "isArray": false, "type": "String", "isRequired": false, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "Collections",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  },
+                  "FilterSet": {
+                    "name": "FilterSet",
+                    "fields": {
+                      "id": {"name": "id", "isArray": false, "type": "ID", "isRequired": true, "attributes": []},
+                      "name": {"name": "name", "isArray": false, "type": "String", "isRequired": true, "attributes": []},
+                      "filters": {"name": "filters", "isArray": false, "type": "String", "isRequired": true, "attributes": []}
+                    },
+                    "syncable": true,
+                    "pluralName": "FilterSets",
+                    "attributes": [{"type": "model", "properties": {}}],
+                    "primaryKeyInfo": {"isCustomPrimaryKey": false, "primaryKeyFieldName": "id", "sortKeyFieldNames": []}
+                  }
+                },
                 "enums": {},
                 "nonModels": {}
               }
@@ -77,8 +234,36 @@ jobs:
       - name: Run lint checks
         run: npm run lint
 
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js lts
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "key=${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: |
+          # Try npm ci first, fall back to npm install if it fails
+          npm ci || (echo "npm ci failed, falling back to npm install" && npm install)
+
       - name: Run tests
         run: npm run test:run
-
-      - name: Run build
-        run: npm run build
