@@ -55,6 +55,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    overscroll-behavior: none;
+    touch-action: manipulation;
+  }
+  html {
+    overscroll-behavior: none;
+    touch-action: manipulation;
   }
 }
 
