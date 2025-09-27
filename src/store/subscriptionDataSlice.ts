@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
 import type { Isbn13, BookData } from '@/types/book.ts';
 import { createSimpleReducers } from '@/utils/store.ts';
 import type { Schema } from '$/amplify/data/resource.ts';

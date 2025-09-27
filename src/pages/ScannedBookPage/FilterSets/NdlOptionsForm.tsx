@@ -42,7 +42,7 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="bg-background rounded-xl flex flex-col w-full gap-1 items-stretch"
+        className="bg-background rounded-md flex flex-col w-full gap-1 items-stretch p-2"
       >
         <FormField
           control={form.control}

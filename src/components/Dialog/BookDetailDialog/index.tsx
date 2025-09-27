@@ -19,7 +19,7 @@ type Props = {
 export default function BookDetailDialog({ book, onClose }: Props) {
   return (
     <Dialog open={Boolean(book)} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90svh] overflow-scroll">
+      <DialogContent className="sm:max-w-[425px] max-h-[90svh] overflow-scroll z-[1001]">
         <DialogHeader>
           <DialogTitle>
             {book?.title} {book?.volume || book?.volumeTitle}

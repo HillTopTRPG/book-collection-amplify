@@ -1,4 +1,4 @@
-import { type RefObject, useEffect, useRef } from 'react';
+import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import type { RootState } from '@/store';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { FetchProcessResult } from '@/utils/fetch';
@@ -53,6 +53,7 @@ export default function useSearchQueueProcessor<Key extends string, Value>(
     payload: { type: 'new' | 'retry' | 'priority'; list: Key[] };
     type: string;
   },
+  timeoutInterval: number,
   additionalResultsFunc?: (results: Record<Key, Value | 'retrying'>) => void
 ) {
   const dispatch = useAppDispatch();
@@ -60,15 +61,23 @@ export default function useSearchQueueProcessor<Key extends string, Value>(
 
   const lastEndTime = useRef(0);
 
+  const [isFirst, setIsFirst] = useState(true);
+
   useEffect(() => {
+    setIsFirst(true);
+  }, [targets.length]);
+
+  return useCallback(() => {
+    if (!isFirst) return;
+    setIsFirst(false);
     searchProcess(fetchFunc, targets, lastEndTime).then(({ results, retryList }) => {
       if (getKeys(results).length) dispatch(dequeueFunc(results));
       if (retryList.length) {
         setTimeout(() => {
           dispatch(enqueueFunc({ type: 'retry', list: retryList }));
-        }, 500);
+        }, timeoutInterval);
       }
       additionalResultsFunc?.(results);
     });
-  }, [additionalResultsFunc, dequeueFunc, dispatch, enqueueFunc, fetchFunc, targets]);
+  }, [additionalResultsFunc, dequeueFunc, dispatch, enqueueFunc, fetchFunc, timeoutInterval, isFirst, targets]);
 }

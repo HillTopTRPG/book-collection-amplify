@@ -41,8 +41,5 @@ export default function useDOMSize() {
     };
   }, []);
 
-  return {
-    ref,
-    size,
-  };
+  return [ref, size] as const;
 }
