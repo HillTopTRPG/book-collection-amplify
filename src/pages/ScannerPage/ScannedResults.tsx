@@ -1,9 +1,10 @@
 import { Fragment, useCallback, useState } from 'react';
-import { Button } from '@aws-amplify/ui-react';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { generateClient } from 'aws-amplify/data';
 import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import BookCard from '@/components/Card/BookCard';
+import { Button } from '@/components/ui/button.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import type { AppDispatch } from '@/store';
@@ -18,6 +19,7 @@ const userPoolClient = generateClient<Schema>({
 
 export default function ScannedResults() {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const scanResultList = useAppSelector(selectScanResultList);
   const { toast } = useToast();
   const [registering, setRegistering] = useState(false);
@@ -70,16 +72,10 @@ export default function ScannedResults() {
       {registrable ? (
         <Fragment>
           <div className="flex gap-3 justify-end">
-            <Button variation="primary" className="rounded-full flex-1" onClick={onRegister} disabled={registerDisable}>
+            <Button variant="default" className="rounded-full flex-1" onClick={onRegister} disabled={registerDisable}>
               登録
             </Button>
-            <Button
-              size="small"
-              variation="destructive"
-              className="rounded-full"
-              onClick={onClear}
-              disabled={clearDisable}
-            >
+            <Button className="rounded-full" onClick={onClear} disabled={clearDisable}>
               クリア
             </Button>
           </div>
@@ -90,7 +86,13 @@ export default function ScannedResults() {
         {scanResultList.map(({ result }, index) => (
           <Fragment key={index}>
             {index > 0 && <Separator className="my-2" />}
-            <BookCard bookDetail={result?.bookDetail ?? null} />
+            <BookCard
+              bookDetail={result?.bookDetail ?? null}
+              onClick={isbn => {
+                console.log(isbn);
+                navigate(`/scan/${result?.isbn}`);
+              }}
+            />
           </Fragment>
         ))}
         {!scanResultList.length && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}

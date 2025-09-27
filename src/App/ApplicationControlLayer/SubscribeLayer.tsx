@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 import { generateClient } from 'aws-amplify/data';
-import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { FilterAndGroup } from '@/store/subscriptionDataSlice.ts';
 import {
