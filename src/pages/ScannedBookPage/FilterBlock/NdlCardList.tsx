@@ -1,10 +1,12 @@
 import type { RefObject } from 'react';
 import { useEffect, Fragment } from 'react';
-import NdlCard from '@/components/Card/NdlCard';
+import { RippleContainer } from '@m_three_ui/m3ripple';
 import { Separator } from '@/components/ui/separator.tsx';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
+import NdlCardNavi from './NdlCardNavi.tsx';
+import '@m_three_ui/m3ripple/css';
 
 type Props = {
   countRef?: RefObject<HTMLDivElement | null>;
@@ -50,19 +52,15 @@ export default function NdlCardList({
                 {!isCollapse || idx < 2 || books.length - 3 < idx ? (
                   <>
                     {idx ? <Separator /> : null}
-                    <div className="relative">
-                      <div
-                        className="absolute inset-0 -z-1 bg-indigo-900"
-                        style={{ opacity: 0.2 + (idx / books.length) * 0.6 }}
-                      />
-                      <NdlCard
-                        {...{ ndl, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
-                        onOpenBookDetail={isbn => {
-                          setDetailIsbn(isbn);
-                          setSelectedIsbn(null);
-                        }}
-                      />
-                    </div>
+                    <NdlCardNavi
+                      idx={idx}
+                      books={books}
+                      {...{ ndl, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
+                      onOpenBookDetail={isbn => {
+                        setDetailIsbn(isbn);
+                        setSelectedIsbn(null);
+                      }}
+                    />
                   </>
                 ) : null}
                 {isCollapse && idx == collapseButtonIndex ? (
@@ -80,9 +78,58 @@ export default function NdlCardList({
             ))
           : null}
       </div>
-      <div ref={countRef} className="px-2 py-1 bg-background">
-        {books.length}件
-      </div>
+      <RippleContainer className="relative flex" rippleColor="hsla(29,81%,84%,0.15)">
+        <div
+          ref={countRef}
+          className="w-full px-2 py-1"
+          onClick={() => {}}
+          onTouchStartCapture={() => {
+            console.log('onTouchStartCapture');
+          }}
+          onMouseDownCapture={e => {
+            e.stopPropagation();
+            // touchStartイベントを発火
+            const touch = new Touch({
+              identifier: 0,
+              target: e.target as Element,
+              clientX: e.clientX,
+              clientY: e.clientY,
+              pageX: e.pageX,
+              pageY: e.pageY,
+              screenX: e.screenX,
+              screenY: e.screenY,
+              radiusX: 0,
+              radiusY: 0,
+              rotationAngle: 0,
+              force: 1,
+            });
+
+            const touchEvent = new TouchEvent('touchstart', {
+              bubbles: true,
+              cancelable: true,
+              touches: [touch],
+              targetTouches: [touch],
+              changedTouches: [touch],
+              view: window,
+              detail: 0,
+            });
+
+            // イベントオブジェクトに座標情報を直接設定
+            Object.defineProperties(touchEvent, {
+              clientX: { value: e.clientX, writable: false },
+              clientY: { value: e.clientY, writable: false },
+              pageX: { value: e.pageX, writable: false },
+              pageY: { value: e.pageY, writable: false },
+              screenX: { value: e.screenX, writable: false },
+              screenY: { value: e.screenY, writable: false },
+            });
+
+            e.target.dispatchEvent(touchEvent);
+          }}
+        >
+          {books.length}件
+        </div>
+      </RippleContainer>
     </>
   );
 }
