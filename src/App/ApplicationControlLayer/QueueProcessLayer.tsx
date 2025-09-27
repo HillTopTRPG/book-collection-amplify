@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { useInterval } from 'usehooks-ts';
 import useLocalStorage from '@/App/ApplicationControlLayer/useLocalStorage.ts';
 import useSearchQueueProcessor from '@/App/ApplicationControlLayer/useSearchQueueProcessor.ts';
 import { enqueueBookImage } from '@/store/fetchBookImageSlice.ts';
@@ -32,17 +33,43 @@ export default function QueueProcessLayer({ children }: Props) {
   useBookImageQueueProcessor();
   useNdlSearchQueueEnqueueer({ filterSets });
   useScanQueueProcessor({ filterSets, collections });
-  useSearchQueueProcessor(selectGoogleSearchTargets, callGoogleBooksApi, dequeueGoogleSearch, enqueueGoogleSearch);
-  useSearchQueueProcessor(selectRakutenSearchTargets, callRakutenBooksApi, dequeueRakutenSearch, enqueueRakutenSearch);
-  useSearchQueueProcessor(selectNdlSearchTargets, callNdlSearchApi, dequeueNdlSearch, enqueueNdlSearch, results => {
-    const isbnList = getKeys(results).flatMap(optionsStr => {
-      const books = results[optionsStr];
 
-      return books === 'retrying' ? [] : books.list.map(b => b.isbn);
-    });
+  const google = useSearchQueueProcessor(
+    selectGoogleSearchTargets,
+    callGoogleBooksApi,
+    dequeueGoogleSearch,
+    enqueueGoogleSearch,
+    5000
+  );
+  const rakuten = useSearchQueueProcessor(
+    selectRakutenSearchTargets,
+    callRakutenBooksApi,
+    dequeueRakutenSearch,
+    enqueueRakutenSearch,
+    5000
+  );
+  const ndl = useSearchQueueProcessor(
+    selectNdlSearchTargets,
+    callNdlSearchApi,
+    dequeueNdlSearch,
+    enqueueNdlSearch,
+    1000,
+    results => {
+      const isbnList = getKeys(results).flatMap(optionsStr => {
+        const books = results[optionsStr];
 
-    if (isbnList.length) dispatch(enqueueBookImage({ type: 'new', list: isbnList }));
-  });
+        return books === 'retrying' ? [] : books.list.map(b => b.isbn);
+      });
+
+      if (isbnList.length) dispatch(enqueueBookImage({ type: 'new', list: isbnList }));
+    }
+  );
+
+  useInterval(() => {
+    google();
+    rakuten();
+    ndl();
+  }, 100);
 
   return children;
 }

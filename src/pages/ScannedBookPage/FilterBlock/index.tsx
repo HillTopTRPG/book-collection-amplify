@@ -1,4 +1,4 @@
-import { Fragment, type RefObject, useCallback, useMemo } from 'react';
+import { type CSSProperties, Fragment, type RefObject, useCallback, useMemo, useState } from 'react';
 import { Separator } from '@/components/ui/separator.tsx';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { useAppDispatch } from '@/store/hooks.ts';
@@ -10,6 +10,8 @@ import { groupByVolume } from '@/utils/groupByVolume.ts';
 import GroupByBlock from './GroupByBlock';
 import NdlCardList from './NdlCardList.tsx';
 import SearchConditionsForm from './SearchConditionsForm';
+
+const BOTTOM_NAVIGATION_HEIGHT = 65;
 
 type Props = {
   scrollParentRef: RefObject<HTMLDivElement | null>;
@@ -33,7 +35,8 @@ export default function FilterBlock({
   setDetailIsbn,
 }: Props) {
   const dispatch = useAppDispatch();
-  const { ref, size } = useDOMSize();
+  const [searchConditionsRef, searchConditionsSize] = useDOMSize();
+  const [contentHeight, setContentHeight] = useState(0);
   const filteredResults = useMemo(
     (): BookData[] => getFilteredItems(fetchedBooks, filterSet, orIndex),
     [fetchedBooks, filterSet, orIndex]
@@ -49,13 +52,15 @@ export default function FilterBlock({
     [dispatch, filterSet.filters, filterSet.id, isbn, orIndex]
   );
 
+  console.log(searchConditionsSize.height, contentHeight);
+
   return (
     <>
       <Separator />
 
       {/* 検索条件入力欄 */}
       <SearchConditionsForm
-        ref={ref}
+        ref={searchConditionsRef}
         {...{ isbn, filterSet, orIndex, fetchedBooks, filteredResults, updateGroupingType }}
       />
 
@@ -64,8 +69,7 @@ export default function FilterBlock({
         {!filterSet.filters[orIndex].grouping ? (
           <NdlCardList
             books={filteredResults}
-            conditionsFormRef={ref}
-            isLastBlock
+            setContentHeight={setContentHeight}
             {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
           />
         ) : (
@@ -73,15 +77,22 @@ export default function FilterBlock({
             <Fragment key={idx}>
               {idx ? <Separator /> : null}
               <GroupByBlock
-                stickyTop={size.height}
-                conditionsFormRef={ref}
-                isLastBlock={idx === groupedBooks.length - 1}
+                stickyTop={searchConditionsSize.height}
+                setContentHeight={setContentHeight}
                 {...{ scrollParentRef, list, idx, filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
               />
             </Fragment>
           ))
         )}
       </div>
+      <div
+        className="min-h-viewport-with-offset"
+        style={
+          {
+            '--content-end-y': `${searchConditionsSize.height + contentHeight + BOTTOM_NAVIGATION_HEIGHT}px`,
+          } as CSSProperties
+        }
+      />
     </>
   );
 }

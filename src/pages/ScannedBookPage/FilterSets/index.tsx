@@ -37,7 +37,7 @@ export default function FilterSets({ scannedItemMapValue, selectedFilterSet, set
   );
 
   return (
-    <div className="px-2 flex flex-col gap-1 pb-2">
+    <div className="flex flex-col gap-1">
       <SelectBox options={options} value={selectedFilterSet} onChange={setSelectedFilterSet} />
       {fetchFullOptions ? (
         <NdlOptionsForm

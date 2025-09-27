@@ -1,6 +1,6 @@
-import type { RefObject } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import BookCard from '@/components/Card/BookCard.tsx';
+import BookDetailDialog from '@/components/Dialog/BookDetailDialog';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
@@ -8,20 +8,19 @@ import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import type { PickRequired } from '@/utils/type.ts';
-import BookDetailDialog from './BookDetailDialog';
 import FilterBlock from './FilterBlock';
 import FilterSets from './FilterSets';
 
 type Props = {
-  scrollParentRef: RefObject<HTMLDivElement | null>;
   scannedItemMapValue: PickRequired<ScannedItemMapValue, 'bookDetail'>;
 };
 
-export default function DrawerContent({ scrollParentRef, scannedItemMapValue }: Props) {
+export default function Contents({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
   const allNdlSearchQueueResults = useAppSelector(selectAllNdlSearchResults);
   const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
   const [detailIsbn, setDetailIsbn] = useState<string | null>(null);
+  const scrollParentRef = useRef<HTMLDivElement>(document.getElementById('root') as HTMLDivElement);
 
   const isbn = scannedItemMapValue.isbn;
 
@@ -54,11 +53,13 @@ export default function DrawerContent({ scrollParentRef, scannedItemMapValue }: 
   }, [dispatch, stringifyFetchOptions]);
 
   return (
-    <>
-      <div className="flex justify-center">
-        <BookCard bookDetail={scannedItemMapValue.bookDetail} />
+    <div className="flex flex-col w-full flex-1">
+      <div className="flex flex-col gap-3 py-3">
+        <div className="flex justify-center">
+          <BookCard bookDetail={scannedItemMapValue.bookDetail} />
+        </div>
+        <FilterSets {...{ scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }} />
       </div>
-      <FilterSets {...{ scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }} />
       {filterSet?.filters.map((_, orIndex) => (
         <FilterBlock
           key={orIndex}
@@ -69,6 +70,6 @@ export default function DrawerContent({ scrollParentRef, scannedItemMapValue }: 
         book={fetchedBooks?.find(book => book.isbn === detailIsbn) ?? null}
         onClose={() => setDetailIsbn(null)}
       />
-    </>
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { createSelector, createSlice } from '@reduxjs/toolkit';
-import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
 import type { FilterAndGroup, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';

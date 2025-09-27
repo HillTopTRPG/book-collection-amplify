@@ -6,36 +6,39 @@ import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
 import se01 from '@/assets/se01.mp3';
 import { Button } from '@/components/ui/button.tsx';
+import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { enqueueScan, selectScanSuccessCount } from '@/store/scannerSlice.ts';
+import { enqueueScan, selectScanSuccessCount, selectSelectedScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
 import { getIsbnCode, getIsbn13 } from '@/utils/isbn.ts';
-import { wait } from '@/utils/primitive.ts';
 import CornerFrame from './CornerFrame.tsx';
 
-type Props = {
-  width: number;
-  height: number;
-};
+const WIDTH = 300;
+const HEIGHT = 100;
 
-export default function CameraView({ width, height }: Props) {
+export default function CameraView() {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
   const scannedBookDetails = useAppSelector(selectScanSuccessCount);
+  const selectedScannedItemMapValue = useAppSelector(selectSelectedScannedItemMapValue);
   const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBookDetails);
   const scannerRef = useRef<HTMLDivElement>(null);
   const lastFetchIsbn = useRef<Isbn13 | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFirst, setIsFirst] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [volume, _setVolume] = useState(Number(localStorage.volume) ?? 0.8);
   const [play] = useSound(se01, {
     volume,
     interrupt: true,
   });
+
+  // cameraEnabledが更新されたら、初回フラグを立てる
+  useEffect(() => {
+    setIsFirst(true);
+  }, [selectedScannedItemMapValue]);
 
   const setVolume = useCallback((volume: number) => {
     localStorage.volume = volume;
@@ -64,132 +67,113 @@ export default function CameraView({ width, height }: Props) {
     setIsScanning(true);
     setError(null);
 
-    // DOMの準備を待つ
-    await wait(300);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const error = await new Promise<any>(resolve => {
+      Quagga.init(
+        {
+          inputStream: {
+            name: 'Live',
+            type: 'LiveStream',
+            target: scannerRef.current ?? undefined,
+            constraints: {
+              width: { min: 640, ideal: 1280, max: 1920 },
+              height: { min: 480, ideal: 720, max: 1080 },
+              frameRate: { ideal: 30, max: 30 },
+              facingMode: 'environment', // スマホの場合は背面カメラを優先
+            },
+          },
+          frequency: 10, // スキャン頻度を下げる
+          numOfWorkers: navigator.hardwareConcurrency || 2,
+          decoder: {
+            readers: ['ean_reader'],
+          },
+          locate: true,
+        },
+        err => {
+          if (err) {
+            resolve(err);
+            return;
+          }
+          resolve(null);
+        }
+      );
+    });
 
-    if (!scannerRef.current) {
-      console.error('scannerRef.currentが存在しません');
-      setError('スキャナーの要素が見つかりません。もう一度お試しください。');
+    if (error !== null) {
+      console.error('Quagga初期化エラー:', error);
+      setError(`バーコードスキャナーの初期化に失敗しました: ${error}`);
       setIsScanning(false);
       return;
     }
 
-    try {
-      await new Promise<void>((resolve, reject) => {
-        Quagga.init(
-          {
-            inputStream: {
-              name: 'Live',
-              type: 'LiveStream',
-              target: scannerRef.current ?? undefined,
-              constraints: {
-                width: { min: 640, ideal: 1280, max: 1920 },
-                height: { min: 480, ideal: 720, max: 1080 },
-                frameRate: { ideal: 30, max: 30 },
-                facingMode: 'environment', // スマホの場合は背面カメラを優先
-              },
-            },
-            frequency: 10, // スキャン頻度を下げる
-            numOfWorkers: navigator.hardwareConcurrency || 2,
-            decoder: {
-              readers: ['ean_reader'],
-            },
-            locate: true,
-          },
-          err => {
-            if (err) {
-              console.error('Quagga初期化エラー:', err);
-              setError(`バーコードスキャナーの初期化に失敗しました: ${err.message || err}`);
-              setIsScanning(false);
-              reject(err);
-              return;
-            }
-            console.log('Quagga初期化完了');
-            resolve();
-          }
-        );
+    // 初期化が成功したらスキャンを開始
+    Quagga.start();
+    console.log('Quaggaスキャン開始');
+
+    // イベントリスナーを設定
+    Quagga.onDetected(({ codeResult }) => {
+      const maybeIsbn = getIsbnCode(codeResult.code);
+      if (!maybeIsbn) return;
+
+      const isbn13 = getIsbn13(maybeIsbn);
+
+      if (lastFetchIsbn.current === isbn13) return;
+      lastFetchIsbn.current = isbn13;
+
+      console.log('バーコード検出:', isbn13);
+
+      // トーストを表示
+      toast({
+        title: 'ISBN検出',
+        description: isbn13,
+        duration: 2000,
       });
 
-      // 初期化が成功したらスキャンを開始
-      Quagga.start();
-      console.log('Quaggaスキャン開始');
+      dispatch(enqueueScan({ type: 'new', list: [isbn13] }));
+    });
 
-      // イベントリスナーを設定
-      Quagga.onDetected(async result => {
-        const maybeIsbn = getIsbnCode(result.codeResult.code);
-        if (!maybeIsbn) return;
-
-        const isbn13 = getIsbn13(maybeIsbn);
-
-        if (lastFetchIsbn.current === isbn13) return;
-        lastFetchIsbn.current = isbn13;
-
-        console.log('バーコード検出:', isbn13);
-
-        // トーストを表示
-        toast({
-          title: 'ISBN検出',
-          description: isbn13,
-          duration: 2000,
-        });
-
-        dispatch(enqueueScan({ type: 'new', list: [isbn13] }));
-      });
-
-      setError(null);
-      setIsScanning(true);
-    } catch (error) {
-      console.error('スキャナー開始エラー:', error);
-      setError(`スキャナーの開始に失敗しました: ${error}`);
-      setIsScanning(false);
-    }
+    setError(null);
+    setIsScanning(true);
   }, [dispatch, toast]);
 
   const startCamera = useCallback(async () => {
-    setIsFirst(false);
-    setIsLoading(true);
     setError(null);
 
     try {
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { width, height },
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: WIDTH, height: HEIGHT },
         audio: false,
       });
+      setStream(stream);
 
-      setStream(mediaStream);
-
-      // カメラ起動後、DOM要素が準備されるまで待ってからバーコードスキャンを自動開始
+      // カメラ起動後、少し待ってからバーコードスキャンを自動開始
       setTimeout(() => {
-        if (scannerRef.current) {
-          startBarcodeScanning();
-        }
-      }, 500);
+        startBarcodeScanning();
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'カメラにアクセスできませんでした';
       setError(errorMessage);
       console.error('カメラアクセスエラー:', err);
-    } finally {
-      setIsLoading(false);
     }
-  }, [width, height, startBarcodeScanning]);
+  }, [startBarcodeScanning]);
+
+  const stopCamera = useCallback(() => {
+    Quagga.stop().then();
+    stream?.getTracks().forEach(track => track.stop());
+    setIsScanning(false);
+  }, [stream]);
 
   // コンポーネントマウント時に自動でカメラを起動
   useInterval(() => {
     if (!isFirst) return;
-    startCamera().then();
+    if (!scannerRef.current) return;
+    if (selectedScannedItemMapValue) {
+      stopCamera();
+    } else {
+      startCamera().then();
+    }
+    setIsFirst(false);
   }, 100);
-
-  useEffect(
-    () => () => {
-      if (isScanning) {
-        Quagga.stop().then();
-      }
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-      }
-    },
-    [stream, isScanning]
-  );
 
   const toggleVolume = useCallback(() => {
     setVolume(volume ? 0 : 0.8);
@@ -215,19 +199,22 @@ export default function CameraView({ width, height }: Props) {
         ref={scannerRef}
         className="overflow-hidden relative rounded-lg"
         style={{
+          minWidth: '300px',
           maxWidth: '300px',
+          minHeight: '100px',
           maxHeight: '100px',
         }}
       >
         <h1 className="absolute top-1 left-0 right-0 text-center text-xs text-white z-40">
           バーコードを写してください。
         </h1>
+        {isScanning ? null : (
+          <p className="absolute inset-0 bg-background flex items-center justify-center z-40">
+            <Spinner variant="bars" />
+          </p>
+        )}
         <CornerFrame />
       </div>
-
-      {isLoading ? <p className="p-2 text-blue-400 bg-blue-50">カメラ起動中...</p> : null}
-
-      {stream && !isScanning ? <p className="p-2 text-blue-400 bg-blue-50">スキャナー準備中...</p> : null}
     </div>
   );
 }

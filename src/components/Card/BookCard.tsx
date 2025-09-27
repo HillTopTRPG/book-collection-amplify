@@ -3,25 +3,23 @@ import BookImage from '@/components/BookImage.tsx';
 import CardFrame from '@/components/Card/CardFrame.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
-import { useAppDispatch } from '@/store/hooks.ts';
-import { updateSelectedScanIsbn } from '@/store/scannerSlice.ts';
+import type { Isbn13 } from '@/types/book.ts';
 
 type Props = {
   bookDetail: BookDetail | null;
+  onClick?: (isbn: Isbn13) => void;
 };
 
-export default function BookCard({ bookDetail }: Props) {
-  const dispatch = useAppDispatch();
-
+export default function BookCard({ bookDetail, onClick }: Props) {
   const isbn = bookDetail?.book?.isbn ?? null;
 
-  const onClick = useCallback(() => {
+  const onClickWrap = useCallback(() => {
     if (!isbn) return;
-    dispatch(updateSelectedScanIsbn(isbn));
-  }, [isbn, dispatch]);
+    onClick?.(isbn);
+  }, [isbn, onClick]);
 
   return (
-    <CardFrame onClick={onClick}>
+    <CardFrame onClick={onClickWrap}>
       {!bookDetail?.book ? (
         <Spinner variant="bars" />
       ) : (

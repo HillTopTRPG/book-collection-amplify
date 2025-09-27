@@ -56,16 +56,14 @@ interface LoginPageProps {
 
 export default function LoginPage({ children }: LoginPageProps) {
   return (
-    <div className="min-h-screen flex flex-col items-start justify-center">
-      <Authenticator
-        loginMechanisms={['email']}
-        signUpAttributes={['email']}
-        components={components}
-        formFields={formFields}
-        hideSignUp={false}
-      >
-        {children}
-      </Authenticator>
-    </div>
+    <Authenticator
+      loginMechanisms={['email']}
+      signUpAttributes={['email']}
+      components={components}
+      formFields={formFields}
+      hideSignUp={false}
+    >
+      {children}
+    </Authenticator>
   );
 }
