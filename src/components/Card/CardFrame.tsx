@@ -6,7 +6,8 @@ import '@m_three_ui/m3ripple/css';
 
 const BASE = 'relative p-2';
 const FLEX = 'flex items-center justify-center';
-const COLOR = 'hover:bg-gray-50/30 dark:hover:bg-white-100/10 transition-colors duration-200';
+const COLOR =
+  'hover-supported:hover:bg-gray-50/30 dark:hover-supported:hover:bg-white-100/10 transition-colors duration-200';
 const TOUCH = 'touch-manipulation min-h-[44px]';
 
 const invokeTouchStart = (type: 'touchstart' | 'touchend', e: MouseEvent) => {
