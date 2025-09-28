@@ -1,30 +1,32 @@
 import type { ReactNode } from 'react';
 import { Mousewheel, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import NdlCardStatusSelector from '@/pages/ScannedBookPage/FilterBlock/NdlCardStatusSelector.tsx';
 import SwipeResolver from './SwipeResolver.tsx';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 
 type Props = {
-  value: boolean;
-  setValue: (value: boolean) => void;
-  trueContent: ReactNode;
+  value: number;
+  setValue: (value: number) => void;
+  plusContents: ReactNode[];
+  minusContents: ReactNode[];
   children: ReactNode;
   scrollParentId: string;
 };
 
-export default function ToggleSwiper({ value, setValue, trueContent, children, scrollParentId }: Props) {
+export default function ToggleSwiper({ value, setValue, plusContents, children, scrollParentId }: Props) {
   return (
     <Swiper
-      initialSlide={value ? 0 : 1}
+      initialSlide={0}
       slidesPerView="auto"
       pagination={true}
       direction="horizontal"
-      grabCursor
+      // grabCursor
       slideToClickedSlide
       preventClicks={false}
-      preventClicksPropagation={false}
+      preventClicksPropagation={true}
       modules={[Navigation, Mousewheel]}
       mousewheel={{
         eventsTarget: `#${scrollParentId}`,
@@ -32,12 +34,13 @@ export default function ToggleSwiper({ value, setValue, trueContent, children, s
       }}
       className="w-full h-full"
       onSlideChange={swiper => {
-        setValue(!swiper.activeIndex);
+        const idx = swiper.activeIndex;
+        setValue(plusContents.length - idx);
       }}
     >
-      <SwiperSlide className="w-fit z-10">
-        <SwipeResolver value={value} />
-        {trueContent}
+      <SwipeResolver plusLength={plusContents.length} value={value} />
+      <SwiperSlide className="!w-fit overflow-x-visible z-10">
+        <NdlCardStatusSelector {...{ value, setValue }} />
       </SwiperSlide>
       <SwiperSlide>{children}</SwiperSlide>
     </Swiper>

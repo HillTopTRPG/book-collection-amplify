@@ -9,8 +9,10 @@ import OverPanel from '@/components/Card/NdlCard/OverPanel.tsx';
 import TempItem from '@/components/TempItem.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { cn } from '@/lib/utils.ts';
 
 type Props = {
+  className?: string;
   ndl: BookData;
   filterSet: FilterSet;
   orIndex: number;
@@ -19,7 +21,15 @@ type Props = {
   onOpenBookDetail: (isbn: string | null) => void;
 };
 
-export default function NdlCard({ ndl, filterSet, orIndex, selectedIsbn, setSelectedIsbn, onOpenBookDetail }: Props) {
+export default function NdlCard({
+  className,
+  ndl,
+  filterSet,
+  orIndex,
+  selectedIsbn,
+  setSelectedIsbn,
+  onOpenBookDetail,
+}: Props) {
   const isbn = ndl.isbn;
 
   const options = useMemo(() => filterSet.fetch, [filterSet.fetch]);
@@ -41,7 +51,7 @@ export default function NdlCard({ ndl, filterSet, orIndex, selectedIsbn, setSele
   );
 
   return (
-    <CardFrame className="flex-col gap-1 py-1 px-2">
+    <CardFrame className={cn('flex-col gap-1 py-1 px-2', className)}>
       <div className="flex flex-wrap justify-start w-full">
         {ndl.ndcLabels.map((label, idx) => (
           <Fragment key={idx}>

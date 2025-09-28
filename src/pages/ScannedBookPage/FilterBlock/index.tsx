@@ -65,7 +65,7 @@ export default function FilterBlock({
       />
 
       {/* 書籍一覧 */}
-      <div>
+      <div className="flex flex-col">
         {!filterSet.filters[orIndex].grouping ? (
           <NdlCardList
             books={filteredResults}

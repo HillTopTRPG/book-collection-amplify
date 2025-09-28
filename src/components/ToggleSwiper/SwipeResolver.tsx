@@ -2,15 +2,16 @@ import { useEffect } from 'react';
 import { useSwiper } from 'swiper/react';
 
 type Props = {
-  value: boolean;
+  value: number;
+  plusLength: number;
 };
 
-export default function SwipeResolver({ value }: Props) {
+export default function SwipeResolver({ value, plusLength }: Props) {
   const swiper = useSwiper();
 
   useEffect(() => {
-    swiper.slideTo(value ? 0 : 1);
-  }, [swiper, value]);
+    swiper.slideTo(plusLength - value);
+  }, [plusLength, swiper, value]);
 
   return null;
 }
