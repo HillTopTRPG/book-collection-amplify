@@ -49,5 +49,9 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addVariant }) {
+      addVariant('hover-supported', '@media (hover: hover)')
+    }
+  ],
 };
