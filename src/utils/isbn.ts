@@ -1,3 +1,4 @@
+import type { Isbn13 } from '@/types/book.ts';
 import {
   DEFAULT_ISBN_13_PREFIX,
   ISBN_10_BASE,
@@ -8,7 +9,6 @@ import {
   ISBN_13_PATTERN,
   VALID_ISBN_LENGTHS,
 } from '@/constant/isbn.ts';
-import type { Isbn13 } from '@/types/book.ts';
 
 type ValidIsbnLength = (typeof VALID_ISBN_LENGTHS)[number];
 

@@ -1,7 +1,7 @@
-import { createSlice } from '@reduxjs/toolkit';
-import type { RootState } from './index.ts';
 import type { BookData } from '../types/book';
+import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 export type FetchResultMap = Record<string, BookData[]>;
 

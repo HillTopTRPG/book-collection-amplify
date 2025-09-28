@@ -1,13 +1,13 @@
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
+import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { PickRequired } from '@/utils/type.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import BookCard from '@/components/Card/BookCard.tsx';
 import BookDetailDialog from '@/components/Dialog/BookDetailDialog';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
-import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
-import type { PickRequired } from '@/utils/type.ts';
 import FilterBlock from './FilterBlock';
 import FilterSets from './FilterSets';
 

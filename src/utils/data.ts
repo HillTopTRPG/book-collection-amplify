@@ -3,8 +3,8 @@ import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Collection } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/types/fetch.ts';
-import { filterMatch } from '@/utils/primitive.ts';
 import type { PickRequired } from '@/utils/type.ts';
+import { filterMatch } from '@/utils/primitive.ts';
 
 export const getScannedItemMapValueByBookData = (collections: Collection[], book: BookData): ScannedItemMapValue => {
   const isbn = book.isbn;

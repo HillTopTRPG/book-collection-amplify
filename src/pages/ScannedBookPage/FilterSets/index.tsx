@@ -1,11 +1,11 @@
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
+import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { PickRequired } from '@/utils/type.ts';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import SelectBox from '@/components/SelectBox.tsx';
 import { useAppDispatch } from '@/store/hooks.ts';
-import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import { updateFetchedFetchOption } from '@/store/scannerSlice.ts';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { PickRequired } from '@/utils/type.ts';
 import NdlOptionsForm from './NdlOptionsForm.tsx';
 
 type Props = {

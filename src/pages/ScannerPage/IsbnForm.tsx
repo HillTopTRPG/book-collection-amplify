@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Import } from 'lucide-react';
+import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanResultList } from '@/store/scannerSlice.ts';
-import { getIsbnCode, getIsbn13 } from '@/utils/isbn.ts';
+import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
 
 const FormSchema = z
   .object({

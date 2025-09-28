@@ -1,9 +1,11 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
 import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
 import type { FilterAndGroup, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
 import type { QueueState } from '@/types/queue.ts';
+import type { PickRequired } from '@/utils/type.ts';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { makeInitialQueueState } from '@/types/queue.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import {
@@ -11,11 +13,9 @@ import {
   pushScannedIsbnToLocalStorage,
   resetScannedIsbnToLocalStorage,
 } from '@/utils/localStorage.ts';
-import { unique, deleteAllStrings } from '@/utils/primitive.ts';
-import { dequeue, enqueue, createSimpleReducers, simpleSelector } from '@/utils/store.ts';
-import type { PickRequired } from '@/utils/type.ts';
+import { deleteAllStrings, unique } from '@/utils/primitive.ts';
+import { createSimpleReducers, dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 import { getKeys } from '@/utils/type.ts';
-import type { PayloadAction } from '@reduxjs/toolkit';
 
 export type ScanningItemMapValue = {
   isbn: Isbn13;

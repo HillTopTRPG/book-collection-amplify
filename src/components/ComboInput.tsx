@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { CheckIcon, ChevronsUpDownIcon, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';

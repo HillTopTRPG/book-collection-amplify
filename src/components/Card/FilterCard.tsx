@@ -1,8 +1,8 @@
+import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import { useCallback } from 'react';
 import CardFrame from '@/components/Card/CardFrame.tsx';
 import { openDrawer } from '@/store/filterDetailDrawerSlice.ts';
 import { useAppDispatch } from '@/store/hooks.ts';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 
 type Props = {
   filterSet: FilterSet;

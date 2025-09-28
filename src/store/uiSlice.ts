@@ -1,6 +1,6 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
 
 type State = {
   scrollValueMap: Record<'bookDetail' | 'body', number>;

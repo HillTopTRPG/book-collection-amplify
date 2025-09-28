@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import type { Isbn13 } from '@/types/book.ts';
 import { ImageOff } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useInView } from '@/hooks/useInView.ts';
 import { enqueueBookImage, selectFetchBookImageQueueResults } from '@/store/fetchBookImageSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
-import type { Isbn13 } from '@/types/book.ts';
 
 type Props = {
   isbn: Isbn13 | null | undefined;

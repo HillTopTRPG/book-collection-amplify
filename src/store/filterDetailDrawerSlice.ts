@@ -1,13 +1,13 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit';
-import { selectFetchResultMap } from '@/store/fetchResultSlice.ts';
+import type { RootState } from './index';
+import type { Collection } from './subscriptionDataSlice';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { BookData } from '@/types/book.ts';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { selectFetchResultMap } from '@/store/fetchResultSlice.ts';
 import { getScannedItemMapValueByBookData } from '@/utils/data.ts';
 import { filterMatch } from '@/utils/primitive.ts';
 import { selectCollections, selectFilterSets } from './subscriptionDataSlice';
-import type { RootState } from './index';
-import type { Collection } from './subscriptionDataSlice';
-import type { PayloadAction } from '@reduxjs/toolkit';
 
 type State = {
   selectedFilterSetId: string | null;

@@ -1,9 +1,9 @@
+import type { PickRequired } from '@/utils/type.ts';
 import { useParams } from 'react-router-dom';
 import Contents from '@/pages/ScannedBookPage/Contents.tsx';
 import { useAppSelector } from '@/store/hooks.ts';
 import { selectScanResultList } from '@/store/scannerSlice.ts';
 import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
-import type { PickRequired } from '@/utils/type.ts';
 
 export default function ScannedBookPage() {
   const { maybeIsbn: raw } = useParams<{ maybeIsbn: string }>();

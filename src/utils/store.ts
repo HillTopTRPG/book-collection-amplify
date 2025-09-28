@@ -1,8 +1,8 @@
-import { omit } from 'es-toolkit/compat';
 import type { RootState } from '@/store';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { omit } from 'es-toolkit/compat';
 import { deleteAllStrings } from '@/utils/primitive.ts';
 import { getKeys } from '@/utils/type.ts';
-import type { PayloadAction } from '@reduxjs/toolkit';
 
 export const enqueue = <T extends string, U>(
   state: { queue: T[]; results: Record<T, U | 'retrying'> },

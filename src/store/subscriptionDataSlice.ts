@@ -1,9 +1,9 @@
-import { createSlice } from '@reduxjs/toolkit';
-import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
-import type { Isbn13, BookData } from '@/types/book.ts';
-import { createSimpleReducers } from '@/utils/store.ts';
-import type { Schema } from '$/amplify/data/resource.ts';
 import type { RootState } from './index.ts';
+import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
+import type { BookData, Isbn13 } from '@/types/book.ts';
+import type { Schema } from '$/amplify/data/resource.ts';
+import { createSlice } from '@reduxjs/toolkit';
+import { createSimpleReducers } from '@/utils/store.ts';
 
 export type Collection = Omit<Schema['Collection']['type'], 'isbn' | 'meta'> & {
   isbn: Isbn13;

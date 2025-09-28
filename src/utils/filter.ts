@@ -1,6 +1,6 @@
-import { isNil } from 'es-toolkit/compat';
 import type { FilterBean, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
+import { isNil } from 'es-toolkit/compat';
 import { getKeys } from '@/utils/type.ts';
 
 const isMatch = (filter: FilterBean, list: string[]) => {

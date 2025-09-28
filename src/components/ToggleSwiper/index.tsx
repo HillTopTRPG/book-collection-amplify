@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react';
-import { Navigation, Mousewheel } from 'swiper/modules';
+import { Mousewheel, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import SwipeResolver from './SwipeResolver.tsx';
+
 import 'swiper/css';
 import 'swiper/css/navigation';
 

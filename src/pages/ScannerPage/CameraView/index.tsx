@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import type { Isbn13 } from '@/types/book.ts';
 import Quagga from '@ericblade/quagga2';
 import { Volume2, VolumeOff } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 // eslint-disable-next-line import/no-named-as-default
 import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
@@ -10,8 +11,7 @@ import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanSuccessCount, selectSelectedScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { Isbn13 } from '@/types/book.ts';
-import { getIsbnCode, getIsbn13 } from '@/utils/isbn.ts';
+import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
 import CornerFrame from './CornerFrame.tsx';
 
 const WIDTH = 300;

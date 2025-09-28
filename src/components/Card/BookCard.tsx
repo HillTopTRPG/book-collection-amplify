@@ -1,9 +1,9 @@
+import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
+import type { Isbn13 } from '@/types/book.ts';
 import { useCallback } from 'react';
 import BookImage from '@/components/BookImage.tsx';
 import CardFrame from '@/components/Card/CardFrame.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
-import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
-import type { Isbn13 } from '@/types/book.ts';
 
 type Props = {
   bookDetail: BookDetail | null;

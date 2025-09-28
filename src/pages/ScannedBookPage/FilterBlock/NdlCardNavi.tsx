@@ -1,12 +1,16 @@
+import type { BookData } from '@/types/book.ts';
 import type { ComponentProps } from 'react';
-import { useId, useState } from 'react';
 import { ChevronsRight } from 'lucide-react';
+import { useId, useState } from 'react';
 import NdlCard from '@/components/Card/NdlCard';
+import ToggleSwiper from '@/components/ToggleSwiper';
+import { cn } from '@/lib/utils.ts';
+
 import 'swiper/css';
 import 'swiper/css/navigation';
-import ToggleSwiper from '@/components/ToggleSwiper';
-import type { BookData } from '@/types/book.ts';
 import '@m_three_ui/m3ripple/css';
+
+const TRUE_COLOR = 'bg-blue-500 text-white';
 
 type Props = ComponentProps<typeof NdlCard> & {
   idx: number;
@@ -19,7 +23,7 @@ export default function NdlCardNavi(props: Props) {
 
   const trueContent = (
     <div
-      className="flex items-center justify-center h-full text-xs pl-2 mr-[-24px] bg-blue-500 text-white font-medium"
+      className={cn(TRUE_COLOR, 'flex items-center justify-center h-full text-xs pl-2 mr-[-24px] font-medium')}
       onMouseDown={() => {
         console.log('clicked');
       }}

@@ -1,3 +1,4 @@
+import type { BookData } from '@/types/book.ts';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -8,7 +9,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import type { BookData } from '@/types/book.ts';
 import BookDetailDialogContent from './BookDetailDialogContent.tsx';
 
 type Props = {

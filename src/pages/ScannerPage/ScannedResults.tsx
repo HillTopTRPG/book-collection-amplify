@@ -1,17 +1,17 @@
-import { Fragment, useCallback, useState } from 'react';
+import type { AppDispatch } from '@/store';
+import type { Schema } from '$/amplify/data/resource.ts';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { generateClient } from 'aws-amplify/data';
+import { Fragment, useCallback, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import BookCard from '@/components/Card/BookCard';
 import { Button } from '@/components/ui/button.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
-import type { AppDispatch } from '@/store';
 import { useAppSelector } from '@/store/hooks.ts';
 import { clearScanViewList, selectScanResultList } from '@/store/scannerSlice.ts';
 import { wait } from '@/utils/primitive.ts';
-import type { Schema } from '$/amplify/data/resource.ts';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool',

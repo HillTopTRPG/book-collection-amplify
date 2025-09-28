@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
 import { ArrowDownNarrowWide, ArrowUpWideNarrow } from 'lucide-react';
+import { useCallback } from 'react';
 import { Button } from '@/components/ui/button.tsx';
 
 type Props = {

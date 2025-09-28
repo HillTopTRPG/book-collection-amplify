@@ -24,7 +24,7 @@ module.exports = {
   parserOptions: {
     project: './tsconfig.json',
   },
-  plugins: ['react-refresh', 'import', 'react', 'unused-imports'],
+  plugins: ['react-refresh', 'import', 'react', 'unused-imports', 'simple-import-sort'],
   settings: {
     react: {
       version: 'detect',
@@ -47,29 +47,32 @@ module.exports = {
     //   }
     // ],
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-    'import/order': [
+    'simple-import-sort/imports': [
       'error',
       {
-        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'type'],
-        pathGroups: [
-          {
-            pattern: 'react',
-            group: 'external',
-            position: 'before',
-          },
-          {
-            pattern: '@/**',
-            group: 'internal',
-          },
+        groups: [
+          // すべてのimportを1つのグループにまとめて空行なし
+          [
+            // CSS imports (side effect imports without variables)
+            '^.+\\.css$',
+            // Type imports
+            '^.+\\u0000$',
+            // Packages (things that start with a letter, digit, underscore, or "@")
+            '^@?\\w',
+            // Internal packages (paths starting with "@/")
+            '^@/',
+            // Parent imports (paths starting with "../")
+            '^\\.\\.(?!/?$)',
+            '^\\.\\./?$',
+            // Other relative imports (paths starting with "./")
+            '^\\./(?=.*/)(?!/?$)',
+            '^\\.(?!/?$)',
+            '^\\./?$',
+          ],
         ],
-        pathGroupsExcludedImportTypes: ['react'],
-        'newlines-between': 'never',
-        alphabetize: {
-          order: 'asc',
-          caseInsensitive: true,
-        },
       },
     ],
+    'simple-import-sort/exports': 'error',
     'no-multiple-empty-lines': [
       'error',
       {

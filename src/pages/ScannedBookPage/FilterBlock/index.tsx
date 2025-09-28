@@ -1,10 +1,10 @@
+import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { BookData, Isbn13 } from '@/types/book.ts';
 import { type CSSProperties, Fragment, type RefObject, useCallback, useMemo, useState } from 'react';
 import { Separator } from '@/components/ui/separator.tsx';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { useAppDispatch } from '@/store/hooks.ts';
 import { updateFetchedFilterAnywhere } from '@/store/scannerSlice.ts';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookData, Isbn13 } from '@/types/book.ts';
 import { getFilteredItems } from '@/utils/filter.ts';
 import { groupByVolume } from '@/utils/groupByVolume.ts';
 import GroupByBlock from './GroupByBlock';

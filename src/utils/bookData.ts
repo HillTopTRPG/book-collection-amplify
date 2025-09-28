@@ -1,5 +1,5 @@
-import { FULLWIDTH_TO_HALF_WIDTH_OFFSET, MILLISECONDS_PER_DAY } from '@/constant/system.ts';
 import type { BookData } from '@/types/book.ts';
+import { FULLWIDTH_TO_HALF_WIDTH_OFFSET, MILLISECONDS_PER_DAY } from '@/constant/system.ts';
 
 /**
  * 日付差分の判定基準（日数）
