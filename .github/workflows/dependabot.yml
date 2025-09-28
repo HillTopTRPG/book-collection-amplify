@@ -157,20 +157,20 @@ jobs:
       - name: Run tests
         run: npm run test:run
 
-  dependabot-auto-merge:
-    if: github.actor == 'dependabot[bot]'
-    needs: dependabot-tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Auto-approve Dependabot PR
-        uses: hmarr/auto-approve-action@v4
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+  # dependabot-auto-merge:
+  #   if: github.actor == 'dependabot[bot]'
+  #   needs: dependabot-tests
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Auto-approve Dependabot PR
+  #       uses: hmarr/auto-approve-action@v4
+  #       with:
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Enable auto-merge for Dependabot PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # PRのタイトルを取得してコミットメッセージに使用
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          gh pr merge --auto --squash --subject "$PR_TITLE" ${{ github.event.pull_request.number }} --repo ${{ github.repository }}
+  #     - name: Enable auto-merge for Dependabot PR
+  #       env:
+  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       run: |
+  #         # PRのタイトルを取得してコミットメッセージに使用
+  #         PR_TITLE="${{ github.event.pull_request.title }}"
+  #         gh pr merge --auto --squash --subject "$PR_TITLE" ${{ github.event.pull_request.number }} --repo ${{ github.repository }}

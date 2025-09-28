@@ -1,11 +1,11 @@
-import IsbnForm from '@/pages/ScannerPage/IsbnForm.tsx';
 import CameraView from './CameraView';
+import IsbnForm from './IsbnForm.tsx';
 import ScannedResults from './ScannedResults';
 
 export default function ScannerPage() {
   return (
-    <div className="flex flex-col w-full flex-1 gap-4 p-4">
-      <CameraView width={300} height={100} />
+    <div className="flex flex-col w-full flex-1 gap-2 p-2">
+      <CameraView />
       <IsbnForm />
       <ScannedResults />
     </div>

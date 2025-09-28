@@ -1,4 +1,4 @@
-import type { NdlFullOptions } from '@/components/Drawer/BookDetailDrawer/FilterSets/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Collection } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';

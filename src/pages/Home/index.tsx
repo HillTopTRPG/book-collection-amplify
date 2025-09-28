@@ -6,7 +6,7 @@ export default function Home() {
   const { user } = useAuthenticator(context => [context.user]);
 
   return (
-    <div className="flex flex-col items-center justify-start min-h-screen p-4">
+    <div className="flex flex-col items-center justify-start min-h-screen min-h-dvh p-4">
       <div className="max-w-md w-full bg-background rounded-lg shadow-lg p-8">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold mb-2">マイ書目コンシェルジュ</h1>
@@ -17,7 +17,7 @@ export default function Home() {
 
         <div className="space-y-4">
           <Link
-            to="/scanner"
+            to="/scan"
             className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
           >
             <Barcode />
