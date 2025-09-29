@@ -139,6 +139,7 @@ module.exports = {
       },
     ],
     'import/no-unresolved': 'error',
+    'import/no-cycle': 'error',
     'no-unused-vars': 'off',
     'prettier/prettier': 'off',
     '@typescript-eslint/no-unnecessary-condition': 'error',
