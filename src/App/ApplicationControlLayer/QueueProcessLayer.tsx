@@ -11,7 +11,13 @@ import {
   selectRakutenSearchTargets,
 } from '@/store/fetchRakutenSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectCollections, selectFilterSets } from '@/store/subscriptionDataSlice.ts';
+import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
+import {
+  selectCollections,
+  selectFilterSets,
+  selectTempCollections,
+  selectTempFilterSets,
+} from '@/store/subscriptionDataSlice.ts';
 import { callGoogleBooksApi } from '@/utils/fetch/google.ts';
 import { callNdlSearchApi } from '@/utils/fetch/ndl.tsx';
 import { callRakutenBooksApi } from '@/utils/fetch/rakuten.ts';
@@ -26,13 +32,16 @@ type Props = {
 
 export default function QueueProcessLayer({ children }: Props) {
   const dispatch = useAppDispatch();
-  const filterSets = useAppSelector(selectFilterSets);
   const collections = useAppSelector(selectCollections);
+  const tempCollections = useAppSelector(selectTempCollections);
+  const filterSets = useAppSelector(selectFilterSets);
+  const tempFilterSets = useAppSelector(selectTempFilterSets);
+  const allNdlSearchQueueResults = useAppSelector(selectAllNdlSearchResults);
 
   useLocalStorage();
   useBookImageQueueProcessor();
-  useNdlSearchQueueEnqueueer({ filterSets });
-  useScanQueueProcessor({ filterSets, collections });
+  useNdlSearchQueueEnqueueer({ collections, tempCollections, filterSets });
+  useScanQueueProcessor({ collections, tempCollections, filterSets, tempFilterSets, allNdlSearchQueueResults });
 
   const google = useSearchQueueProcessor(
     selectGoogleSearchTargets,

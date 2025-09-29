@@ -1,5 +1,5 @@
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookData } from '@/types/book.ts';
+import type { BookDetail } from '@/types/book.ts';
 import { ChevronRight } from 'lucide-react';
 import { Fragment, useMemo } from 'react';
 import BookImage from '@/components/BookImage.tsx';
@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils.ts';
 
 type Props = {
   className?: string;
-  ndl: BookData;
+  bookDetail: BookDetail;
   filterSet: FilterSet;
   orIndex: number;
   selectedIsbn: string | null;
@@ -23,26 +23,27 @@ type Props = {
 
 export default function NdlCard({
   className,
-  ndl,
+  bookDetail,
   filterSet,
   orIndex,
   selectedIsbn,
   setSelectedIsbn,
   onOpenBookDetail,
 }: Props) {
-  const isbn = ndl.isbn;
+  const book = bookDetail.book;
+  const isbn = book.isbn;
 
   const options = useMemo(() => filterSet.fetch, [filterSet.fetch]);
 
-  const isViewTitle = useMemo(() => options?.title !== ndl.title, [ndl.title, options?.title]);
-  const creatorText = useMemo(() => ndl.creator?.join(', ') ?? '', [ndl.creator]);
+  const isViewTitle = useMemo(() => options?.title !== book.title, [book.title, options?.title]);
+  const creatorText = useMemo(() => book.creator?.join(', ') ?? '', [book.creator]);
   const isViewCreator = useMemo(
     () => !options?.useCreator && options?.creator !== creatorText,
     [creatorText, options?.useCreator, options?.creator]
   );
   const isViewPublisher = useMemo(
-    () => !options?.usePublisher && options?.publisher !== ndl.publisher,
-    [ndl.publisher, options?.usePublisher, options?.publisher]
+    () => !options?.usePublisher && options?.publisher !== book.publisher,
+    [book.publisher, options?.usePublisher, options?.publisher]
   );
 
   const anywhereList = useMemo(
@@ -53,7 +54,7 @@ export default function NdlCard({
   return (
     <CardFrame className={cn('flex-col gap-1 py-1 px-2', className)}>
       <div className="flex flex-wrap justify-start w-full">
-        {ndl.ndcLabels.map((label, idx) => (
+        {book.ndcLabels.map((label, idx) => (
           <Fragment key={idx}>
             {idx ? <ChevronRight width={10} /> : ''}
             <Badge variant="secondary" className="text-[8px]">
@@ -76,29 +77,29 @@ export default function NdlCard({
           ) : null}
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
             <TempItem
-              value={isViewTitle ? ndl.title : null}
+              value={isViewTitle ? book.title : null}
               highLights={anywhereList}
               className="text-base/5 font-bold"
             />
           </div>
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
-            <TempItem value={ndl.volume} highLights={anywhereList} className="text-base/5 font-bold" />
+            <TempItem value={book.volume} highLights={anywhereList} className="text-base/5 font-bold" />
           </div>
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
-            <TempItem value={ndl.volumeTitle} highLights={anywhereList} className="text-base/5 font-bold" />
+            <TempItem value={book.volumeTitle} highLights={anywhereList} className="text-base/5 font-bold" />
           </div>
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
             {isViewCreator ? <TempItem value={creatorText} highLights={anywhereList} className="text-xs" /> : null}
-            {isViewPublisher ? <TempItem value={ndl.publisher} highLights={anywhereList} className="text-xs" /> : null}
+            {isViewPublisher ? <TempItem value={book.publisher} highLights={anywhereList} className="text-xs" /> : null}
           </div>
-          <TempItem value={ndl.edition} highLights={anywhereList} className="text-xs" />
-          <TempItem value={ndl.date} highLights={anywhereList} label="発売日" className="text-xs" />
-          {!ndl.ndcLabels.length && ndl.ndc ? (
-            <TempItem value={ndl.ndc} highLights={anywhereList} label="分類コード" className="text-xs" />
+          <TempItem value={book.edition} highLights={anywhereList} className="text-xs" />
+          <TempItem value={book.date} highLights={anywhereList} label="発売日" className="text-xs" />
+          {!book.ndcLabels.length && book.ndc ? (
+            <TempItem value={book.ndc} highLights={anywhereList} label="分類コード" className="text-xs" />
           ) : null}
-          <TempItem value={ndl.seriesTitle} label="シリーズ" highLights={anywhereList} className="text-xs" />
-          <TempItem value={ndl.extent} label="商品形態" highLights={anywhereList} className="text-xs" />
-          <TempItem value={ndl.isbn} label="ISBN" highLights={anywhereList} className="w-full text-xs text-gray-400" />
+          <TempItem value={book.seriesTitle} label="シリーズ" highLights={anywhereList} className="text-xs" />
+          <TempItem value={book.extent} label="商品形態" highLights={anywhereList} className="text-xs" />
+          <TempItem value={book.isbn} label="ISBN" highLights={anywhereList} className="w-full text-xs text-gray-400" />
         </div>
       </div>
     </CardFrame>

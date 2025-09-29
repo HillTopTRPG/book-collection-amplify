@@ -10,7 +10,9 @@ import { Button } from '@/components/ui/button.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
 import { useAppSelector } from '@/store/hooks.ts';
+import useIdInfo from '@/store/hooks/useIdInfo.ts';
 import { clearScanViewList, selectScanResultList } from '@/store/scannerSlice.ts';
+import { BookStatusEnum } from '@/store/subscriptionDataSlice.ts';
 import { wait } from '@/utils/primitive.ts';
 
 const userPoolClient = generateClient<Schema>({
@@ -23,6 +25,7 @@ export default function ScannedResults() {
   const scanResultList = useAppSelector(selectScanResultList);
   const { toast } = useToast();
   const [registering, setRegistering] = useState(false);
+  const { getCollectionByIdInfo, getFilterSetByIdInfo } = useIdInfo();
 
   const clearDisable = !scanResultList.length;
   const registrable = !clearDisable && scanResultList.some(({ status }) => status === 'done');
@@ -35,18 +38,23 @@ export default function ScannedResults() {
   const onRegister = useCallback(async () => {
     setRegistering(true);
     for (const { isbn, result: scanningItemMapValue } of scanResultList) {
-      if (!scanningItemMapValue?.bookDetail?.book) return;
-      const isHave = scanningItemMapValue.bookDetail.isHave;
-      const { title } = scanningItemMapValue.bookDetail.book;
+      if (!scanningItemMapValue) return;
+      const bookDetail = scanningItemMapValue.bookDetail;
+      if (!bookDetail?.book) return;
+      const collection = getCollectionByIdInfo(bookDetail.collection);
 
-      // 未登録の蔵書を登録する
-      if (!isHave) {
-        userPoolClient.models.Collection.create({ isbn, meta: '', memo: '' });
+      // ステータスが未登録以外の蔵書はDBに登録する
+      if (bookDetail.collection.type === 'temp' && collection.meta.status !== BookStatusEnum.Unregistered) {
+        userPoolClient.models.Collection.create({ isbn, meta: JSON.stringify(collection.meta), memo: '' });
         await wait(100);
       }
 
+      const isHave = collection?.meta.status === BookStatusEnum.Owned;
+      const { title } = bookDetail.book;
+
       // 未登録のフィルターを登録する
-      for (const filterSet of scanningItemMapValue.filterSets.filter(({ id }) => !id)) {
+      for (const idInfo of scanningItemMapValue.filterSets.filter(({ type }) => type === 'temp')) {
+        const filterSet = getFilterSetByIdInfo(idInfo);
         userPoolClient.models.FilterSet.create({
           ...filterSet,
           fetch: JSON.stringify(filterSet.fetch),
@@ -65,7 +73,7 @@ export default function ScannedResults() {
     }
     onClear();
     setRegistering(false);
-  }, [onClear, scanResultList, toast]);
+  }, [getCollectionByIdInfo, getFilterSetByIdInfo, onClear, scanResultList, toast]);
 
   return (
     <div className="flex-1 flex flex-col gap-3 w-full bg-background rounded-lg shadow-lg p-2">

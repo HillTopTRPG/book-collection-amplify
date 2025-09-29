@@ -1,28 +1,28 @@
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { PickRequired } from '@/utils/type.ts';
+import type { BookDetail } from '@/types/book.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import BookCard from '@/components/Card/BookCard.tsx';
 import BookDetailDialog from '@/components/Dialog/BookDetailDialog';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
+import useIdInfo from '@/store/hooks/useIdInfo.ts';
+import { selectAllBookDetails } from '@/store/ndlSearchSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import FilterBlock from './FilterBlock';
 import FilterSets from './FilterSets';
 
 type Props = {
-  scannedItemMapValue: PickRequired<ScannedItemMapValue, 'bookDetail'>;
+  scannedItemMapValue: ScannedItemMapValue;
 };
 
 export default function Contents({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
-  const allNdlSearchQueueResults = useAppSelector(selectAllNdlSearchResults);
+  const allBookDetails = useAppSelector(selectAllBookDetails);
   const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
   const [detailIsbn, setDetailIsbn] = useState<string | null>(null);
   const scrollParentRef = useRef<HTMLDivElement>(document.getElementById('root') as HTMLDivElement);
-
-  const isbn = scannedItemMapValue.isbn;
+  const { getFilterSetByIdInfo } = useIdInfo();
 
   const [selectedFilterSet, setSelectedFilterSet] = useState<string>(scannedItemMapValue.filterSets.at(0)?.id ?? '');
   useEffect(() => {
@@ -33,19 +33,19 @@ export default function Contents({ scannedItemMapValue }: Props) {
   useEffect(() => {
     const currentFilterSet = scannedItemMapValue.filterSets.find(({ id }) => id === selectedFilterSet);
     if (!currentFilterSet) return;
-    setFilterSet(currentFilterSet);
-  }, [scannedItemMapValue.filterSets, selectedFilterSet]);
+    setFilterSet(getFilterSetByIdInfo(currentFilterSet));
+  }, [getFilterSetByIdInfo, scannedItemMapValue.filterSets, selectedFilterSet]);
 
   const stringifyFetchOptions = useMemo(
     () => (filterSet?.fetch ? makeNdlOptionsStringByNdlFullOptions(filterSet?.fetch) : ''),
     [filterSet?.fetch]
   );
 
-  const fetchedBooks = useMemo(() => {
-    const result = allNdlSearchQueueResults[stringifyFetchOptions] ?? null;
+  const fetchedBooks: BookDetail[] = useMemo(() => {
+    const result = allBookDetails[stringifyFetchOptions] ?? null;
     if (typeof result === 'string') return [];
     return result;
-  }, [allNdlSearchQueueResults, stringifyFetchOptions]);
+  }, [allBookDetails, stringifyFetchOptions]);
 
   useEffect(() => {
     if (!stringifyFetchOptions) return;
@@ -63,11 +63,11 @@ export default function Contents({ scannedItemMapValue }: Props) {
       {filterSet?.filters.map((_, orIndex) => (
         <FilterBlock
           key={orIndex}
-          {...{ scrollParentRef, isbn, filterSet, orIndex, fetchedBooks, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
+          {...{ scrollParentRef, filterSet, orIndex, fetchedBooks, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
         />
       ))}
       <BookDetailDialog
-        book={fetchedBooks?.find(book => book.isbn === detailIsbn) ?? null}
+        bookDetail={fetchedBooks?.find(({ book }) => book.isbn === detailIsbn) ?? null}
         onClose={() => setDetailIsbn(null)}
       />
     </div>

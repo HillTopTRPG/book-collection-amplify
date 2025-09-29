@@ -1,4 +1,3 @@
-import type { PickRequired } from '@/utils/type.ts';
 import { useParams } from 'react-router-dom';
 import Contents from '@/pages/ScannedBookPage/Contents.tsx';
 import { useAppSelector } from '@/store/hooks.ts';
@@ -26,7 +25,7 @@ export default function ScannedBookPage() {
     if (selected.status !== 'done' || !selected.result?.bookDetail) {
       return <div>読み込み中...</div>;
     }
-    return <Contents scannedItemMapValue={selected.result as PickRequired<typeof selected.result, 'bookDetail'>} />;
+    return <Contents scannedItemMapValue={selected.result} />;
   })();
 
   return <div className="flex flex-col w-full flex-1 gap-4">{content}</div>;

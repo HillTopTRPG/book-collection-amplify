@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Mousewheel, Navigation } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import NdlCardStatusSelector from '@/pages/ScannedBookPage/FilterBlock/NdlCardStatusSelector.tsx';
 import SwipeResolver from './SwipeResolver.tsx';
 
 import 'swiper/css';
@@ -39,9 +38,7 @@ export default function ToggleSwiper({ value, setValue, plusContents, children, 
       }}
     >
       <SwipeResolver plusLength={plusContents.length} value={value} />
-      <SwiperSlide className="!w-fit overflow-x-visible z-10">
-        <NdlCardStatusSelector {...{ value, setValue }} />
-      </SwiperSlide>
+      <SwiperSlide className="!w-fit overflow-x-visible z-10"></SwiperSlide>
       <SwiperSlide>{children}</SwiperSlide>
     </Swiper>
   );

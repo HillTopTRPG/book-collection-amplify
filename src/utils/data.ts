@@ -1,27 +1,74 @@
 import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { Collection } from '@/store/subscriptionDataSlice.ts';
+import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/types/fetch.ts';
-import type { PickRequired } from '@/utils/type.ts';
+import type { IdInfo } from '@/types/system.ts';
+import { v4 as uuidv4 } from 'uuid';
 import { filterMatch } from '@/utils/primitive.ts';
 
-export const getScannedItemMapValueByBookData = (collections: Collection[], book: BookData): ScannedItemMapValue => {
+export const getScannedItemMapValueByBookData = (
+  book: BookData,
+  dbCollections: Collection[],
+  tempCollections: Collection[],
+  dbFilterSets: FilterSet[],
+  tempFilterSets: FilterSet[],
+  allNdlSearchResults: Record<string, BookData[]>
+): { scannedItemMapValue: ScannedItemMapValue; tempCollection: Collection | null; tempFilterSet: FilterSet | null } => {
   const isbn = book.isbn;
-  const result: PickRequired<ScannedItemMapValue, 'bookDetail'> = {
+  const collection = dbCollections.find(filterMatch({ isbn }));
+  const tempCollection: Collection = tempCollections.find(filterMatch({ isbn })) ?? {
+    id: uuidv4(),
     isbn,
-    status: 'loading',
-    collectionId: null,
-    bookDetail: { book, isHave: false, isWant: false },
-    filterSets: [],
+    meta: { status: 'Unregistered' },
+    createdAt: '',
+    updatedAt: '',
+    owner: '',
   };
-  const collection = collections.find(filterMatch({ isbn }));
-  if (collection) {
-    result.bookDetail.book = { ...book, ...collection.meta.overwrite };
-    result.bookDetail.isHave = collection.meta.isHave ?? false;
-    result.bookDetail.isWant = collection.meta.isWant ?? false;
+  const tempFilterSet: FilterSet = tempFilterSets.find(({ primary }) => primary === isbn) ?? {
+    id: uuidv4(),
+    name: book.title ?? '無名のフィルター',
+    fetch: {
+      title: book.title ?? '無名',
+      publisher: book.publisher ?? '',
+      creator: book.creator?.at(0) ?? '',
+      usePublisher: true,
+      useCreator: true,
+    },
+    filters: [{ list: [{ keyword: '', sign: '*=' }], grouping: 'date' }],
+    primary: isbn,
+    createdAt: '',
+    updatedAt: '',
+    owner: '',
+  };
+  const filterSets: IdInfo[] = dbFilterSets.flatMap(filterSet => {
+    const result = allNdlSearchResults[JSON.stringify(filterSet.fetch)];
+
+    return result?.some(filterMatch({ isbn })) ? [{ type: 'db', id: filterSet.id }] : [];
+  });
+
+  const isUseTempFilterSet = !filterSets.length;
+  if (isUseTempFilterSet) {
+    filterSets.push({ type: 'temp', id: tempFilterSet.id });
   }
-  return result;
+
+  const scannedItemMapValue: ScannedItemMapValue = {
+    isbn,
+    bookDetail: {
+      book,
+      collection: {
+        type: collection ? 'db' : 'temp',
+        id: collection ? collection.id : tempCollection.id,
+      },
+    },
+    filterSets,
+  };
+
+  return {
+    scannedItemMapValue,
+    tempCollection: collection ? null : tempCollection,
+    tempFilterSet: isUseTempFilterSet ? tempFilterSet : null,
+  };
 };
 
 export const makeNdlOptionsStringByNdlFullOptions = (ndlFullOptions: NdlFullOptions): string => {

@@ -1,5 +1,5 @@
 import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
-import type { FilterAndGroup } from '@/store/subscriptionDataSlice.ts';
+import type { Collection, FilterAndGroup } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { ReactNode } from 'react';
@@ -7,6 +7,7 @@ import { generateClient } from 'aws-amplify/data';
 import { useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import {
+  BookStatusEnum,
   selectCreateFilterSet,
   setCollections,
   setCreateFilterSet,
@@ -40,15 +41,17 @@ export default function SubscribeLayer({ children }: Props) {
   useEffect(() => {
     const collectionSubscription = userPoolClient.models.Collection.observeQuery().subscribe({
       next: data => {
-        dispatch(
-          setCollections(
-            structuredClone(data.items).map(item => ({
-              ...item,
-              isbn: item.isbn as Isbn13,
-              meta: JSON.parse(item.meta?.trim() || '{}'),
-            }))
-          )
-        );
+        const items = structuredClone(data.items).map(item => {
+          const isbn = item.isbn as Isbn13;
+          const meta = JSON.parse(item.meta?.trim() || '{}');
+          if (!('status' in meta)) meta.status = BookStatusEnum.Unregistered;
+          return {
+            ...item,
+            isbn,
+            meta: meta as Collection['meta'],
+          } as const satisfies Collection;
+        });
+        dispatch(setCollections(items));
       },
     });
     const filterSetSubscription = userPoolClient.models.FilterSet.observeQuery().subscribe({

@@ -1,8 +1,10 @@
-import type { BookData } from '@/types/book.ts';
+import type { Collection } from '@/store/subscriptionDataSlice.ts';
+import type { BookData, BookDetail } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { selectCollections, selectTempCollections } from '@/store/subscriptionDataSlice.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
-import { unique } from '@/utils/primitive.ts';
+import { filterMatch, unique } from '@/utils/primitive.ts';
 import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 import { getKeys } from '@/utils/type.ts';
 
@@ -39,10 +41,34 @@ const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => uni
 export const selectNdlSearchTargets = createSelector([_selectQueue], queue => queue.slice(0, 2));
 /** NDL検索条件：書籍一覧 のRecord */
 export const selectAllNdlSearchResults = simpleSelector('ndlSearch', 'results');
-export const selectFetchedAllBooks = createSelector([selectAllNdlSearchResults], results =>
+export const selectAllBookDetails = createSelector(
+  [selectAllNdlSearchResults, selectCollections, selectTempCollections],
+  (
+    results: Record<string, BookData[]>,
+    collections: Collection[],
+    tempCollections: Collection[]
+  ): Record<string, BookDetail[]> =>
+    getKeys(results).reduce<Record<string, BookDetail[]>>((acc, str) => {
+      acc[str] = results[str].map(book => {
+        const isbn = book.isbn;
+        const collection = collections.find(filterMatch({ isbn }));
+        const tempCollection = tempCollections.find(filterMatch({ isbn }));
+
+        return {
+          book,
+          collection: {
+            type: collection ? 'db' : 'temp',
+            id: collection?.id ?? tempCollection?.id ?? '',
+          },
+        } as const satisfies BookDetail;
+      });
+      return acc;
+    }, {})
+);
+export const selectFetchedAllBooks = createSelector([selectAllBookDetails], (results): BookDetail[] =>
   getKeys(results)
     .flatMap(option => (typeof results[option] === 'string' ? [] : results[option]))
-    .filter((book, idx, self) => self.findIndex(b => b.isbn === book.isbn) === idx)
+    .filter((bookDetail, idx, self) => self.findIndex(b => b.book.isbn === bookDetail.book.isbn) === idx)
 );
 
 export default ndlSearchSlice.reducer;

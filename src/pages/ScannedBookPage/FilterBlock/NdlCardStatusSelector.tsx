@@ -1,17 +1,14 @@
+import type { BookStatus } from '@/store/subscriptionDataSlice.ts';
 import { useState } from 'react';
 import NdlCardStatus from '@/pages/ScannedBookPage/FilterBlock/NdlCardStatus.tsx';
+import { BookStatusLabelMap } from '@/store/subscriptionDataSlice.ts';
+import { getKeys } from '@/utils/type.ts';
 
-const OPTIONS = [
-  { val: 0, text: '未登録', className: 'bg-yellow-700 text-white' },
-  { val: 1, text: '買わない', className: 'bg-gray-700 text-white' },
-  { val: 2, text: '保留', className: 'bg-green-700 text-white' },
-  { val: 3, text: '購入予定', className: 'bg-fuchsia-900 text-white' },
-  { val: 4, text: '所持済', className: 'bg-blue-600 text-white' },
-] as const;
+const OPTIONS = getKeys(BookStatusLabelMap).map(key => ({ ...BookStatusLabelMap[key], val: key }));
 
 type Props = {
-  value: number;
-  setValue: (value: number) => void;
+  value: BookStatus;
+  setValue: (value: BookStatus) => void;
 };
 
 export default function NdlCardStatusSelector({ value, setValue }: Props) {
@@ -19,11 +16,12 @@ export default function NdlCardStatusSelector({ value, setValue }: Props) {
   const toEdit = () => {
     setEditing(!editing);
   };
-  const onSetValue = (value: number) => () => {
+  const onSetValue = (value: BookStatus) => () => {
     setEditing(false);
     setValue(value);
   };
-  const current = OPTIONS[value];
+  const current = OPTIONS.find(op => op.val === value);
+  if (!current) return null;
 
   return (
     <>

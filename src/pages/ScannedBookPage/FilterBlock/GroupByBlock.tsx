@@ -106,7 +106,7 @@ export default function GroupByBlock({
         <div className="flex flex-col flex-1">
           <NdlCardList
             countRef={countRef}
-            books={list.map(({ book }) => book)}
+            bookDetails={list.map(({ bookDetail }) => bookDetail)}
             {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn, openType, setOpenType }}
           />
         </div>

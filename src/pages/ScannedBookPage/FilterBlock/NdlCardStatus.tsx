@@ -9,11 +9,11 @@ type Props = {
   onClick: () => void;
   zIndex: number;
   className: string;
-  text: string;
+  label: string;
   isFirst?: boolean;
 };
 
-export default function NdlCardStatus({ onClick, zIndex, className, text, isFirst }: Props) {
+export default function NdlCardStatus({ onClick, zIndex, className, label, isFirst }: Props) {
   const [hover, setHover] = useState(false);
 
   return (
@@ -40,7 +40,7 @@ export default function NdlCardStatus({ onClick, zIndex, className, text, isFirs
           isFirst ? 'left-2' : 'left-8'
         )}
       >
-        {text}
+        {label}
       </span>
       <div
         onClick={onClick}

@@ -1,12 +1,12 @@
 import type { SelectBoxOption } from '@/components/SelectBox.tsx';
 import type { FilterSet, Sign } from '@/store/subscriptionDataSlice.ts';
-import type { BookData, Isbn13 } from '@/types/book.ts';
+import type { BookData, BookDetail } from '@/types/book.ts';
 import { useMemo } from 'react';
 import ComboInput from '@/components/ComboInput.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectFetchedAllBooks } from '@/store/ndlSearchSlice.ts';
-import { updateFetchedFilterAnywhere } from '@/store/scannerSlice.ts';
+import { updateFetchedFilterAnywhere } from '@/store/subscriptionDataSlice.ts';
 import { removeNumberText, unique } from '@/utils/primitive.ts';
 import { getKeys } from '@/utils/type.ts';
 
@@ -37,7 +37,8 @@ type KeywordInfo = {
   seriesTitle: string[];
 };
 
-const setKeywords = (obj: KeywordInfo, book: BookData) => {
+const setKeywords = (obj: KeywordInfo, bookDetail: BookDetail) => {
+  const book = bookDetail.book;
   setAllTag(obj, book, 'volume');
   setAllTag(obj, book, 'volumeTitle');
   setAllTag(obj, book, 'edition');
@@ -59,18 +60,17 @@ const setKeywords = (obj: KeywordInfo, book: BookData) => {
 };
 
 type Props = {
-  isbn: Isbn13;
   filterSet: FilterSet;
   orIndex: number;
   andIndex: number;
-  fetchedBooks: BookData[];
+  fetchedBooks: BookDetail[];
 };
 
-export default function SearchConditionItem({ isbn, filterSet, orIndex, andIndex, fetchedBooks }: Props) {
+export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetchedBooks }: Props) {
   const dispatch = useAppDispatch();
   const allBooks = useAppSelector(selectFetchedAllBooks);
 
-  const primaryBook = allBooks.find(book => book.isbn === filterSet.primary) ?? null;
+  const primaryBook = allBooks.find(bookDetail => bookDetail.book.isbn === filterSet.primary) ?? null;
   const condition = filterSet.filters[orIndex].list[andIndex];
 
   const isPrimeFirst = !orIndex && !andIndex;
@@ -111,7 +111,7 @@ export default function SearchConditionItem({ isbn, filterSet, orIndex, andIndex
   const updateSign = (sign: Sign) => {
     const newFilters = structuredClone(filterSet.filters);
     newFilters[orIndex].list[andIndex].sign = sign;
-    dispatch(updateFetchedFilterAnywhere({ key: isbn, filterSetId: filterSet.id, filters: newFilters }));
+    dispatch(updateFetchedFilterAnywhere({ id: filterSet.id, filters: newFilters }));
   };
 
   const updateAnywhere = (keyword: string) => {
@@ -145,7 +145,7 @@ export default function SearchConditionItem({ isbn, filterSet, orIndex, andIndex
         }
       }
     }
-    dispatch(updateFetchedFilterAnywhere({ key: isbn, filterSetId: filterSet.id, filters: newFilters }));
+    dispatch(updateFetchedFilterAnywhere({ id: filterSet.id, filters: newFilters }));
   };
 
   return (

@@ -1,4 +1,4 @@
-import type { BookData } from '@/types/book.ts';
+import type { BookDetail } from '@/types/book.ts';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -12,11 +12,13 @@ import {
 import BookDetailDialogContent from './BookDetailDialogContent.tsx';
 
 type Props = {
-  book: BookData | null;
+  bookDetail: BookDetail | null;
   onClose: () => void;
 };
 
-export default function BookDetailDialog({ book, onClose }: Props) {
+export default function BookDetailDialog({ bookDetail, onClose }: Props) {
+  const book = bookDetail?.book;
+
   return (
     <Dialog open={Boolean(book)} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px] max-h-[90svh] overflow-scroll z-[1001]">

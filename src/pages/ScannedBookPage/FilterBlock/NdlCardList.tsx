@@ -1,5 +1,5 @@
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookData } from '@/types/book.ts';
+import type { BookDetail } from '@/types/book.ts';
 import type { RefObject } from 'react';
 import { RippleContainer } from '@m_three_ui/m3ripple';
 import { Fragment, useEffect } from 'react';
@@ -11,7 +11,7 @@ import '@m_three_ui/m3ripple/css';
 
 type Props = {
   countRef?: RefObject<HTMLDivElement | null>;
-  books: BookData[];
+  bookDetails: BookDetail[];
   filterSet: FilterSet;
   orIndex: number;
   selectedIsbn: string | null;
@@ -24,7 +24,7 @@ type Props = {
 
 export default function NdlCardList({
   countRef,
-  books,
+  bookDetails,
   filterSet,
   orIndex,
   selectedIsbn,
@@ -41,22 +41,22 @@ export default function NdlCardList({
     setContentHeight?.(contentSize.height);
   }, [setContentHeight, contentSize.height]);
 
-  const isCollapse = isOpen && openType === 'collapse' && books.length > 5;
+  const isCollapse = isOpen && openType === 'collapse' && bookDetails.length > 5;
   const collapseButtonIndex = 2;
 
   return (
     <>
       <div ref={contentRef} className="flex flex-col bg-background">
         {isOpen
-          ? books.map((ndl, idx) => (
+          ? bookDetails.map((bookDetail, idx) => (
               <Fragment key={idx}>
-                {!isCollapse || idx < 2 || books.length - 3 < idx ? (
+                {!isCollapse || idx < 2 || bookDetails.length - 3 < idx ? (
                   <>
                     {idx ? <Separator /> : null}
                     <NdlCardNavi
                       idx={idx}
-                      books={books}
-                      {...{ ndl, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
+                      bookDetails={bookDetails}
+                      {...{ bookDetail, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
                       onOpenBookDetail={isbn => {
                         setDetailIsbn(isbn);
                         setSelectedIsbn(null);
@@ -128,7 +128,7 @@ export default function NdlCardList({
             e.target.dispatchEvent(touchEvent);
           }}
         >
-          {books.length}件
+          {bookDetails.length}件
         </div>
       </RippleContainer>
     </>

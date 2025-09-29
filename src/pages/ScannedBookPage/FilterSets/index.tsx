@@ -1,15 +1,15 @@
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { PickRequired } from '@/utils/type.ts';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { useEffect, useMemo, useState } from 'react';
 import SelectBox from '@/components/SelectBox.tsx';
 import { useAppDispatch } from '@/store/hooks.ts';
-import { updateFetchedFetchOption } from '@/store/scannerSlice.ts';
+import useIdInfo from '@/store/hooks/useIdInfo.ts';
+import { updateTempFilterSetOption } from '@/store/subscriptionDataSlice.ts';
 import NdlOptionsForm from './NdlOptionsForm.tsx';
 
 type Props = {
-  scannedItemMapValue: PickRequired<ScannedItemMapValue, 'bookDetail'>;
+  scannedItemMapValue: ScannedItemMapValue;
   selectedFilterSet: string;
   setSelectedFilterSet: Dispatch<SetStateAction<string>>;
 };
@@ -17,39 +17,37 @@ type Props = {
 export default function FilterSets({ scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }: Props) {
   const dispatch = useAppDispatch();
   const [filterSet, setFilterSet] = useState<FilterSet | null>(null);
+  const { getFilterSetByIdInfo } = useIdInfo();
 
-  const currentFilterSet = scannedItemMapValue.filterSets.find(({ id }) => id === selectedFilterSet);
+  const currentFilterSet = useMemo(
+    () => scannedItemMapValue.filterSets.find(({ id }) => id === selectedFilterSet),
+    [scannedItemMapValue.filterSets, selectedFilterSet]
+  );
 
   useEffect(() => {
     if (!currentFilterSet) return;
-    setFilterSet(currentFilterSet);
-  }, [currentFilterSet]);
+    setFilterSet(getFilterSetByIdInfo(currentFilterSet));
+  }, [currentFilterSet, getFilterSetByIdInfo]);
 
   const fetchFullOptions = useMemo(() => filterSet?.fetch, [filterSet?.fetch]);
 
   const options = useMemo(
     () =>
       scannedItemMapValue.filterSets.reduce<Record<string, { label: ReactNode; disabled: boolean }>>((acc, cur) => {
-        acc[cur.id] = { label: cur.name, disabled: false };
+        acc[cur.id] = { label: getFilterSetByIdInfo(cur).name, disabled: false };
         return acc;
       }, {}),
-    [scannedItemMapValue.filterSets]
+    [getFilterSetByIdInfo, scannedItemMapValue.filterSets]
   );
 
   return (
     <div className="flex flex-col gap-1">
       <SelectBox options={options} value={selectedFilterSet} onChange={setSelectedFilterSet} />
-      {fetchFullOptions ? (
+      {fetchFullOptions && currentFilterSet?.type === 'temp' ? (
         <NdlOptionsForm
           defaultValues={fetchFullOptions}
           onChange={fetch => {
-            dispatch(
-              updateFetchedFetchOption({
-                isbn: scannedItemMapValue.isbn,
-                filterSetId: selectedFilterSet,
-                fetch,
-              })
-            );
+            dispatch(updateTempFilterSetOption({ id: selectedFilterSet, fetch }));
           }}
         />
       ) : null}

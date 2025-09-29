@@ -1,5 +1,5 @@
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookData, Isbn13 } from '@/types/book.ts';
+import type { BookDetail } from '@/types/book.ts';
 import type { RefObject } from 'react';
 import { MessageCircleQuestionMark } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox.tsx';
@@ -9,17 +9,15 @@ import SearchConditionItem from './SearchConditionItem.tsx';
 
 type Props = {
   ref: RefObject<HTMLDivElement | null>;
-  isbn: Isbn13;
   filterSet: FilterSet;
   orIndex: number;
-  fetchedBooks: BookData[];
-  filteredResults: BookData[];
+  fetchedBooks: BookDetail[];
+  filteredResults: BookDetail[];
   updateGroupingType: (value: boolean) => void;
 };
 
 export default function SearchConditionsForm({
   ref,
-  isbn,
   filterSet,
   orIndex,
   fetchedBooks,
@@ -46,7 +44,7 @@ export default function SearchConditionsForm({
       </div>
       {fetchedBooks?.length
         ? filterSet.filters[orIndex].list.map((_, andIndex) => (
-            <SearchConditionItem key={andIndex} {...{ isbn, filterSet, orIndex, fetchedBooks, andIndex }} />
+            <SearchConditionItem key={andIndex} {...{ filterSet, orIndex, fetchedBooks, andIndex }} />
           ))
         : null}
     </div>
