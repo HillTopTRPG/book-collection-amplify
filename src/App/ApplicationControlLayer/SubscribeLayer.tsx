@@ -43,7 +43,7 @@ export default function SubscribeLayer({ children }: Props) {
       next: data => {
         const items = structuredClone(data.items).map(item => {
           const isbn = item.isbn as Isbn13;
-          const meta = JSON.parse(item.meta?.trim() || '{}');
+          const meta = JSON.parse(item.meta.trim() || '{}');
           if (!('status' in meta)) meta.status = BookStatusEnum.Unregistered;
           return {
             ...item,
@@ -60,8 +60,8 @@ export default function SubscribeLayer({ children }: Props) {
           setFilterSets(
             structuredClone(data.items).map(item => ({
               ...item,
-              fetch: JSON.parse(item.fetch?.trim() || '{}') as NdlFullOptions,
-              filters: JSON.parse(item.filters?.trim() || '[]') as FilterAndGroup[],
+              fetch: JSON.parse(item.fetch.trim() || '{}') as NdlFullOptions,
+              filters: JSON.parse(item.filters.trim() || '[]') as FilterAndGroup[],
               primary: getIsbn13(item.primary),
             }))
           )

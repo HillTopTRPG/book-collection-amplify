@@ -42,7 +42,7 @@ export default function SearchConditionsForm({
           <IconButton icon={MessageCircleQuestionMark} className="border-0" />
         </div>
       </div>
-      {fetchedBooks?.length
+      {fetchedBooks.length
         ? filterSet.filters[orIndex].list.map((_, andIndex) => (
             <SearchConditionItem key={andIndex} {...{ filterSet, orIndex, fetchedBooks, andIndex }} />
           ))

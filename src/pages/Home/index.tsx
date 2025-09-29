@@ -10,7 +10,7 @@ export default function Home() {
       <div className="max-w-md w-full bg-background rounded-lg shadow-lg p-8">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold mb-2">マイ書目コンシェルジュ</h1>
-          <p className="text-sm">ようこそ、{user?.signInDetails?.loginId}さん</p>
+          <p className="text-sm">ようこそ、{user.signInDetails?.loginId}さん</p>
         </div>
 
         <p className="text-center mb-8">バーコードを読み取って書籍情報を取得・管理できます</p>

@@ -48,6 +48,7 @@ export const redirectTouchEvent = (type: 'touchstart' | 'touchend', e: TouchEven
   // React.TouchからネイティブTouchオブジェクトを作成
   const createTouch = (reactTouch: React.Touch): Touch =>
     new Touch({
+      /* eslint-disable @typescript-eslint/no-unnecessary-condition */
       identifier: reactTouch.identifier ?? 0,
       target: reactTouch.target,
       clientX: reactTouch.clientX ?? 0,
@@ -56,6 +57,7 @@ export const redirectTouchEvent = (type: 'touchstart' | 'touchend', e: TouchEven
       pageY: reactTouch.pageY ?? reactTouch.clientY ?? 0,
       screenX: reactTouch.screenX ?? reactTouch.clientX ?? 0,
       screenY: reactTouch.screenY ?? reactTouch.clientY ?? 0,
+      /* eslint-enable @typescript-eslint/no-unnecessary-condition */
       radiusX: 0,
       radiusY: 0,
       rotationAngle: 0,

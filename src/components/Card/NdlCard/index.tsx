@@ -35,19 +35,19 @@ export default function NdlCard({
 
   const options = useMemo(() => filterSet.fetch, [filterSet.fetch]);
 
-  const isViewTitle = useMemo(() => options?.title !== book.title, [book.title, options?.title]);
+  const isViewTitle = useMemo(() => options.title !== book.title, [book.title, options.title]);
   const creatorText = useMemo(() => book.creator?.join(', ') ?? '', [book.creator]);
   const isViewCreator = useMemo(
-    () => !options?.useCreator && options?.creator !== creatorText,
-    [creatorText, options?.useCreator, options?.creator]
+    () => !options.useCreator && options.creator !== creatorText,
+    [creatorText, options.useCreator, options.creator]
   );
   const isViewPublisher = useMemo(
-    () => !options?.usePublisher && options?.publisher !== book.publisher,
-    [book.publisher, options?.usePublisher, options?.publisher]
+    () => !options.usePublisher && options.publisher !== book.publisher,
+    [book.publisher, options.usePublisher, options.publisher]
   );
 
   const anywhereList = useMemo(
-    () => filterSet.filters[orIndex].list.map(({ keyword }) => keyword) ?? [],
+    () => filterSet.filters[orIndex].list.map(({ keyword }) => keyword),
     [orIndex, filterSet.filters]
   );
 

@@ -32,7 +32,7 @@ export default function DrawerFrame({ drawerType, isVisible, onClose, header, ch
 
   const onScroll = () => {
     if (!scrollParentRef.current) return;
-    const scrollTop = scrollParentRef.current?.scrollTop;
+    const scrollTop = scrollParentRef.current.scrollTop;
     dispatch(setScrollValue({ key: drawerType, value: scrollTop }));
   };
 

@@ -40,7 +40,6 @@ export default function ScannedResults() {
     for (const { isbn, result: scanningItemMapValue } of scanResultList) {
       if (!scanningItemMapValue) return;
       const bookDetail = scanningItemMapValue.bookDetail;
-      if (!bookDetail?.book) return;
       const collection = getCollectionByIdInfo(bookDetail.collection);
 
       // ステータスが未登録以外の蔵書はDBに登録する
@@ -49,7 +48,7 @@ export default function ScannedResults() {
         await wait(100);
       }
 
-      const isHave = collection?.meta.status === BookStatusEnum.Owned;
+      const isHave = collection.meta.status === BookStatusEnum.Owned;
       const { title } = bookDetail.book;
 
       // 未登録のフィルターを登録する

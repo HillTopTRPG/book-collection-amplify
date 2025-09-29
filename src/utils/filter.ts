@@ -22,7 +22,7 @@ export const getFilteredItems = (
   filterSet: FilterSet,
   filterIndex: number
 ): BookDetail[] => {
-  if (!fetchedBooks?.length) return [];
+  if (!fetchedBooks.length) return [];
 
   const filters = filterSet.filters[filterIndex].list.filter(({ keyword }) => keyword);
   if (!filters.length) return !filterIndex ? fetchedBooks : [];

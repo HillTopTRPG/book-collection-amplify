@@ -42,9 +42,10 @@ export const getScannedItemMapValueByBookData = (
     owner: '',
   };
   const filterSets: IdInfo[] = dbFilterSets.flatMap(filterSet => {
-    const result = allNdlSearchResults[JSON.stringify(filterSet.fetch)];
+    const key = JSON.stringify(filterSet.fetch);
+    const result = key in allNdlSearchResults ? allNdlSearchResults[key] : [];
 
-    return result?.some(filterMatch({ isbn })) ? [{ type: 'db', id: filterSet.id }] : [];
+    return result.some(filterMatch({ isbn })) ? [{ type: 'db', id: filterSet.id }] : [];
   });
 
   const isUseTempFilterSet = !filterSets.length;

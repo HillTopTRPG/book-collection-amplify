@@ -62,7 +62,7 @@ export default function GroupByBlock({
         if (!scrollParentRef.current) return;
         const stickyRect = stickyRef.current.getBoundingClientRect();
         const countRect = ref.current.getBoundingClientRect();
-        scrollParentRef.current?.scrollBy(0, countRect.top - stickyRect.bottom);
+        scrollParentRef.current.scrollBy(0, countRect.top - stickyRect.bottom);
       });
     },
     [scrollParentRef, stickyRef]
@@ -80,7 +80,7 @@ export default function GroupByBlock({
     if (openType === 'close' && list.length >= 6) {
       setOpenType('collapse');
       // コンテンツが見える位置までスクロールする
-      scrollToRef(contentRef ?? myHeaderRef);
+      scrollToRef(contentRef.current ? contentRef : myHeaderRef);
     } else {
       setOpenType('full');
     }

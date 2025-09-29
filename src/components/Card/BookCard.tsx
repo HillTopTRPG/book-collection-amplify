@@ -13,12 +13,12 @@ type Props = {
 
 export default function BookCard({ bookDetail, onClick }: Props) {
   const { getCollectionByIdInfo } = useIdInfo();
-  const isbn = bookDetail?.book?.isbn ?? null;
+  const isbn = bookDetail?.book.isbn ?? null;
 
   const content = useMemo(() => {
     if (!bookDetail?.book) return <Spinner variant="bars" />;
-    const collection = getCollectionByIdInfo(bookDetail?.collection);
-    const bookStatus = collection?.meta.status ?? BookStatusEnum.Unregistered;
+    const collection = getCollectionByIdInfo(bookDetail.collection);
+    const bookStatus = collection.meta.status;
 
     if (bookDetail.book.isbn === '9784063197433') {
       console.log('bookStatus', bookStatus);

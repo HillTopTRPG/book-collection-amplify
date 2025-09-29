@@ -155,15 +155,10 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetc
         label="キーワード検索"
         className="flex-1"
         list={options.map(o => ({ label: o, value: o }))}
-        value={condition?.keyword || ''}
+        value={condition.keyword}
         setValue={updateAnywhere}
       />
-      <SelectBox
-        options={selectOptions}
-        value={condition?.sign || '*='}
-        onChange={updateSign}
-        className="w-[5rem] text-xs"
-      />
+      <SelectBox options={selectOptions} value={condition.sign} onChange={updateSign} className="w-[5rem] text-xs" />
     </div>
   );
 }

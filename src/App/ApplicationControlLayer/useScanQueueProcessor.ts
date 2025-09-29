@@ -40,7 +40,7 @@ export default function useScanQueueProcessor({
     const tempFilterSets: FilterSet[] = [];
     const results = scanQueueTargets.reduce<Map<Isbn13, BookData>>((acc, isbn) => {
       const key = JSON.stringify({ isbn });
-      if (allNdlSearchQueueResults[key] === undefined) return acc;
+      if (!(key in allNdlSearchQueueResults)) return acc;
       const ndlSearchQueueResult = allNdlSearchQueueResults[key];
       if (!ndlSearchQueueResult.length) {
         return acc;

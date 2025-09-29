@@ -37,12 +37,12 @@ export default function Contents({ scannedItemMapValue }: Props) {
   }, [getFilterSetByIdInfo, scannedItemMapValue.filterSets, selectedFilterSet]);
 
   const stringifyFetchOptions = useMemo(
-    () => (filterSet?.fetch ? makeNdlOptionsStringByNdlFullOptions(filterSet?.fetch) : ''),
+    () => (filterSet?.fetch ? makeNdlOptionsStringByNdlFullOptions(filterSet.fetch) : ''),
     [filterSet?.fetch]
   );
 
   const fetchedBooks: BookDetail[] = useMemo(() => {
-    const result = allBookDetails[stringifyFetchOptions] ?? null;
+    const result = stringifyFetchOptions in allBookDetails ? allBookDetails[stringifyFetchOptions] : [];
     if (typeof result === 'string') return [];
     return result;
   }, [allBookDetails, stringifyFetchOptions]);
@@ -67,7 +67,7 @@ export default function Contents({ scannedItemMapValue }: Props) {
         />
       ))}
       <BookDetailDialog
-        bookDetail={fetchedBooks?.find(({ book }) => book.isbn === detailIsbn) ?? null}
+        bookDetail={fetchedBooks.find(({ book }) => book.isbn === detailIsbn) ?? null}
         onClose={() => setDetailIsbn(null)}
       />
     </div>

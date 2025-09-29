@@ -109,7 +109,7 @@ export const selectScanResultList = createSelector(
     allNdlSearchResults
   ): { isbn: Isbn13; status: 'loading' | 'none' | 'done'; result: ScannedItemMapValue | null }[] =>
     unique(viewList).map(isbn => {
-      if (results[isbn] === undefined) return { isbn, status: 'loading' as const, result: null };
+      if (!(isbn in results)) return { isbn, status: 'loading' as const, result: null };
       const book: BookData | null = results[isbn];
 
       if (!book) {

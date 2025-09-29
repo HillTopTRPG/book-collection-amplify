@@ -29,7 +29,7 @@ export default function CameraView() {
   const [error, setError] = useState<string | null>(null);
   const [isFirst, setIsFirst] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
-  const [volume, _setVolume] = useState(Number(localStorage.volume) ?? 0.8);
+  const [volume, _setVolume] = useState('volume' in localStorage ? Number(localStorage['volume']) : 0.8);
   const [play] = useSound(se01, {
     volume,
     interrupt: true,

@@ -21,7 +21,7 @@ export const fetchResultSlice = createSlice({
       state.fetchResultMap = { ...state.fetchResultMap, ...action.payload };
     },
     deleteFetchResult: (state, action: PayloadAction<string>) => {
-      if (!state.fetchResultMap[action.payload]) return;
+      if (!(action.payload in state.fetchResultMap)) return;
       delete state.fetchResultMap[action.payload];
     },
   },

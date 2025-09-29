@@ -48,7 +48,7 @@ const mergeBookData = (b1: BookData | string | null, b2: BookData | string | nul
       ...pickBookDataProps('ndc', b1, b2),
       ...pickBookDataProps('cover', b1, b2),
       ...pickBookDataProps('extent', b1, b2),
-      ndcLabels: b1.ndcLabels || b2.ndcLabels,
+      ndcLabels: b1.ndcLabels.length ? b1.ndcLabels : b2.ndcLabels,
     } as const satisfies BookData;
   }
   if (isBookData(b1)) return b1;
@@ -87,9 +87,9 @@ export default function useBookImageQueueProcessor() {
   useEffect(() => {
     if (!fetchBookImageQueueTargets.length) return;
     const results = fetchBookImageQueueTargets.reduce<Record<Isbn13, string | null>>((acc, isbn) => {
-      const google = googleSearchQueueResults[isbn];
-      const rakuten = rakutenSearchQueueResults[isbn];
-      if (google === undefined || rakuten === undefined) return acc;
+      const google = isbn in googleSearchQueueResults ? googleSearchQueueResults[isbn] : null;
+      const rakuten = isbn in rakutenSearchQueueResults ? rakutenSearchQueueResults[isbn] : null;
+      if (google === null || rakuten === null) return acc;
       acc[isbn] = mergeBookData(rakuten, google)?.cover ?? null;
       return acc;
     }, {});

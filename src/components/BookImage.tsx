@@ -39,8 +39,8 @@ export default function BookImage({ isbn, size, onClick }: Props) {
 
   useEffect(() => {
     if (!isbn) return;
-    const url = fetchBookImageQueueResults[isbn];
-    if (url !== undefined && imageUrl.status !== 'done') {
+    const url: string | null = isbn in fetchBookImageQueueResults ? fetchBookImageQueueResults[isbn] : null;
+    if (url !== null && imageUrl.status !== 'done') {
       if (url === 'retrying') {
         setImageUrl({ url: null, status: 'retrying' });
       } else {
