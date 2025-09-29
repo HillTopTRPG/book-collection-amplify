@@ -1,4 +1,5 @@
 import type { BookStatus } from '@/store/subscriptionDataSlice.ts';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import NdlCardStatus from '@/pages/ScannedBookPage/FilterBlock/NdlCardStatus.tsx';
 import { BookStatusLabelMap } from '@/store/subscriptionDataSlice.ts';
@@ -24,13 +25,32 @@ export default function NdlCardStatusSelector({ value, setValue }: Props) {
   if (!current) return null;
 
   return (
-    <>
-      <NdlCardStatus isFirst {...current} zIndex={OPTIONS.length} onClick={toEdit} />
-      {editing
-        ? OPTIONS.filter(({ val }) => val !== value).map((item, idx) => (
-            <NdlCardStatus key={idx} {...item} zIndex={OPTIONS.length - idx - 1} onClick={onSetValue(item.val)} />
-          ))
-        : null}
-    </>
+    <motion.div
+      className="flex relative"
+      layout
+      transition={{ duration: 0.3, ease: 'easeInOut' }}
+      style={{ position: 'relative', zIndex: 1 }}
+    >
+      <NdlCardStatus isFirst {...current} zIndex={100} onClick={toEdit} />
+      <AnimatePresence>
+        {editing
+          ? OPTIONS.filter(({ val }) => val !== value).map((item, idx) => (
+              <motion.div
+                key={item.val}
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: 'auto', opacity: 1 }}
+                exit={{ width: 0, opacity: 0 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                style={{
+                  zIndex: 99 - idx,
+                  position: 'relative',
+                }}
+              >
+                <NdlCardStatus {...item} zIndex={10 - idx} onClick={onSetValue(item.val)} />
+              </motion.div>
+            ))
+          : null}
+      </AnimatePresence>
+    </motion.div>
   );
 }
