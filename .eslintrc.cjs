@@ -142,5 +142,6 @@ module.exports = {
     'no-unused-vars': 'off',
     'prettier/prettier': 'off',
     '@typescript-eslint/no-unnecessary-condition': 'error',
+    '@typescript-eslint/method-signature-style': 'error',
   },
 };
