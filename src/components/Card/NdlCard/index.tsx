@@ -5,10 +5,8 @@ import { Fragment, useMemo } from 'react';
 import BookImage from '@/components/BookImage.tsx';
 import CardFrame from '@/components/Card/CardFrame.tsx';
 import HighLightText from '@/components/Card/NdlCard/HighLightText.tsx';
-import OverPanel from '@/components/Card/NdlCard/OverPanel.tsx';
 import TempItem from '@/components/TempItem.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
-import { Button } from '@/components/ui/button.tsx';
 import { cn } from '@/lib/utils.ts';
 
 type Props = {
@@ -16,20 +14,10 @@ type Props = {
   bookDetail: BookDetail;
   filterSet: FilterSet;
   orIndex: number;
-  selectedIsbn: string | null;
-  setSelectedIsbn: (isbn: string | null) => void;
   onOpenBookDetail: (isbn: string | null) => void;
 };
 
-export default function NdlCard({
-  className,
-  bookDetail,
-  filterSet,
-  orIndex,
-  selectedIsbn,
-  setSelectedIsbn,
-  onOpenBookDetail,
-}: Props) {
+export default function NdlCard({ className, bookDetail, filterSet, orIndex, onOpenBookDetail }: Props) {
   const book = bookDetail.book;
   const isbn = book.isbn;
 
@@ -69,12 +57,6 @@ export default function NdlCard({
           className="flex items-baseline flex-wrap gap-x-3 flex-1 pl-1.5 relative"
           // onClick={() => setSelectedIsbn(isbn)}
         >
-          {selectedIsbn === isbn ? (
-            <OverPanel onClose={() => setSelectedIsbn(null)}>
-              <Button>登録</Button>
-              <Button>欲しい</Button>
-            </OverPanel>
-          ) : null}
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
             <TempItem
               value={isViewTitle ? book.title : null}

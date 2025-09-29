@@ -5,6 +5,8 @@ import { RippleContainer } from '@m_three_ui/m3ripple';
 import { Fragment, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator.tsx';
 import useDOMSize from '@/hooks/useDOMSize.ts';
+import { useAppDispatch } from '@/store/hooks.ts';
+import { setBookDetailDialogValue } from '@/store/uiSlice.ts';
 import NdlCardNavi from './NdlCardNavi.tsx';
 
 import '@m_three_ui/m3ripple/css';
@@ -16,7 +18,6 @@ type Props = {
   orIndex: number;
   selectedIsbn: string | null;
   setSelectedIsbn: (isbn: string | null) => void;
-  setDetailIsbn: (isbn: string | null) => void;
   openType?: 'collapse' | 'full' | 'close';
   setOpenType?: (openType: 'collapse' | 'full' | 'close') => void;
   setContentHeight?: (height: number) => void;
@@ -29,11 +30,11 @@ export default function NdlCardList({
   orIndex,
   selectedIsbn,
   setSelectedIsbn,
-  setDetailIsbn,
   openType,
   setOpenType,
   setContentHeight,
 }: Props) {
+  const dispatch = useAppDispatch();
   const [contentRef, contentSize] = useDOMSize();
   const isOpen = !openType || ['collapse', 'full'].some(v => v === openType);
 
@@ -57,9 +58,8 @@ export default function NdlCardList({
                       idx={idx}
                       bookDetails={bookDetails}
                       {...{ bookDetail, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
-                      onOpenBookDetail={isbn => {
-                        setDetailIsbn(isbn);
-                        setSelectedIsbn(null);
+                      onOpenBookDetail={() => {
+                        dispatch(setBookDetailDialogValue(bookDetail));
                       }}
                     />
                   </>

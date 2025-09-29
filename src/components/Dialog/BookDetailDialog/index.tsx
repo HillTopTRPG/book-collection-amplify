@@ -1,4 +1,3 @@
-import type { BookDetail } from '@/types/book.ts';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,14 +8,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { selectBookDetailDialogValue, setBookDetailDialogValue } from '@/store/uiSlice.ts';
 import BookDetailDialogContent from './BookDetailDialogContent.tsx';
 
-type Props = {
-  bookDetail: BookDetail | null;
-  onClose: () => void;
-};
-
-export default function BookDetailDialog({ bookDetail, onClose }: Props) {
+export default function BookDetailDialog() {
+  const dispatch = useAppDispatch();
+  const bookDetail = useAppSelector(selectBookDetailDialogValue);
+  const onClose = () => {
+    dispatch(setBookDetailDialogValue(null));
+  };
   const book = bookDetail?.book;
 
   return (

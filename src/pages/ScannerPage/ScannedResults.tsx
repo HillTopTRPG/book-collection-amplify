@@ -5,7 +5,7 @@ import { generateClient } from 'aws-amplify/data';
 import { Fragment, useCallback, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import BookCard from '@/components/Card/BookCard';
+import BookCard from '@/components/Card/BookCard.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
@@ -13,6 +13,7 @@ import { useAppSelector } from '@/store/hooks.ts';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
 import { clearScanViewList, selectScanResultList } from '@/store/scannerSlice.ts';
 import { BookStatusEnum } from '@/store/subscriptionDataSlice.ts';
+import { setBookDetailDialogValue } from '@/store/uiSlice.ts';
 import { wait } from '@/utils/primitive.ts';
 
 const userPoolClient = generateClient<Schema>({
@@ -98,6 +99,9 @@ export default function ScannedResults() {
               onClick={isbn => {
                 console.log(isbn);
                 navigate(`/scan/${result?.isbn}`);
+              }}
+              onOpenBookDetail={() => {
+                dispatch(setBookDetailDialogValue(result?.bookDetail ?? null));
               }}
             />
           </Fragment>

@@ -1,4 +1,5 @@
 import type { Isbn13 } from '@/types/book.ts';
+import type { MouseEvent } from 'react';
 import { ImageOff } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
@@ -10,7 +11,7 @@ import { useAppSelector } from '@/store/hooks.ts';
 type Props = {
   isbn: Isbn13 | null | undefined;
   size?: 'small' | 'big';
-  onClick?: () => void;
+  onClick?: (e: MouseEvent) => void;
 };
 
 export default function BookImage({ isbn, size, onClick }: Props) {

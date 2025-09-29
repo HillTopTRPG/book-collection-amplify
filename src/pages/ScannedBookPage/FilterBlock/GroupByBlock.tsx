@@ -23,7 +23,6 @@ type Props = {
   orIndex: number;
   selectedIsbn: string | null;
   setSelectedIsbn: (isbn: string | null) => void;
-  setDetailIsbn: (isbn: string | null) => void;
   setContentHeight: (height: number) => void;
 };
 
@@ -36,7 +35,6 @@ export default function GroupByBlock({
   orIndex,
   selectedIsbn,
   setSelectedIsbn,
-  setDetailIsbn,
   setContentHeight,
 }: Props) {
   const [stickyRef, stickySize] = useDOMSize();
@@ -107,7 +105,7 @@ export default function GroupByBlock({
           <NdlCardList
             countRef={countRef}
             bookDetails={list.map(({ bookDetail }) => bookDetail)}
-            {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn, openType, setOpenType }}
+            {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, openType, setOpenType }}
           />
         </div>
       </div>

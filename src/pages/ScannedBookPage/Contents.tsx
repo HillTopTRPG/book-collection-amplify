@@ -3,7 +3,6 @@ import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookDetail } from '@/types/book.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import BookCard from '@/components/Card/BookCard.tsx';
-import BookDetailDialog from '@/components/Dialog/BookDetailDialog';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
@@ -20,7 +19,6 @@ export default function Contents({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
   const allBookDetails = useAppSelector(selectAllBookDetails);
   const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
-  const [detailIsbn, setDetailIsbn] = useState<string | null>(null);
   const scrollParentRef = useRef<HTMLDivElement>(document.getElementById('root') as HTMLDivElement);
   const { getFilterSetByIdInfo } = useIdInfo();
 
@@ -63,13 +61,9 @@ export default function Contents({ scannedItemMapValue }: Props) {
       {filterSet?.filters.map((_, orIndex) => (
         <FilterBlock
           key={orIndex}
-          {...{ scrollParentRef, filterSet, orIndex, fetchedBooks, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
+          {...{ scrollParentRef, filterSet, orIndex, fetchedBooks, selectedIsbn, setSelectedIsbn }}
         />
       ))}
-      <BookDetailDialog
-        bookDetail={fetchedBooks.find(({ book }) => book.isbn === detailIsbn) ?? null}
-        onClose={() => setDetailIsbn(null)}
-      />
     </div>
   );
 }

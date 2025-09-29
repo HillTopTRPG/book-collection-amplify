@@ -30,7 +30,6 @@ const getRequests = (
     return { numberOfRecords: null, nextRequest: null, retrying: true };
   }
 
-  console.log(fetchResult.list.length, fetchResult.numberOfRecords, fetchResult.nextRecordPosition);
   results.push(...fetchResult.list);
   const nextRecordPosition = fetchResult.nextRecordPosition;
   const numberOfRecords = fetchResult.numberOfRecords;

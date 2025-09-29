@@ -1,8 +1,6 @@
 import type { ReactNode, RefObject } from 'react';
 import { Fragment, isValidElement, useMemo, useRef } from 'react';
 import { Button } from '@/components/ui/button.tsx';
-import { useAppDispatch } from '@/store/hooks.ts';
-import { setScrollValue } from '@/store/uiSlice.ts';
 
 type Props = {
   drawerType: 'bookDetail';
@@ -13,8 +11,7 @@ type Props = {
   useFooter?: boolean;
 };
 
-export default function DrawerFrame({ drawerType, isVisible, onClose, header, children, useFooter }: Props) {
-  const dispatch = useAppDispatch();
+export default function DrawerFrame({ isVisible, onClose, header, children, useFooter }: Props) {
   const scrollParentRef = useRef<HTMLDivElement>(null);
   const overlayClassName = useMemo(
     () =>
@@ -30,12 +27,6 @@ export default function DrawerFrame({ drawerType, isVisible, onClose, header, ch
 
   const isReactNode = (c: Props['children']): c is ReactNode => isValidElement(c);
 
-  const onScroll = () => {
-    if (!scrollParentRef.current) return;
-    const scrollTop = scrollParentRef.current.scrollTop;
-    dispatch(setScrollValue({ key: drawerType, value: scrollTop }));
-  };
-
   return (
     <Fragment>
       <div className={overlayClassName} onClick={onClose} />
@@ -45,14 +36,7 @@ export default function DrawerFrame({ drawerType, isVisible, onClose, header, ch
           <div className="border-b p-4 flex items-center gap-3">{header}</div>
 
           {/* Content */}
-          <div
-            ref={scrollParentRef}
-            className="flex-1 overflow-y-auto w-full h-full"
-            onScrollCapture={e => {
-              e.stopPropagation();
-              onScroll();
-            }}
-          >
+          <div ref={scrollParentRef} className="flex-1 overflow-y-auto w-full h-full">
             {isReactNode(children) ? children : children(scrollParentRef)}
           </div>
 

@@ -20,7 +20,6 @@ type Props = {
   orIndex: number;
   selectedIsbn: string | null;
   setSelectedIsbn: (isbn: string | null) => void;
-  setDetailIsbn: (isbn: string | null) => void;
 };
 
 export default function FilterBlock({
@@ -30,7 +29,6 @@ export default function FilterBlock({
   orIndex,
   selectedIsbn,
   setSelectedIsbn,
-  setDetailIsbn,
 }: Props) {
   const dispatch = useAppDispatch();
   const [searchConditionsRef, searchConditionsSize] = useDOMSize();
@@ -50,8 +48,6 @@ export default function FilterBlock({
     [dispatch, filterSet.filters, filterSet.id, orIndex]
   );
 
-  console.log(searchConditionsSize.height, contentHeight);
-
   return (
     <>
       <Separator />
@@ -68,7 +64,7 @@ export default function FilterBlock({
           <NdlCardList
             bookDetails={filteredResults}
             setContentHeight={setContentHeight}
-            {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
+            {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
           />
         ) : (
           groupedBooks.map((list, idx) => (
@@ -77,7 +73,7 @@ export default function FilterBlock({
               <GroupByBlock
                 stickyTop={searchConditionsSize.height}
                 setContentHeight={setContentHeight}
-                {...{ scrollParentRef, list, idx, filterSet, orIndex, selectedIsbn, setSelectedIsbn, setDetailIsbn }}
+                {...{ scrollParentRef, list, idx, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
               />
             </Fragment>
           ))

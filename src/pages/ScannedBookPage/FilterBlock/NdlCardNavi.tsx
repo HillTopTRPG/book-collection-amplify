@@ -3,7 +3,7 @@ import type { BookDetail } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { ComponentProps } from 'react';
 import { generateClient } from 'aws-amplify/data';
-import { useEffect, useId } from 'react';
+import { useId } from 'react';
 import NdlCard from '@/components/Card/NdlCard';
 import NdlCardStatusSelector from '@/pages/ScannedBookPage/FilterBlock/NdlCardStatusSelector.tsx';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
@@ -25,9 +25,6 @@ type Props = ComponentProps<typeof NdlCard> & {
 export default function NdlCardNavi(props: Props) {
   const { getCollectionByIdInfo } = useIdInfo();
   const collection = getCollectionByIdInfo(props.bookDetail.collection);
-  if (props.bookDetail.book.isbn === '9784063197433') {
-    console.log(JSON.stringify(props.bookDetail.collection, null, 2));
-  }
   const value = collection.meta.status;
   const uuid = useId();
 
@@ -56,10 +53,6 @@ export default function NdlCardNavi(props: Props) {
       return;
     }
   };
-
-  useEffect(() => {
-    console.log('NdlCardNavi', value);
-  }, [value]);
 
   return (
     <div id={uuid} className="relative">
