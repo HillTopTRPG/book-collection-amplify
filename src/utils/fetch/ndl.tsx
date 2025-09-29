@@ -80,7 +80,7 @@ const getNdlBooks = (recordElm: Element): [BookData] | [] => {
     return [...Array(ndc.length - 5)].flatMap((_, i) => {
       const code = ndc.slice(0, 6 + i);
       if (code.endsWith('.')) return [];
-      const text = code in dataMap ? dataMap[code] : null;
+      const text = code in dataMap ? dataMap[code] : undefined;
 
       return text ? [text] : [];
     });

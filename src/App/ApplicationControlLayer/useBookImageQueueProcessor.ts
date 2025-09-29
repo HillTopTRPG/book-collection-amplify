@@ -68,6 +68,7 @@ export default function useBookImageQueueProcessor() {
   // 書影URL取得処理1
   useEffect(() => {
     if (!fetchBookImageQueueTargets.length) return;
+    console.log(fetchBookImageQueueTargets[0]);
     preQueueProcess(fetchBookImageQueueTargets).then(list => {
       const dequeueInfo: Record<Isbn13, string> = {};
       const enqueueList: Isbn13[] = [];
@@ -87,9 +88,9 @@ export default function useBookImageQueueProcessor() {
   useEffect(() => {
     if (!fetchBookImageQueueTargets.length) return;
     const results = fetchBookImageQueueTargets.reduce<Record<Isbn13, string | null>>((acc, isbn) => {
-      const google = isbn in googleSearchQueueResults ? googleSearchQueueResults[isbn] : null;
-      const rakuten = isbn in rakutenSearchQueueResults ? rakutenSearchQueueResults[isbn] : null;
-      if (google === null || rakuten === null) return acc;
+      const google = isbn in googleSearchQueueResults ? googleSearchQueueResults[isbn] : undefined;
+      const rakuten = isbn in rakutenSearchQueueResults ? rakutenSearchQueueResults[isbn] : undefined;
+      if (google === undefined || rakuten === undefined) return acc;
       acc[isbn] = mergeBookData(rakuten, google)?.cover ?? null;
       return acc;
     }, {});

@@ -22,7 +22,7 @@ const getRequests = (
   const option = structuredClone(ndlFetchOptions);
   option.startRecord = startRecord;
   const nextRequest = JSON.stringify(option);
-  const fetchResult = nextRequest in ndlSearchResults ? ndlSearchResults[nextRequest] : null;
+  const fetchResult = nextRequest in ndlSearchResults ? ndlSearchResults[nextRequest] : undefined;
   if (!fetchResult) {
     return { numberOfRecords: null, nextRequest, retrying: false };
   }
