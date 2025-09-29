@@ -53,6 +53,8 @@ module.exports = {
         ignoreStringArrays: true,
       },
     ],
+    'react-hooks/exhaustive-deps': 'error',
+    'react-hooks/rules-of-hooks': 'error',
     'simple-import-sort/imports': [
       'error',
       {
