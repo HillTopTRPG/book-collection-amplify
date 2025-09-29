@@ -47,6 +47,12 @@ module.exports = {
     //   }
     // ],
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+    '@typescript-eslint/require-array-sort-compare': [
+      'error',
+      {
+        ignoreStringArrays: true,
+      },
+    ],
     'simple-import-sort/imports': [
       'error',
       {
