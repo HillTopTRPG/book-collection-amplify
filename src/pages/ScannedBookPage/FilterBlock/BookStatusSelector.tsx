@@ -27,7 +27,6 @@ export default function BookStatusSelector({ value, setValue }: Props) {
   return (
     <motion.div
       className="flex relative"
-      layout
       transition={{ duration: 0.3, ease: 'easeInOut' }}
       style={{ position: 'relative', zIndex: 1 }}
     >
