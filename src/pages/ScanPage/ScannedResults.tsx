@@ -90,7 +90,7 @@ export default function ScannedResults() {
           <Separator />
         </Fragment>
       ) : null}
-      <ScrollArea className="w-full max-h-max px-1">
+      <ScrollArea className="w-full max-h-max">
         {scanResultList.map(({ result }, index) => (
           <Fragment key={index}>
             {index > 0 && <Separator />}

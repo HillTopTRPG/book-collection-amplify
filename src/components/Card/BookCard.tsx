@@ -1,5 +1,6 @@
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookDetail, Isbn13 } from '@/types/book.ts';
+import type { CSSProperties } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { Fragment, useCallback, useMemo } from 'react';
 import BookImage from '@/components/BookImage.tsx';
@@ -12,6 +13,7 @@ import HighLightText from './HighLightText.tsx';
 
 type Props = {
   className?: string;
+  style?: CSSProperties;
   bookDetail: BookDetail | null;
   filterSet?: FilterSet;
   orIndex?: number;
@@ -19,7 +21,15 @@ type Props = {
   onClick?: (isbn: Isbn13) => void;
 };
 
-export default function BookCard({ className, bookDetail, onClick, filterSet, orIndex, onOpenBookDetail }: Props) {
+export default function BookCard({
+  className,
+  style,
+  bookDetail,
+  onClick,
+  filterSet,
+  orIndex,
+  onOpenBookDetail,
+}: Props) {
   const isbn = bookDetail?.book.isbn ?? null;
 
   const content = useMemo(() => {
@@ -38,7 +48,7 @@ export default function BookCard({ className, bookDetail, onClick, filterSet, or
 
     return (
       <>
-        <div className="flex flex-wrap justify-start w-full">
+        <div className="flex flex-wrap justify-start">
           {book.ndcLabels.map((label, idx) => (
             <Fragment key={idx}>
               {idx ? <ChevronRight width={10} /> : ''}
@@ -103,7 +113,7 @@ export default function BookCard({ className, bookDetail, onClick, filterSet, or
   }, [isbn, onClick]);
 
   return (
-    <CardFrame onClick={onClickWrap} className={cn('flex-col gap-1 py-1 px-2', className)}>
+    <CardFrame onClick={onClickWrap} className={cn('flex-col items-start gap-1 py-1 px-2', className)} style={style}>
       {content}
     </CardFrame>
   );

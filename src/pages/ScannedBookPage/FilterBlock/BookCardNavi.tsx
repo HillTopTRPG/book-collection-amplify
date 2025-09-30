@@ -50,9 +50,16 @@ export default function BookCardNavi(props: Props) {
   };
 
   return (
-    <div className="relative flex h-fit w-full">
+    <div className="relative flex h-fit w-full overflow-hidden">
       <BookStatusSelector value={value} setValue={setValue} />
-      <BookCard className="pl-8" {...props} />
+      <BookCard
+        className="pl-8"
+        style={{
+          maxWidth: 'calc(100% - 1.5em)',
+          minWidth: 'calc(100% - 1.5em)',
+        }}
+        {...props}
+      />
     </div>
   );
 }

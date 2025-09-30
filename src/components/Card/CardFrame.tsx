@@ -1,10 +1,10 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useCallback } from 'react';
 import { cn } from '@/lib/utils.ts';
 
 import '@m_three_ui/m3ripple/css';
 
-const BASE = 'relative';
+const BASE = 'relative box-border';
 const FLEX = 'flex items-center justify-center';
 const COLOR =
   'hover-supported:hover:bg-gray-50/30 dark:hover-supported:hover:bg-white/5 transition-colors duration-200';
@@ -14,9 +14,10 @@ type Props = {
   children: ReactNode;
   onClick?: () => void;
   className?: string;
+  style?: CSSProperties;
 };
 
-export default function CardFrame({ children, onClick, className }: Props) {
+export default function CardFrame({ children, onClick, className, style }: Props) {
   const handleClick = useCallback(() => {
     onClick?.();
   }, [onClick]);
@@ -24,6 +25,7 @@ export default function CardFrame({ children, onClick, className }: Props) {
   return (
     <div
       className={cn(BASE, FLEX, COLOR, TOUCH, className)}
+      style={style}
       onClick={handleClick}
       role="button"
       tabIndex={0}
