@@ -3,11 +3,10 @@ import type { BookDetail } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { ComponentProps } from 'react';
 import { generateClient } from 'aws-amplify/data';
-import { useId } from 'react';
-import NdlCard from '@/components/Card/NdlCard';
-import NdlCardStatusSelector from '@/pages/ScannedBookPage/FilterBlock/NdlCardStatusSelector.tsx';
+import BookCard from '@/components/Card/BookCard.tsx';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
 import { BookStatusEnum } from '@/store/subscriptionDataSlice.ts';
+import NdlCardStatusSelector from './NdlCardStatusSelector.tsx';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -17,18 +16,18 @@ const userPoolClient = generateClient<Schema>({
   authMode: 'userPool',
 });
 
-type Props = ComponentProps<typeof NdlCard> & {
+type Props = ComponentProps<typeof BookCard> & {
   idx: number;
   bookDetails: BookDetail[];
 };
 
 export default function NdlCardNavi(props: Props) {
   const { getCollectionByIdInfo } = useIdInfo();
-  const collection = getCollectionByIdInfo(props.bookDetail.collection);
-  const value = collection.meta.status;
-  const uuid = useId();
+  const collection = props.bookDetail ? getCollectionByIdInfo(props.bookDetail.collection) : null;
+  const value = collection?.meta.status ?? BookStatusEnum.Unregistered;
 
   const setValue = (value: BookStatus) => {
+    if (!props.bookDetail || !collection) return;
     const newMeta = structuredClone(collection.meta);
     newMeta.status = value;
 
@@ -55,15 +54,9 @@ export default function NdlCardNavi(props: Props) {
   };
 
   return (
-    <div id={uuid} className="relative">
-      <div
-        className="absolute inset-0 bg-indigo-900"
-        style={{ opacity: 0.2 + (props.idx / props.bookDetails.length) * 0.6 }}
-      />
-      <div className="relative flex h-full w-full">
-        <NdlCardStatusSelector value={value} setValue={setValue} />
-        <NdlCard className="pl-8" {...props} />
-      </div>
+    <div className="relative flex h-full w-full">
+      <NdlCardStatusSelector value={value} setValue={setValue} />
+      <BookCard className="pl-8" {...props} />
     </div>
   );
 }

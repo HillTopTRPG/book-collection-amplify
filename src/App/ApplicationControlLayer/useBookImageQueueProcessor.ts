@@ -68,7 +68,6 @@ export default function useBookImageQueueProcessor() {
   // 書影URL取得処理1
   useEffect(() => {
     if (!fetchBookImageQueueTargets.length) return;
-    console.log(fetchBookImageQueueTargets[0]);
     preQueueProcess(fetchBookImageQueueTargets).then(list => {
       const dequeueInfo: Record<Isbn13, string> = {};
       const enqueueList: Isbn13[] = [];

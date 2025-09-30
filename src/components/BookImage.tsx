@@ -59,9 +59,10 @@ export default function BookImage({ isbn, size, onClick }: Props) {
       <img
         src={imageUrl.url}
         alt="表紙"
-        className="rounded border"
+        className="rounded border select-none"
         style={{ objectFit: 'cover', width, height }}
         onClick={onClick}
+        draggable="false"
       />
     );
   })();

@@ -4,10 +4,10 @@ import { ChevronRight } from 'lucide-react';
 import { Fragment, useMemo } from 'react';
 import BookImage from '@/components/BookImage.tsx';
 import CardFrame from '@/components/Card/CardFrame.tsx';
-import HighLightText from '@/components/Card/NdlCard/HighLightText.tsx';
 import TempItem from '@/components/TempItem.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { cn } from '@/lib/utils.ts';
+import HighLightText from './HighLightText.tsx';
 
 type Props = {
   className?: string;
@@ -53,10 +53,7 @@ export default function NdlCard({ className, bookDetail, filterSet, orIndex, onO
       </div>
       <div className="flex items-stretch w-full gap-1.5">
         <BookImage isbn={isbn} onClick={() => onOpenBookDetail(isbn)} />
-        <div
-          className="flex items-baseline flex-wrap gap-x-3 flex-1 pl-1.5 relative"
-          // onClick={() => setSelectedIsbn(isbn)}
-        >
+        <div className="flex items-baseline flex-wrap gap-x-3 flex-1 pl-1.5 relative">
           <div className="w-full flex items-baseline flex-wrap gap-x-3">
             <TempItem
               value={isViewTitle ? book.title : null}

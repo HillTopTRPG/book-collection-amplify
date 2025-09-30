@@ -4,11 +4,11 @@ import { ChevronRight } from 'lucide-react';
 import { Fragment, useCallback, useMemo } from 'react';
 import BookImage from '@/components/BookImage.tsx';
 import CardFrame from '@/components/Card/CardFrame.tsx';
-import HighLightText from '@/components/Card/NdlCard/HighLightText.tsx';
 import TempItem from '@/components/TempItem.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { cn } from '@/lib/utils.ts';
+import HighLightText from './HighLightText.tsx';
 
 type Props = {
   className?: string;
@@ -58,10 +58,7 @@ export default function BookCard({ className, bookDetail, onClick, filterSet, or
               }
             }}
           />
-          <div
-            className="flex items-baseline flex-wrap gap-x-3 flex-1 pl-1.5 relative"
-            // onClick={() => setSelectedIsbn(isbn)}
-          >
+          <div className="flex items-baseline flex-wrap gap-x-3 flex-1 pl-1.5 relative">
             <div className="w-full flex items-baseline flex-wrap gap-x-3">
               <TempItem
                 value={isViewTitle ? book.title : null}

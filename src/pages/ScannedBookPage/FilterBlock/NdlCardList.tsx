@@ -54,14 +54,20 @@ export default function NdlCardList({
                 {!isCollapse || idx < 2 || bookDetails.length - 3 < idx ? (
                   <>
                     {idx ? <Separator /> : null}
-                    <NdlCardNavi
-                      idx={idx}
-                      bookDetails={bookDetails}
-                      {...{ bookDetail, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
-                      onOpenBookDetail={() => {
-                        dispatch(setBookDetailDialogValue(bookDetail));
-                      }}
-                    />
+                    <div className="relative">
+                      <div
+                        className="absolute inset-0 bg-indigo-900"
+                        style={{ opacity: 0.2 + (idx / bookDetails.length) * 0.6 }}
+                      />
+                      <NdlCardNavi
+                        idx={idx}
+                        bookDetails={bookDetails}
+                        {...{ bookDetail, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
+                        onOpenBookDetail={() => {
+                          dispatch(setBookDetailDialogValue(bookDetail));
+                        }}
+                      />
+                    </div>
                   </>
                 ) : null}
                 {isCollapse && idx == collapseButtonIndex ? (
@@ -80,54 +86,7 @@ export default function NdlCardList({
           : null}
       </div>
       <RippleContainer className="relative flex" rippleColor="hsla(29,81%,84%,0.15)">
-        <div
-          ref={countRef}
-          className="w-full px-2 py-1"
-          onClick={() => {}}
-          onTouchStartCapture={() => {
-            console.log('onTouchStartCapture');
-          }}
-          onMouseDownCapture={e => {
-            e.stopPropagation();
-            // touchStartイベントを発火
-            const touch = new Touch({
-              identifier: 0,
-              target: e.target as Element,
-              clientX: e.clientX,
-              clientY: e.clientY,
-              pageX: e.pageX,
-              pageY: e.pageY,
-              screenX: e.screenX,
-              screenY: e.screenY,
-              radiusX: 0,
-              radiusY: 0,
-              rotationAngle: 0,
-              force: 1,
-            });
-
-            const touchEvent = new TouchEvent('touchstart', {
-              bubbles: true,
-              cancelable: true,
-              touches: [touch],
-              targetTouches: [touch],
-              changedTouches: [touch],
-              view: window,
-              detail: 0,
-            });
-
-            // イベントオブジェクトに座標情報を直接設定
-            Object.defineProperties(touchEvent, {
-              clientX: { value: e.clientX, writable: false },
-              clientY: { value: e.clientY, writable: false },
-              pageX: { value: e.pageX, writable: false },
-              pageY: { value: e.pageY, writable: false },
-              screenX: { value: e.screenX, writable: false },
-              screenY: { value: e.screenY, writable: false },
-            });
-
-            e.target.dispatchEvent(touchEvent);
-          }}
-        >
+        <div ref={countRef} className="w-full px-2 py-1">
           {bookDetails.length}件
         </div>
       </RippleContainer>
