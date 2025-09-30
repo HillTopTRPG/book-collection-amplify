@@ -84,7 +84,7 @@ export default function GroupByBlock({
     <>
       <div
         ref={stickyRef}
-        className="flex bg-green-800 text-white px-2 py-1 sticky z-[100] cursor-pointer"
+        className="flex bg-green-800 text-white px-2 py-1 sticky z-[10] cursor-pointer"
         style={{ top: stickyTop }}
         onClick={onOpenChange}
       >
@@ -97,7 +97,7 @@ export default function GroupByBlock({
       </div>
       <div ref={contentRef} className="flex">
         <div className="bg-green-800 w-2" />
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1" style={{ maxWidth: 'calc(100% - 0.5rem)' }}>
           <BookCardList
             countRef={countRef}
             bookDetails={list.map(({ bookDetail }) => bookDetail)}

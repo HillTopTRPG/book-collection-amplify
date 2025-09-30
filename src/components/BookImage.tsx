@@ -59,7 +59,7 @@ export default function BookImage({ isbn, size, onClick }: Props) {
       <img
         src={imageUrl.url}
         alt="表紙"
-        className="rounded border select-none"
+        className="select-none"
         style={{ objectFit: 'cover', width, height }}
         onClick={onClick}
         draggable="false"
@@ -70,7 +70,7 @@ export default function BookImage({ isbn, size, onClick }: Props) {
   return (
     <div
       ref={ref}
-      className="min-w-[50px] min-h-[75px] rounded border flex items-center justify-center"
+      className="min-w-[50px] min-h-[75px] bg-gradient-to-tr from-pink-300 via-red-300 to-orange-300 flex items-center justify-center"
       onClick={onClick}
       style={{ minWidth: width, maxWidth: width, minHeight: height, maxHeight: height }}
     >

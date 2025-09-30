@@ -22,8 +22,8 @@ export default function MenuBar() {
   }, []);
 
   return (
-    <div className="fixed left-0 top-0 right-0 bg-background h-[3rem] flex items-center px-2 gap-2 z-50">
-      <div className="flex-1">マイ書目コンシェルジュ</div>
+    <div className="fixed left-0 top-0 right-0 bg-background h-[3rem] flex items-center shadow-xl px-2 gap-2 z-[100]">
+      <div className="flex-1 font-bold">マイ書目コンシェルジュ</div>
       <Button size="icon" className="rounded-full" variant="secondary" onClick={onSwitchTheme}>
         {theme === 'dark' ? <Moon /> : <Sun />}
       </Button>

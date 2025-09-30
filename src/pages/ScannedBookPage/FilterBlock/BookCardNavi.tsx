@@ -55,8 +55,8 @@ export default function BookCardNavi(props: Props) {
       <BookCard
         className="pl-8"
         style={{
-          maxWidth: 'calc(100% - 1.5em)',
-          minWidth: 'calc(100% - 1.5em)',
+          maxWidth: 'calc(100% - 1.5rem)',
+          minWidth: 'calc(100% - 1.5rem)',
         }}
         {...props}
       />

@@ -27,11 +27,11 @@ export default function SearchConditionsForm({
   return (
     <div
       ref={ref}
-      className="sticky top-0 flex flex-col z-50 items-stretch gap-1 bg-background py-1 px-2 border-b shadow-md"
+      className="sticky top-0 flex flex-col z-[110] items-stretch gap-1 bg-background py-1 px-2 border-b shadow-md overflow-visible"
     >
       <div className="text-sm min-w-[4rem] flex items-center justify-between">
-        <span>{!orIndex ? '必須条件' : `OR条件${orIndex}`}</span>
-        <span>{filteredResults.length}件</span>
+        <span className="ml-4">{!orIndex ? '条件' : `OR条件${orIndex}`}</span>
+        <span>計{filteredResults.length}件</span>
         <div className="flex items-center gap-1">
           <Checkbox
             id="terms"

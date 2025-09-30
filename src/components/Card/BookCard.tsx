@@ -48,11 +48,11 @@ export default function BookCard({
 
     return (
       <>
-        <div className="flex flex-wrap justify-start">
+        <div className="flex flex-wrap justify-start items-center gap-y-1">
           {book.ndcLabels.map((label, idx) => (
             <Fragment key={idx}>
-              {idx ? <ChevronRight width={10} /> : ''}
-              <Badge variant="secondary" className="text-[8px]">
+              {idx ? <ChevronRight width={10} height={10} /> : ''}
+              <Badge variant="secondary" className="text-[8px] leading-3 h-4 px-1 py-0">
                 <HighLightText value={label} subStrList={anywhereList} subClassName="bg-yellow-700" />
               </Badge>
             </Fragment>
@@ -95,12 +95,7 @@ export default function BookCard({
             ) : null}
             <TempItem value={book.seriesTitle} label="シリーズ" highLights={anywhereList} className="text-xs" />
             <TempItem value={book.extent} label="商品形態" highLights={anywhereList} className="text-xs" />
-            <TempItem
-              value={book.isbn}
-              label="ISBN"
-              highLights={anywhereList}
-              className="w-full text-xs text-gray-400"
-            />
+            <TempItem value={book.isbn} label="ISBN" highLights={anywhereList} className="w-full text-xs" />
           </div>
         </div>
       </>

@@ -1,8 +1,7 @@
 import type { Isbn13 } from '@/types/book.ts';
 import Quagga from '@ericblade/quagga2';
 import { Volume2, VolumeOff } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
-// eslint-disable-next-line import/no-named-as-default
+import { useCallback, useEffect, useRef, useState } from 'react'; // eslint-disable-next-line import/no-named-as-default
 import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
 import se01 from '@/assets/se01.mp3';
@@ -180,12 +179,12 @@ export default function CameraView() {
   }, [setVolume, volume]);
 
   return (
-    <div className="flex flex-col items-center justify-normal bg-background rounded-lg shadow-lg p-1 relative">
+    <div className="flex flex-col items-center justify-normal bg-background p-1 relative">
       {error ? <div style={{ color: 'red', marginBottom: '20px' }}>エラー: {error}</div> : null}
 
       {stream && isScanning ? (
         <Button
-          className="absolute bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40"
+          className="absolute outline-white outline bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40"
           size="icon"
           variant="outline"
           onClick={toggleVolume}

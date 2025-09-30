@@ -16,13 +16,20 @@ type Props = {
 export default function BookStatusParts({ onClick, zIndex, className, label, isFirst }: Props) {
   const [hover, setHover] = useState(false);
 
+  const polygons = [
+    '0 0',
+    'calc(100% - 23px) 0',
+    '100% 50%',
+    'calc(100% - 23px) 100%',
+    '0 100%',
+    isFirst ? null : '23px 50%',
+  ];
+  const clipPath = `polygon(${polygons.filter(Boolean).join(', ')})`;
+
   return (
     <div
-      className={cn('relative flex h-full -mr-6')}
-      style={{
-        clipPath: 'polygon(0 0, calc(100% - 23px) 0, 100% 50%, calc(100% - 23px) 100%, 0 100%)',
-        zIndex,
-      }}
+      className={cn('relative flex h-full -mr-6 overflow-hidden')}
+      style={{ clipPath, zIndex }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
@@ -32,12 +39,11 @@ export default function BookStatusParts({ onClick, zIndex, className, label, isF
       <div
         onClick={onClick}
         className={cn(BASE, 'z-10', FLEX, isFirst ? 'pl-2 min-w-6 max-w-6' : 'pl-8 min-w-12 max-w-12', className)}
-      ></div>
+      />
       <span
         className={cn(
           VERTICAL_TEXT,
-          'text-xs absolute z-30 inset-y-0 flex justify-center pointer-events-none',
-          isFirst ? 'left-2' : 'left-8'
+          'text-xs right-6 select-none absolute z-30 inset-y-0 flex justify-center pointer-events-none text-white'
         )}
       >
         {label}

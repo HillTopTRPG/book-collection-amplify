@@ -41,8 +41,6 @@ export default function FilterBlock({ scrollParentRef, fetchedBooks, filterSet, 
 
   return (
     <>
-      <Separator />
-
       {/* 検索条件入力欄 */}
       <SearchConditionsForm
         ref={searchConditionsRef}

@@ -40,16 +40,14 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
 
   return (
     <Form {...form}>
-      <form
-        onSubmit={form.handleSubmit(onSubmit)}
-        className="bg-background rounded-md flex flex-col w-full gap-1 items-stretch p-2"
-      >
+      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-background flex flex-col w-full items-stretch">
+        <div className="text-xs">国立国会図書館APIで検索</div>
         <FormField
           control={form.control}
           name="title"
           render={({ field }) => (
-            <FormItem className="flex items-center gap-2 space-y-0 flex-1">
-              <FormLabel>タイトル</FormLabel>
+            <FormItem className="flex items-center gap-1 space-y-0 flex-1 pb-1">
+              <FormLabel className="text-sm ml-4">タイトル</FormLabel>
               <div className="flex flex-col flex-1">
                 <FormControl>
                   <Input placeholder="タイトル" {...field} className="flex-1" />

@@ -68,10 +68,10 @@ export default function BookCardList({
                   <>
                     <Separator />
                     <div
-                      className="flex py-2 items-center justify-center cursor-pointer bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                      className="flex py-2 text-xs items-center justify-center cursor-pointer text-white bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
                       onClick={() => setOpenType?.('full')}
                     >
-                      全て表示する
+                      すべて表示する
                     </div>
                   </>
                 ) : null}

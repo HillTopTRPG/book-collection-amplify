@@ -41,8 +41,9 @@ export default function FilterSets({ scannedItemMapValue, selectedFilterSet, set
   );
 
   return (
-    <div className="flex flex-col gap-1">
-      <SelectBox options={options} value={selectedFilterSet} onChange={setSelectedFilterSet} />
+    <div className="flex flex-col bg-background px-2 pt-2 pb-5">
+      <div className="text-xs">検索条件セット</div>
+      <SelectBox className="ml-3 mb-5" options={options} value={selectedFilterSet} onChange={setSelectedFilterSet} />
       {fetchFullOptions && currentFilterSet?.type === 'temp' ? (
         <NdlOptionsForm
           defaultValues={fetchFullOptions}

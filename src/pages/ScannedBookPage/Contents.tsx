@@ -2,7 +2,7 @@ import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookDetail } from '@/types/book.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import BookCard from '@/components/Card/BookCard.tsx';
+import BookCardNavi from '@/pages/ScannedBookPage/FilterBlock/BookCardNavi.tsx';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
@@ -51,15 +51,19 @@ export default function Contents({ scannedItemMapValue }: Props) {
 
   return (
     <div className="flex flex-col w-full flex-1">
-      <div className="flex flex-col gap-3 py-3">
-        <div className="flex justify-center">
-          <BookCard bookDetail={scannedItemMapValue.bookDetail} />
+      <div className="flex flex-col gap-3 pt-3">
+        <div className="bg-background">
+          <BookCardNavi bookDetail={scannedItemMapValue.bookDetail} />
         </div>
         <FilterSets {...{ scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }} />
       </div>
-      {filterSet?.filters.map((_, orIndex) => (
-        <FilterBlock key={orIndex} {...{ scrollParentRef, filterSet, orIndex, fetchedBooks }} />
-      ))}
+
+      <div className="bg-background">
+        <div className="text-xs bg-background pl-2 z-[60]">さらに絞り込む</div>
+        {filterSet?.filters.map((_, orIndex) => (
+          <FilterBlock key={orIndex} {...{ scrollParentRef, filterSet, orIndex, fetchedBooks }} />
+        ))}
+      </div>
     </div>
   );
 }
