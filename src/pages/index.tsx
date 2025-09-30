@@ -3,7 +3,7 @@ import ScannedBookPage from '@/pages/ScannedBookPage';
 import CollectionPage from './CollectionPage';
 import Home from './Home';
 import MainLayout from './MainLayout';
-import ScannerPage from './ScannerPage';
+import ScanPage from './ScanPage';
 
 export default function Pages() {
   return (
@@ -12,7 +12,7 @@ export default function Pages() {
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
           <Route path="/scan/:maybeIsbn" element={<ScannedBookPage />} />
-          <Route path="/scan" element={<ScannerPage />} />
+          <Route path="/scan" element={<ScanPage />} />
           <Route path="/collection" element={<CollectionPage />} />
         </Route>
       </Routes>

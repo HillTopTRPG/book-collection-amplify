@@ -4,7 +4,7 @@ import type { ReactNode, RefObject } from 'react';
 import { ChevronsDownUp, ChevronsUpDown, UnfoldVertical } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import useDOMSize from '@/hooks/useDOMSize.ts';
-import NdlCardList from './NdlCardList.tsx';
+import BookCardList from './BookCardList.tsx';
 
 type CollapseOpenType = 'full' | 'collapse' | 'close';
 
@@ -21,8 +21,6 @@ type Props = {
   stickyTop: number;
   filterSet: FilterSet;
   orIndex: number;
-  selectedIsbn: string | null;
-  setSelectedIsbn: (isbn: string | null) => void;
   setContentHeight: (height: number) => void;
 };
 
@@ -33,8 +31,6 @@ export default function GroupByBlock({
   stickyTop,
   filterSet,
   orIndex,
-  selectedIsbn,
-  setSelectedIsbn,
   setContentHeight,
 }: Props) {
   const [stickyRef, stickySize] = useDOMSize();
@@ -102,10 +98,10 @@ export default function GroupByBlock({
       <div ref={contentRef} className="flex">
         <div className="bg-green-800 w-2" />
         <div className="flex flex-col flex-1">
-          <NdlCardList
+          <BookCardList
             countRef={countRef}
             bookDetails={list.map(({ bookDetail }) => bookDetail)}
-            {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn, openType, setOpenType }}
+            {...{ filterSet, orIndex, openType, setOpenType }}
           />
         </div>
       </div>

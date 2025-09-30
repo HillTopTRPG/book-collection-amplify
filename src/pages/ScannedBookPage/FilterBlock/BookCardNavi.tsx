@@ -1,12 +1,11 @@
 import type { BookStatus } from '@/store/subscriptionDataSlice.ts';
-import type { BookDetail } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { ComponentProps } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import BookCard from '@/components/Card/BookCard.tsx';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
 import { BookStatusEnum } from '@/store/subscriptionDataSlice.ts';
-import NdlCardStatusSelector from './NdlCardStatusSelector.tsx';
+import BookStatusSelector from './BookStatusSelector.tsx';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
@@ -16,12 +15,9 @@ const userPoolClient = generateClient<Schema>({
   authMode: 'userPool',
 });
 
-type Props = ComponentProps<typeof BookCard> & {
-  idx: number;
-  bookDetails: BookDetail[];
-};
+type Props = ComponentProps<typeof BookCard>;
 
-export default function NdlCardNavi(props: Props) {
+export default function BookCardNavi(props: Props) {
   const { getCollectionByIdInfo } = useIdInfo();
   const collection = props.bookDetail ? getCollectionByIdInfo(props.bookDetail.collection) : null;
   const value = collection?.meta.status ?? BookStatusEnum.Unregistered;
@@ -54,8 +50,8 @@ export default function NdlCardNavi(props: Props) {
   };
 
   return (
-    <div className="relative flex h-full w-full">
-      <NdlCardStatusSelector value={value} setValue={setValue} />
+    <div className="relative flex h-fit w-full">
+      <BookStatusSelector value={value} setValue={setValue} />
       <BookCard className="pl-8" {...props} />
     </div>
   );

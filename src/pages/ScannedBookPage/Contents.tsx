@@ -18,7 +18,6 @@ type Props = {
 export default function Contents({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
   const allBookDetails = useAppSelector(selectAllBookDetails);
-  const [selectedIsbn, setSelectedIsbn] = useState<string | null>(null);
   const scrollParentRef = useRef<HTMLDivElement>(document.getElementById('root') as HTMLDivElement);
   const { getFilterSetByIdInfo } = useIdInfo();
 
@@ -59,10 +58,7 @@ export default function Contents({ scannedItemMapValue }: Props) {
         <FilterSets {...{ scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }} />
       </div>
       {filterSet?.filters.map((_, orIndex) => (
-        <FilterBlock
-          key={orIndex}
-          {...{ scrollParentRef, filterSet, orIndex, fetchedBooks, selectedIsbn, setSelectedIsbn }}
-        />
+        <FilterBlock key={orIndex} {...{ scrollParentRef, filterSet, orIndex, fetchedBooks }} />
       ))}
     </div>
   );

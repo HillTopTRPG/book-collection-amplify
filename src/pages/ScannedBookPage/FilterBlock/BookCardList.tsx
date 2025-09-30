@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator.tsx';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { useAppDispatch } from '@/store/hooks.ts';
 import { setBookDetailDialogValue } from '@/store/uiSlice.ts';
-import NdlCardNavi from './NdlCardNavi.tsx';
+import BookCardNavi from './BookCardNavi.tsx';
 
 import '@m_three_ui/m3ripple/css';
 
@@ -16,20 +16,16 @@ type Props = {
   bookDetails: BookDetail[];
   filterSet: FilterSet;
   orIndex: number;
-  selectedIsbn: string | null;
-  setSelectedIsbn: (isbn: string | null) => void;
   openType?: 'collapse' | 'full' | 'close';
   setOpenType?: (openType: 'collapse' | 'full' | 'close') => void;
   setContentHeight?: (height: number) => void;
 };
 
-export default function NdlCardList({
+export default function BookCardList({
   countRef,
   bookDetails,
   filterSet,
   orIndex,
-  selectedIsbn,
-  setSelectedIsbn,
   openType,
   setOpenType,
   setContentHeight,
@@ -59,10 +55,8 @@ export default function NdlCardList({
                         className="absolute inset-0 bg-indigo-900"
                         style={{ opacity: 0.2 + (idx / bookDetails.length) * 0.6 }}
                       />
-                      <NdlCardNavi
-                        idx={idx}
-                        bookDetails={bookDetails}
-                        {...{ bookDetail, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
+                      <BookCardNavi
+                        {...{ bookDetail, filterSet, orIndex }}
                         onOpenBookDetail={() => {
                           dispatch(setBookDetailDialogValue(bookDetail));
                         }}

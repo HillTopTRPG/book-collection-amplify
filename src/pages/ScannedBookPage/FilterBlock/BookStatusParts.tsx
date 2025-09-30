@@ -13,7 +13,7 @@ type Props = {
   isFirst?: boolean;
 };
 
-export default function NdlCardStatus({ onClick, zIndex, className, label, isFirst }: Props) {
+export default function BookStatusParts({ onClick, zIndex, className, label, isFirst }: Props) {
   const [hover, setHover] = useState(false);
 
   return (

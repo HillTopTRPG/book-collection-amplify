@@ -7,8 +7,8 @@ import { useAppDispatch } from '@/store/hooks.ts';
 import { updateFetchedFilterAnywhere } from '@/store/subscriptionDataSlice.ts';
 import { getFilteredItems } from '@/utils/filter.ts';
 import { groupByVolume } from '@/utils/groupByVolume.ts';
+import BookCardList from './BookCardList.tsx';
 import GroupByBlock from './GroupByBlock';
-import NdlCardList from './NdlCardList.tsx';
 import SearchConditionsForm from './SearchConditionsForm';
 
 const BOTTOM_NAVIGATION_HEIGHT = 65;
@@ -18,18 +18,9 @@ type Props = {
   fetchedBooks: BookDetail[];
   filterSet: FilterSet;
   orIndex: number;
-  selectedIsbn: string | null;
-  setSelectedIsbn: (isbn: string | null) => void;
 };
 
-export default function FilterBlock({
-  scrollParentRef,
-  fetchedBooks,
-  filterSet,
-  orIndex,
-  selectedIsbn,
-  setSelectedIsbn,
-}: Props) {
+export default function FilterBlock({ scrollParentRef, fetchedBooks, filterSet, orIndex }: Props) {
   const dispatch = useAppDispatch();
   const [searchConditionsRef, searchConditionsSize] = useDOMSize();
   const [contentHeight, setContentHeight] = useState(0);
@@ -61,11 +52,7 @@ export default function FilterBlock({
       {/* 書籍一覧 */}
       <div className="flex flex-col">
         {!filterSet.filters[orIndex].grouping ? (
-          <NdlCardList
-            bookDetails={filteredResults}
-            setContentHeight={setContentHeight}
-            {...{ filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
-          />
+          <BookCardList bookDetails={filteredResults} {...{ filterSet, orIndex, setContentHeight }} />
         ) : (
           groupedBooks.map((list, idx) => (
             <Fragment key={idx}>
@@ -73,7 +60,7 @@ export default function FilterBlock({
               <GroupByBlock
                 stickyTop={searchConditionsSize.height}
                 setContentHeight={setContentHeight}
-                {...{ scrollParentRef, list, idx, filterSet, orIndex, selectedIsbn, setSelectedIsbn }}
+                {...{ scrollParentRef, list, idx, filterSet, orIndex }}
               />
             </Fragment>
           ))

@@ -5,10 +5,10 @@ import { generateClient } from 'aws-amplify/data';
 import { Fragment, useCallback, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import BookCard from '@/components/Card/BookCard.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useToast } from '@/hooks/use-toast.ts';
+import BookCardNavi from '@/pages/ScannedBookPage/FilterBlock/BookCardNavi.tsx';
 import { useAppSelector } from '@/store/hooks.ts';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
 import { clearScanViewList, selectScanResultList } from '@/store/scannerSlice.ts';
@@ -93,8 +93,8 @@ export default function ScannedResults() {
       <ScrollArea className="w-full max-h-max px-1">
         {scanResultList.map(({ result }, index) => (
           <Fragment key={index}>
-            {index > 0 && <Separator className="my-2" />}
-            <BookCard
+            {index > 0 && <Separator />}
+            <BookCardNavi
               bookDetail={result?.bookDetail ?? null}
               onClick={isbn => {
                 console.log(isbn);
