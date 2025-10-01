@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils.ts';
 
@@ -9,7 +10,7 @@ type Props = {
   onClick: () => void;
   zIndex: number;
   className: string;
-  label: string;
+  label: ReactNode;
   isFirst?: boolean;
 };
 
@@ -43,7 +44,7 @@ export default function BookStatusParts({ onClick, zIndex, className, label, isF
       <span
         className={cn(
           VERTICAL_TEXT,
-          'text-xs right-6 select-none absolute z-30 inset-y-0 flex justify-center pointer-events-none text-white'
+          'text-xs right-8 select-none absolute z-30 inset-y-0 flex justify-center pointer-events-none text-white translate-x-1/2'
         )}
       >
         {label}

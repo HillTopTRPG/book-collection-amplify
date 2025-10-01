@@ -1,4 +1,4 @@
-import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
+import {a, type ClientSchema, defineData} from '@aws-amplify/backend'
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -9,6 +9,7 @@ specifies that any user authenticated via an API key can "create", "read",
 const schema = a.schema({
   Collection: a
     .model({
+      traceId: a.string().required(),
       isbn: a.string().required(),
       meta: a.string().required(),
       memo: a.string(),
@@ -17,6 +18,7 @@ const schema = a.schema({
     .authorization((allow) => [allow.owner()]),
   FilterSet: a
     .model({
+      traceId: a.string().required(),
       name: a.string().required(),
       fetch: a.string().required(),
       filters: a.string().required(),
