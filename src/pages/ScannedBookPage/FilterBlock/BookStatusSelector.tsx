@@ -26,7 +26,7 @@ export default function BookStatusSelector({ bookDetail }: Props) {
   const toEdit = () => {
     setEditing(!editing);
   };
-  const onSetValue = (value: BookStatus) => () => {
+  const handleSetValue = (value: BookStatus) => () => {
     setEditing(false);
     setValue(value);
   };
@@ -93,7 +93,7 @@ export default function BookStatusSelector({ bookDetail }: Props) {
                   position: 'relative',
                 }}
               >
-                <BookStatusParts {...item} zIndex={10 - idx} onClick={onSetValue(item.val)} />
+                <BookStatusParts {...item} zIndex={10 - idx} onClick={handleSetValue(item.val)} />
               </motion.div>
             ))
           : null}

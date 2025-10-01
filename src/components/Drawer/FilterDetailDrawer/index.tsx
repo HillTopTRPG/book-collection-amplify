@@ -25,13 +25,13 @@ export default function FilterDetailDrawer() {
   //   });
   // }, [dispatch, filterSet, filterSetId]);
 
-  const onClose = useCallback(() => {
+  const handleCloseDrawer = useCallback(() => {
     dispatch(closeDrawer());
   }, [dispatch]);
 
   const { isVisible, shouldRender, handleClose } = useDrawerAnimation({
     isOpen: Boolean(filterSet?.id),
-    onClose,
+    onClose: handleCloseDrawer,
     animationDuration: 300,
   });
 

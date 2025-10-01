@@ -1,8 +1,10 @@
+// import { v4 as uuidv4 } from 'uuid';
+import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { ListFilterPlus } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import SelectBox from '@/components/SelectBox.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { useAppDispatch } from '@/store/hooks.ts';
@@ -43,6 +45,34 @@ export default function FilterSets({ scannedItemMapValue, selectedFilterSet, set
     [getFilterSetByIdInfo, scannedItemMapValue.filterSets]
   );
 
+  const handleOptionsChange = useCallback(
+    (fetch: NdlFullOptions) => {
+      dispatch(updateTempFilterSetOption({ id: selectedFilterSet, fetch }));
+    },
+    [dispatch, selectedFilterSet]
+  );
+
+  // const handleFilterSetCreate = useCallback(() => {
+  //   const { book, collection } = scannedItemMapValue.bookDetail;
+  //   if (collection.type !== 'db') return;
+  //   const tempFilterSet: FilterSet = {
+  //     id: uuidv4(),
+  //     name: book.title || '無名のフィルター',
+  //     fetch: {
+  //       title: book.title || '無名',
+  //       publisher: book.publisher ?? '',
+  //       creator: book.creator?.at(0) ?? '',
+  //       usePublisher: true,
+  //       useCreator: true,
+  //     },
+  //     collectionId: collection.id,
+  //     filters: [{ list: [{ keyword: '', sign: '*=' }], grouping: 'date' }],
+  //     createdAt: '',
+  //     updatedAt: '',
+  //     owner: '',
+  //   };
+  // }, [scannedItemMapValue.bookDetail]);
+
   return (
     <div className="flex flex-col items-start bg-background px-2 pt-2 pb-5">
       <div className="text-xs">検索条件セット</div>
@@ -54,12 +84,7 @@ export default function FilterSets({ scannedItemMapValue, selectedFilterSet, set
         新規追加
       </Button>
       {fetchFullOptions && currentFilterSet?.type === 'temp' ? (
-        <NdlOptionsForm
-          defaultValues={fetchFullOptions}
-          onChange={fetch => {
-            dispatch(updateTempFilterSetOption({ id: selectedFilterSet, fetch }));
-          }}
-        />
+        <NdlOptionsForm defaultValues={fetchFullOptions} onChange={handleOptionsChange} />
       ) : null}
     </div>
   );

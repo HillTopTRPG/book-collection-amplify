@@ -32,6 +32,16 @@ export default function BookCard({
 }: Props) {
   const isbn = bookDetail?.book.isbn ?? null;
 
+  const handleImageClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (onOpenBookDetail) {
+        onOpenBookDetail(isbn);
+        e.stopPropagation();
+      }
+    },
+    [onOpenBookDetail, isbn]
+  );
+
   const content = useMemo(() => {
     const book = bookDetail?.book;
     if (!book) return <Spinner variant="bars" />;
@@ -59,15 +69,7 @@ export default function BookCard({
           ))}
         </div>
         <div className="flex items-stretch w-full gap-1.5">
-          <BookImage
-            isbn={isbn}
-            onClick={e => {
-              if (onOpenBookDetail) {
-                onOpenBookDetail(isbn);
-                e.stopPropagation();
-              }
-            }}
-          />
+          <BookImage isbn={isbn} onClick={handleImageClick} />
           <div className="flex items-baseline flex-wrap gap-x-3 flex-1 pl-1.5 relative">
             <div className="w-full flex items-baseline flex-wrap gap-x-3">
               <TempItem
@@ -100,7 +102,7 @@ export default function BookCard({
         </div>
       </>
     );
-  }, [bookDetail?.book, filterSet?.fetch, filterSet?.filters, isbn, onOpenBookDetail, orIndex]);
+  }, [bookDetail?.book, filterSet?.fetch, filterSet?.filters, isbn, handleImageClick, orIndex]);
 
   const onClickWrap = useCallback(() => {
     if (!isbn) return;

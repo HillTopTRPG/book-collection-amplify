@@ -39,6 +39,14 @@ export default function FilterBlock({ scrollParentRef, fetchedBooks, filterSet, 
     [dispatch, filterSet.filters, filterSet.id, orIndex]
   );
 
+  const minHeightStyle = useMemo(
+    () =>
+      ({
+        '--content-end-y': `${searchConditionsSize.height + contentHeight + BOTTOM_NAVIGATION_HEIGHT}px`,
+      }) as CSSProperties,
+    [searchConditionsSize.height, contentHeight]
+  );
+
   return (
     <>
       {/* 検索条件入力欄 */}
@@ -64,14 +72,7 @@ export default function FilterBlock({ scrollParentRef, fetchedBooks, filterSet, 
           ))
         )}
       </div>
-      <div
-        className="min-h-viewport-with-offset"
-        style={
-          {
-            '--content-end-y': `${searchConditionsSize.height + contentHeight + BOTTOM_NAVIGATION_HEIGHT}px`,
-          } as CSSProperties
-        }
-      />
+      <div className="min-h-viewport-with-offset" style={minHeightStyle} />
     </>
   );
 }

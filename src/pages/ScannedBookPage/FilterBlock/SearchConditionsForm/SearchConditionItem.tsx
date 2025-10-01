@@ -1,7 +1,7 @@
 import type { SelectBoxOption } from '@/components/SelectBox.tsx';
 import type { FilterSet, Sign } from '@/store/subscriptionDataSlice.ts';
 import type { BookData, BookDetail } from '@/types/book.ts';
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import ComboInput from '@/components/ComboInput.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
 import { useAppDispatch } from '@/store/hooks.ts';
@@ -101,45 +101,53 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetc
     );
   }, [fetchedBooks]);
 
-  const updateSign = (sign: Sign) => {
-    const newFilters = structuredClone(filterSet.filters);
-    newFilters[orIndex].list[andIndex].sign = sign;
-    dispatch(updateFetchedFilterAnywhere({ id: filterSet.id, filters: newFilters }));
-  };
+  const updateSign = useCallback(
+    (sign: Sign) => {
+      const newFilters = structuredClone(filterSet.filters);
+      newFilters[orIndex].list[andIndex].sign = sign;
+      dispatch(updateFetchedFilterAnywhere({ id: filterSet.id, filters: newFilters }));
+    },
+    [filterSet.filters, filterSet.id, orIndex, andIndex, dispatch]
+  );
 
-  const updateAnywhere = (keyword: string) => {
-    const newFilters = structuredClone(filterSet.filters);
+  const updateAnywhere = useCallback(
+    (keyword: string) => {
+      const newFilters = structuredClone(filterSet.filters);
 
-    // ANDブロックのための処理
-    if (!keyword && andIndex < newFilters[orIndex].list.length - 1) {
-      const res = newFilters[orIndex].list.splice(andIndex, 1);
-      if (!newFilters[orIndex].list[andIndex].keyword.trim()) {
-        newFilters[orIndex].list[andIndex].sign = res[0].sign;
-      }
-    } else {
-      if (keyword && andIndex === newFilters[orIndex].list.length - 1) {
-        newFilters[orIndex].list.push({ keyword: '', sign: '*=' });
-      }
-      newFilters[orIndex].list[andIndex].keyword = keyword.trim();
-    }
-
-    if (orIndex === 0) {
-      // プライマリブロックのための処理
-      if (newFilters.length === 1 && newFilters[orIndex].list[0]) {
-        newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: 'date' });
-      }
-    } else {
-      // ORブロックのための処理
-      if (orIndex < newFilters.length - 1 && !newFilters[orIndex].list[0]) {
-        newFilters.splice(orIndex, 1);
+      // ANDブロックのための処理
+      if (!keyword && andIndex < newFilters[orIndex].list.length - 1) {
+        const res = newFilters[orIndex].list.splice(andIndex, 1);
+        if (!newFilters[orIndex].list[andIndex].keyword.trim()) {
+          newFilters[orIndex].list[andIndex].sign = res[0].sign;
+        }
       } else {
-        if (orIndex === newFilters.length - 1 && newFilters[orIndex].list[0]) {
+        if (keyword && andIndex === newFilters[orIndex].list.length - 1) {
+          newFilters[orIndex].list.push({ keyword: '', sign: '*=' });
+        }
+        newFilters[orIndex].list[andIndex].keyword = keyword.trim();
+      }
+
+      if (orIndex === 0) {
+        // プライマリブロックのための処理
+        if (newFilters.length === 1 && newFilters[orIndex].list[0]) {
           newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: 'date' });
         }
+      } else {
+        // ORブロックのための処理
+        if (orIndex < newFilters.length - 1 && !newFilters[orIndex].list[0]) {
+          newFilters.splice(orIndex, 1);
+        } else {
+          if (orIndex === newFilters.length - 1 && newFilters[orIndex].list[0]) {
+            newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: 'date' });
+          }
+        }
       }
-    }
-    dispatch(updateFetchedFilterAnywhere({ id: filterSet.id, filters: newFilters }));
-  };
+      dispatch(updateFetchedFilterAnywhere({ id: filterSet.id, filters: newFilters }));
+    },
+    [filterSet.filters, filterSet.id, orIndex, andIndex, dispatch]
+  );
+
+  const comboInputList = useMemo(() => options.map(o => ({ label: o, value: o })), [options]);
 
   return (
     <div className="flex items-center">
@@ -147,7 +155,7 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetc
       <ComboInput
         label="キーワード検索"
         className="flex-1"
-        list={options.map(o => ({ label: o, value: o }))}
+        list={comboInputList}
         value={condition.keyword}
         setValue={updateAnywhere}
       />

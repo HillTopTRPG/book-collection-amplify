@@ -11,12 +11,12 @@ type Props = {
 export default function FilterCard({ filterSet }: Props) {
   const dispatch = useAppDispatch();
 
-  const onClick = useCallback(() => {
+  const handleClick = useCallback(() => {
     dispatch(openDrawer(filterSet.id));
   }, [filterSet.id, dispatch]);
 
   return (
-    <CardFrame onClick={onClick}>
+    <CardFrame onClick={handleClick}>
       <h5 className="text-[14px] mb-1">{filterSet.name}</h5>
     </CardFrame>
   );

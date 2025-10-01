@@ -33,7 +33,7 @@ export default function IsbnForm() {
     mode: 'onChange',
   });
 
-  const onSubmit = useCallback(
+  const handleSubmit = useCallback(
     (data: z.infer<typeof FormSchema>) => {
       const maybeIsbn = getIsbnCode(data.isbn);
       if (!maybeIsbn) return;
@@ -62,7 +62,7 @@ export default function IsbnForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-background px-3 flex items-center gap-1">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="bg-background px-3 flex items-center gap-1">
         <FormField
           control={form.control}
           name="isbn"

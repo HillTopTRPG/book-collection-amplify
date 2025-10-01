@@ -15,13 +15,13 @@ import BookDetailDialogContent from './BookDetailDialogContent.tsx';
 export default function BookDetailDialog() {
   const dispatch = useAppDispatch();
   const bookDetail = useAppSelector(selectBookDetailDialogValue);
-  const onClose = () => {
+  const handleClose = () => {
     dispatch(setBookDetailDialogValue(null));
   };
   const book = bookDetail?.book;
 
   return (
-    <Dialog open={Boolean(book)} onOpenChange={onClose}>
+    <Dialog open={Boolean(book)} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px] max-h-[90svh] overflow-scroll z-[1001]">
         <DialogHeader>
           <DialogTitle>

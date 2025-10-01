@@ -2,7 +2,7 @@ import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookGroup } from '@/utils/groupByVolume';
 import type { ReactNode, RefObject } from 'react';
 import { ChevronsDownUp, ChevronsUpDown, UnfoldVertical } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import BookCardList from './BookCardList.tsx';
 
@@ -62,7 +62,7 @@ export default function GroupByBlock({
     [scrollParentRef, stickyRef]
   );
 
-  const onOpenChange = useCallback(() => {
+  const handleOpenChange = useCallback(() => {
     if (openType === 'full') {
       setOpenType('close');
 
@@ -80,13 +80,17 @@ export default function GroupByBlock({
     }
   }, [contentRef, list.length, openType, scrollToRef]);
 
+  const bookDetails = useMemo(() => list.map(({ bookDetail }) => bookDetail), [list]);
+
+  const stickyStyle = useMemo(() => ({ top: stickyTop }), [stickyTop]);
+
   return (
     <>
       <div
         ref={stickyRef}
         className="flex bg-green-800 text-white px-2 py-1 sticky z-[10] cursor-pointer"
-        style={{ top: stickyTop }}
-        onClick={onOpenChange}
+        style={stickyStyle}
+        onClick={handleOpenChange}
       >
         <div ref={headerRef} className="flex-1">
           {list[0].volume === -1
@@ -100,7 +104,7 @@ export default function GroupByBlock({
         <div className="flex flex-col flex-1" style={{ maxWidth: 'calc(100% - 0.5rem)' }}>
           <BookCardList
             countRef={countRef}
-            bookDetails={list.map(({ bookDetail }) => bookDetail)}
+            bookDetails={bookDetails}
             {...{ filterSet, orIndex, openType, setOpenType }}
           />
         </div>

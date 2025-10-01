@@ -1,6 +1,8 @@
 import type { AppDispatch } from '@/store';
+import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
+import type { Isbn13 } from '@/types/book.ts';
 import { ScrollArea } from '@radix-ui/react-scroll-area';
-import { Fragment, useCallback } from 'react';
+import { Fragment, memo, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button.tsx';
@@ -10,9 +12,40 @@ import { useAppSelector } from '@/store/hooks.ts';
 import { clearScanViewList, selectScanResultList } from '@/store/scannerSlice.ts';
 import { setBookDetailDialogValue } from '@/store/uiSlice.ts';
 
-export default function ScannedResults() {
+type ScanResultItemType = {
+  isbn: Isbn13;
+  status: 'loading' | 'none' | 'done';
+  result: ScannedItemMapValue | null;
+};
+
+const ScanResultItem = memo(({ result, index }: { result: ScanResultItemType; index: number }) => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
+
+  const handleClick = useCallback(() => {
+    console.log(result.result?.isbn);
+    navigate(`/scan/${result.result?.isbn}`);
+  }, [navigate, result.result?.isbn]);
+
+  const handleOpenDetail = useCallback(() => {
+    dispatch(setBookDetailDialogValue(result.result?.bookDetail ?? null));
+  }, [dispatch, result.result?.bookDetail]);
+
+  return (
+    <Fragment>
+      {index > 0 && <Separator />}
+      <BookCardNavi
+        bookDetail={result.result?.bookDetail ?? null}
+        onClick={handleClick}
+        onOpenBookDetail={handleOpenDetail}
+      />
+    </Fragment>
+  );
+});
+ScanResultItem.displayName = 'ScanResultItem';
+
+export default function ScannedResults() {
+  const dispatch = useDispatch<AppDispatch>();
   const scanResultList = useAppSelector(selectScanResultList);
 
   const clearDisable = !scanResultList.length;
@@ -70,20 +103,8 @@ export default function ScannedResults() {
       </div>
       <Separator />
       <ScrollArea className="w-full max-h-max">
-        {scanResultList.map(({ result }, index) => (
-          <Fragment key={index}>
-            {index > 0 && <Separator />}
-            <BookCardNavi
-              bookDetail={result?.bookDetail ?? null}
-              onClick={isbn => {
-                console.log(isbn);
-                navigate(`/scan/${result?.isbn}`);
-              }}
-              onOpenBookDetail={() => {
-                dispatch(setBookDetailDialogValue(result?.bookDetail ?? null));
-              }}
-            />
-          </Fragment>
+        {scanResultList.map((result, index) => (
+          <ScanResultItem key={index} result={result} index={index} />
         ))}
         {!scanResultList.length && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}
       </ScrollArea>

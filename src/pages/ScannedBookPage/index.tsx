@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import Contents from '@/pages/ScannedBookPage/Contents.tsx';
 import { useAppSelector } from '@/store/hooks.ts';
@@ -9,11 +10,7 @@ export default function ScannedBookPage() {
   const maybeIsbn = getIsbnCode(raw);
   const scanResultList = useAppSelector(selectScanResultList);
 
-  if (!maybeIsbn) {
-    return <div>ISBNコードを指定してください。</div>;
-  }
-
-  const content = (() => {
+  const content = useMemo(() => {
     if (!maybeIsbn) {
       return <div>ISBNコードを指定してください。</div>;
     }
@@ -26,7 +23,7 @@ export default function ScannedBookPage() {
       return <div>読み込み中...</div>;
     }
     return <Contents scannedItemMapValue={selected.result} />;
-  })();
+  }, [maybeIsbn, scanResultList]);
 
   return <div className="flex flex-col w-full flex-1 gap-4">{content}</div>;
 }
