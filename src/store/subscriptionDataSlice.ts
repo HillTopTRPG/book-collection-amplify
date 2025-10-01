@@ -53,7 +53,6 @@ type State = {
   tempCollections: Collection[];
   filterSets: FilterSet[];
   tempFilterSets: FilterSet[];
-  createFilterSet: Schema['FilterSet']['type'] | null;
   updatingCollectionIsbnList: Isbn13[];
 };
 
@@ -62,7 +61,6 @@ const initialState: State = {
   tempCollections: [],
   filterSets: [],
   tempFilterSets: [],
-  createFilterSet: null,
   updatingCollectionIsbnList: [],
 } as const;
 
@@ -91,7 +89,6 @@ export const subscriptionDataSlice = createSlice({
     addTempFilterSets: (state, action: PayloadAction<FilterSet[]>) => {
       state.tempFilterSets.push(...action.payload);
     },
-    setCreateFilterSet: createSimpleReducers('createFilterSet'),
     updateTempFilterSetOption: (state, action: PayloadAction<{ id: string; fetch: NdlFullOptions }>) => {
       const id = action.payload.id;
       const filterSet = state.tempFilterSets.find(filterMatch({ id }));
@@ -116,7 +113,6 @@ export const {
   addTempCollections,
   setFilterSets,
   addTempFilterSets,
-  setCreateFilterSet,
   updateTempFilterSetOption,
   updateFetchedFilterAnywhere,
   addUpdatingCollectionIsbnList,
@@ -127,7 +123,6 @@ export const selectTempCollections = simpleSelector('subscriptionData', 'tempCol
 export const selectFilterSets = simpleSelector('subscriptionData', 'filterSets');
 export const selectTempFilterSets = simpleSelector('subscriptionData', 'tempFilterSets');
 /** フィルターセットをDBに登録した直後にそのIDを取得するための特別なもの */
-export const selectCreateFilterSet = simpleSelector('subscriptionData', 'createFilterSet');
 export const selectUpdatingCollectionIsbnList = simpleSelector('subscriptionData', 'updatingCollectionIsbnList');
 
 export default subscriptionDataSlice.reducer;

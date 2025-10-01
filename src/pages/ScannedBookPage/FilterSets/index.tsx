@@ -1,8 +1,10 @@
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
+import { ListFilterPlus } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import SelectBox from '@/components/SelectBox.tsx';
+import { Button } from '@/components/ui/button.tsx';
 import { useAppDispatch } from '@/store/hooks.ts';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
 import { updateTempFilterSetOption } from '@/store/subscriptionDataSlice.ts';
@@ -42,11 +44,15 @@ export default function FilterSets({ scannedItemMapValue, selectedFilterSet, set
   );
 
   return (
-    <div className="flex flex-col bg-background px-2 pt-2 pb-5">
+    <div className="flex flex-col items-start bg-background px-2 pt-2 pb-5">
       <div className="text-xs">検索条件セット</div>
       {getKeys(options).length ? (
         <SelectBox className="ml-3 mb-5" options={options} value={selectedFilterSet} onChange={setSelectedFilterSet} />
       ) : null}
+      <Button size="sm" className="ml-4" onClick={() => {}}>
+        <ListFilterPlus />
+        新規追加
+      </Button>
       {fetchFullOptions && currentFilterSet?.type === 'temp' ? (
         <NdlOptionsForm
           defaultValues={fetchFullOptions}
