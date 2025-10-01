@@ -45,20 +45,16 @@ export default function useScanQueueProcessor({
       if (!ndlSearchQueueResult.length) {
         return acc;
       }
-      const { tempCollection, tempFilterSet } = getScannedItemMapValueByBookData(
+      const { tempCollection } = getScannedItemMapValueByBookData(
         ndlSearchQueueResult[0],
         collections,
         tempCollections,
         filterSets,
-        tempFilterSets,
         allNdlSearchQueueResults
       );
 
       if (tempCollection) {
         tempCollections.push(tempCollection);
-      }
-      if (tempFilterSet) {
-        tempFilterSets.push(tempFilterSet);
       }
 
       acc.set(isbn, ndlSearchQueueResult[0]);

@@ -12,46 +12,39 @@ export const getScannedItemMapValueByBookData = (
   dbCollections: Collection[],
   tempCollections: Collection[],
   dbFilterSets: FilterSet[],
-  tempFilterSets: FilterSet[],
   allNdlSearchResults: Record<string, BookData[]>
-): { scannedItemMapValue: ScannedItemMapValue; tempCollection: Collection | null; tempFilterSet: FilterSet | null } => {
+): { scannedItemMapValue: ScannedItemMapValue; tempCollection: Collection | null } => {
   const isbn = book.isbn;
   const collection = dbCollections.find(filterMatch({ isbn }));
   const tempCollection: Collection = tempCollections.find(filterMatch({ isbn })) ?? {
     id: uuidv4(),
     isbn,
-    meta: { status: 'Unregistered' },
+    status: 'Unregistered',
     createdAt: '',
     updatedAt: '',
     owner: '',
   };
-  const tempFilterSet: FilterSet = tempFilterSets.find(({ primary }) => primary === isbn) ?? {
-    id: uuidv4(),
-    name: book.title ?? '無名のフィルター',
-    fetch: {
-      title: book.title ?? '無名',
-      publisher: book.publisher ?? '',
-      creator: book.creator?.at(0) ?? '',
-      usePublisher: true,
-      useCreator: true,
-    },
-    filters: [{ list: [{ keyword: '', sign: '*=' }], grouping: 'date' }],
-    primary: isbn,
-    createdAt: '',
-    updatedAt: '',
-    owner: '',
-  };
+  // const tempFilterSet: FilterSet = {
+  //   id: uuidv4(),
+  //   name: book.title ?? '無名のフィルター',
+  //   fetch: {
+  //     title: book.title ?? '無名',
+  //     publisher: book.publisher ?? '',
+  //     creator: book.creator?.at(0) ?? '',
+  //     usePublisher: true,
+  //     useCreator: true,
+  //   },
+  //   filters: [{ list: [{ keyword: '', sign: '*=' }], grouping: 'date' }],
+  //   createdAt: '',
+  //   updatedAt: '',
+  //   owner: '',
+  // };
   const filterSets: IdInfo[] = dbFilterSets.flatMap(filterSet => {
     const key = JSON.stringify(filterSet.fetch);
     const result = key in allNdlSearchResults ? allNdlSearchResults[key] : [];
 
     return result.some(filterMatch({ isbn })) ? [{ type: 'db', id: filterSet.id }] : [];
   });
-
-  const isUseTempFilterSet = !filterSets.length;
-  if (isUseTempFilterSet) {
-    filterSets.push({ type: 'temp', id: tempFilterSet.id });
-  }
 
   const scannedItemMapValue: ScannedItemMapValue = {
     isbn,
@@ -68,7 +61,6 @@ export const getScannedItemMapValueByBookData = (
   return {
     scannedItemMapValue,
     tempCollection: collection ? null : tempCollection,
-    tempFilterSet: isUseTempFilterSet ? tempFilterSet : null,
   };
 };
 

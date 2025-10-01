@@ -9,21 +9,15 @@ specifies that any user authenticated via an API key can "create", "read",
 const schema = a.schema({
   Collection: a
     .model({
-      traceId: a.string().required(),
       isbn: a.string().required(),
-      meta: a.string().required(),
-      memo: a.string(),
-      owner: a.string(),
+      status: a.string().required(),
     })
     .authorization((allow) => [allow.owner()]),
   FilterSet: a
     .model({
-      traceId: a.string().required(),
       name: a.string().required(),
       fetch: a.string().required(),
       filters: a.string().required(),
-      primary: a.string().required(),
-      owner: a.string(),
     })
     .authorization((allow) => [allow.owner()]),
 });

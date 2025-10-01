@@ -1,19 +1,15 @@
-import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
-import type { Collection, FilterAndGroup } from '@/store/subscriptionDataSlice.ts';
-import type { Isbn13 } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import type { ReactNode } from 'react';
 import { generateClient } from 'aws-amplify/data';
 import { useEffect, useRef } from 'react';
+import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import {
-  BookStatusEnum,
   selectCreateFilterSet,
   setCollections,
   setCreateFilterSet,
   setFilterSets,
 } from '@/store/subscriptionDataSlice.ts';
-import { getIsbn13 } from '@/utils/isbn.ts';
 
 const userPoolClient = generateClient<Schema>({
   authMode: 'userPool',
@@ -27,6 +23,7 @@ export default function SubscribeLayer({ children }: Props) {
   const dispatch = useAppDispatch();
   const createFilterSet = useAppSelector(selectCreateFilterSet);
   const nextFilterSetNameRef = useRef<string | null>(null);
+  const { makeCollectionByDb, makeFilterSetByDb } = useAwsAccess();
 
   // FilterSet 新規作成処理
   useEffect(() => {
@@ -41,31 +38,12 @@ export default function SubscribeLayer({ children }: Props) {
   useEffect(() => {
     const collectionSubscription = userPoolClient.models.Collection.observeQuery().subscribe({
       next: data => {
-        const items = structuredClone(data.items).map(item => {
-          const isbn = item.isbn as Isbn13;
-          const meta = JSON.parse(item.meta.trim() || '{}');
-          if (!('status' in meta)) meta.status = BookStatusEnum.Unregistered;
-          return {
-            ...item,
-            isbn,
-            meta: meta as Collection['meta'],
-          } as const satisfies Collection;
-        });
-        dispatch(setCollections(items));
+        dispatch(setCollections(structuredClone(data.items).map(makeCollectionByDb)));
       },
     });
     const filterSetSubscription = userPoolClient.models.FilterSet.observeQuery().subscribe({
       next: data => {
-        dispatch(
-          setFilterSets(
-            structuredClone(data.items).map(item => ({
-              ...item,
-              fetch: JSON.parse(item.fetch.trim() || '{}') as NdlFullOptions,
-              filters: JSON.parse(item.filters.trim() || '[]') as FilterAndGroup[],
-              primary: getIsbn13(item.primary),
-            }))
-          )
-        );
+        dispatch(setFilterSets(structuredClone(data.items).map(makeFilterSetByDb)));
       },
     });
 
@@ -73,7 +51,7 @@ export default function SubscribeLayer({ children }: Props) {
       collectionSubscription.unsubscribe();
       filterSetSubscription.unsubscribe();
     };
-  }, [dispatch]);
+  }, [dispatch, makeCollectionByDb, makeFilterSetByDb]);
 
   return children;
 }

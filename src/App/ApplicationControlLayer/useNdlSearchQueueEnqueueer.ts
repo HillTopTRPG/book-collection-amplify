@@ -89,7 +89,7 @@ export default function useNdlSearchQueueEnqueueer({ collections, tempCollection
               _tempCollections.push({
                 id: uuidv4(),
                 isbn,
-                meta: { status: 'Unregistered' },
+                status: 'Unregistered',
                 createdAt: '',
                 updatedAt: '',
                 owner: '',

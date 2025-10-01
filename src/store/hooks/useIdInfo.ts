@@ -15,8 +15,8 @@ export default function useIdInfo() {
   const collections = useAppSelector(selectCollections);
   const tempCollections = useAppSelector(selectTempCollections);
 
-  const getFilterSetByIdInfo = ({ type, id }: IdInfo): FilterSet =>
-    type === 'db' ? filterSets.find(filterMatch({ id }))! : tempFilterSets.find(filterMatch({ id }))!;
+  const getFilterSetByIdInfo = ({ type, id }: IdInfo): FilterSet | null =>
+    type === 'db' ? (filterSets.find(filterMatch({ id })) ?? null) : (tempFilterSets.find(filterMatch({ id })) ?? null);
 
   const getCollectionByIdInfo = ({ type, id }: IdInfo): Collection =>
     type === 'db' ? collections.find(filterMatch({ id }))! : tempCollections.find(filterMatch({ id }))!;

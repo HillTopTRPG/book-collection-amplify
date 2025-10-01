@@ -4,8 +4,7 @@ import type { BookData, BookDetail } from '@/types/book.ts';
 import { useMemo } from 'react';
 import ComboInput from '@/components/ComboInput.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
-import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectFetchedAllBooks } from '@/store/ndlSearchSlice.ts';
+import { useAppDispatch } from '@/store/hooks.ts';
 import { updateFetchedFilterAnywhere } from '@/store/subscriptionDataSlice.ts';
 import { removeNumberText, unique } from '@/utils/primitive.ts';
 import { getKeys } from '@/utils/type.ts';
@@ -68,9 +67,7 @@ type Props = {
 
 export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetchedBooks }: Props) {
   const dispatch = useAppDispatch();
-  const allBooks = useAppSelector(selectFetchedAllBooks);
 
-  const primaryBook = allBooks.find(bookDetail => bookDetail.book.isbn === filterSet.primary) ?? null;
   const condition = filterSet.filters[orIndex].list[andIndex];
 
   const isPrimeFirst = !orIndex && !andIndex;
@@ -93,10 +90,6 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetc
         ndc: [],
       };
 
-      if (primaryBook && isPrimeFirst) {
-        return setKeywords(obj, primaryBook);
-      }
-
       return fetchedBooks.reduce<KeywordInfo>(setKeywords, obj);
     })();
 
@@ -106,7 +99,7 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetc
         return acc;
       }, [])
     );
-  }, [fetchedBooks, isPrimeFirst, primaryBook]);
+  }, [fetchedBooks]);
 
   const updateSign = (sign: Sign) => {
     const newFilters = structuredClone(filterSet.filters);

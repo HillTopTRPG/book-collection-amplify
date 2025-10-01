@@ -1,17 +1,12 @@
 import type { BookStatus } from '@/store/subscriptionDataSlice.ts';
 import type { BookDetail } from '@/types/book.ts';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
-import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { useAppSelector } from '@/store/hooks.ts';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
-import {
-  BookStatusEnum,
-  BookStatusLabelMap,
-  deleteTraceNotify,
-  selectTraceNotify,
-} from '@/store/subscriptionDataSlice.ts';
+import { BookStatusEnum, BookStatusLabelMap, selectUpdatingCollectionIsbnList } from '@/store/subscriptionDataSlice.ts';
 import { getKeys } from '@/utils/type.ts';
 import BookStatusParts from './BookStatusParts.tsx';
 
@@ -22,13 +17,11 @@ type Props = {
 };
 
 export default function BookStatusSelector({ bookDetail }: Props) {
-  const dispatch = useAppDispatch();
   const { getCollectionByIdInfo } = useIdInfo();
   const { createCollections, updateCollections, deleteCollections } = useAwsAccess();
-  const traceNotify = useAppSelector(selectTraceNotify);
-  const [traceIdList, setTraceIdList] = useState<string[]>([]);
+  const updatingCollectionIsbnList = useAppSelector(selectUpdatingCollectionIsbnList);
   const collection = bookDetail ? getCollectionByIdInfo(bookDetail.collection) : null;
-  const value = collection?.meta.status ?? BookStatusEnum.Unregistered;
+  const value = collection?.status ?? BookStatusEnum.Unregistered;
   const [editing, setEditing] = useState(false);
   const toEdit = () => {
     setEditing(!editing);
@@ -39,40 +32,26 @@ export default function BookStatusSelector({ bookDetail }: Props) {
   };
   const current = OPTIONS.find(op => op.val === value);
 
-  useEffect(() => {
-    const deleteList = traceIdList.filter(traceId => traceNotify.some(tn => tn === traceId));
-    if (!deleteList.length) return;
-    dispatch(deleteTraceNotify(deleteList));
-    setTraceIdList(prev => prev.filter(id => !deleteList.includes(id)));
-  }, [dispatch, traceIdList, traceNotify]);
-
   const setValue = useCallback(
-    (value: BookStatus) => {
+    async (status: BookStatus) => {
       if (!bookDetail || !collection) return;
-      const newMeta = structuredClone(collection.meta);
-      newMeta.status = value;
 
-      if (value !== BookStatusEnum.Unregistered) {
+      const isbn = bookDetail.book.isbn;
+
+      if (status !== BookStatusEnum.Unregistered) {
         if (bookDetail.collection.type === 'db') {
           console.log('# update db collection (meta)');
           const id = bookDetail.collection.id;
-          const traceId = updateCollections(id, newMeta);
-          console.log('traceId ', traceId);
-          setTraceIdList(prev => [...prev, traceId]);
+          await updateCollections({ id, isbn, status });
         } else {
           console.log('# create db collection (meta)');
-          const isbn = bookDetail.book.isbn;
-          const traceId = createCollections(isbn, newMeta);
-          console.log('traceId ', traceId);
-          setTraceIdList(prev => [...prev, traceId]);
+          await createCollections({ isbn, status });
         }
         return;
       } else {
         console.log('# delete db collection (meta)');
         const id = bookDetail.collection.id;
-        const traceId = deleteCollections(id);
-        console.log('traceId ', traceId);
-        setTraceIdList(prev => [...prev, traceId]);
+        await deleteCollections({ id, isbn });
         return;
       }
     },
@@ -90,7 +69,13 @@ export default function BookStatusSelector({ bookDetail }: Props) {
       <BookStatusParts
         isFirst
         {...current}
-        label={traceIdList.length ? <Spinner variant="bars" /> : current.label}
+        label={
+          updatingCollectionIsbnList.some(isbn => isbn === bookDetail?.book.isbn) ? (
+            <Spinner variant="bars" />
+          ) : (
+            current.label
+          )
+        }
         zIndex={100}
         onClick={toEdit}
       />

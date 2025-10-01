@@ -96,7 +96,6 @@ export const selectScanResultList = createSelector(
     selectCollections,
     selectTempCollections,
     selectFilterSets,
-    selectTempFilterSets,
     selectAllNdlSearchResults,
   ],
   (
@@ -105,7 +104,6 @@ export const selectScanResultList = createSelector(
     collections,
     tempCollections,
     dbFilterSets,
-    tempFilterSets,
     allNdlSearchResults
   ): { isbn: Isbn13; status: 'loading' | 'none' | 'done'; result: ScannedItemMapValue | null }[] =>
     unique(viewList).map(isbn => {
@@ -125,7 +123,6 @@ export const selectScanResultList = createSelector(
         collections,
         tempCollections,
         dbFilterSets,
-        tempFilterSets,
         allNdlSearchResults
       );
 

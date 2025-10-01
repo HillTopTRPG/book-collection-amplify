@@ -6,6 +6,7 @@ import SelectBox from '@/components/SelectBox.tsx';
 import { useAppDispatch } from '@/store/hooks.ts';
 import useIdInfo from '@/store/hooks/useIdInfo.ts';
 import { updateTempFilterSetOption } from '@/store/subscriptionDataSlice.ts';
+import { getKeys } from '@/utils/type.ts';
 import NdlOptionsForm from './NdlOptionsForm.tsx';
 
 type Props = {
@@ -32,9 +33,9 @@ export default function FilterSets({ scannedItemMapValue, selectedFilterSet, set
   const fetchFullOptions = useMemo(() => filterSet?.fetch, [filterSet?.fetch]);
 
   const options = useMemo(
-    () =>
+    (): Record<string, { label: ReactNode; disabled: boolean }> =>
       scannedItemMapValue.filterSets.reduce<Record<string, { label: ReactNode; disabled: boolean }>>((acc, cur) => {
-        acc[cur.id] = { label: getFilterSetByIdInfo(cur).name, disabled: false };
+        acc[cur.id] = { label: getFilterSetByIdInfo(cur)?.name ?? 'aaaa', disabled: false };
         return acc;
       }, {}),
     [getFilterSetByIdInfo, scannedItemMapValue.filterSets]
@@ -43,7 +44,9 @@ export default function FilterSets({ scannedItemMapValue, selectedFilterSet, set
   return (
     <div className="flex flex-col bg-background px-2 pt-2 pb-5">
       <div className="text-xs">検索条件セット</div>
-      <SelectBox className="ml-3 mb-5" options={options} value={selectedFilterSet} onChange={setSelectedFilterSet} />
+      {getKeys(options).length ? (
+        <SelectBox className="ml-3 mb-5" options={options} value={selectedFilterSet} onChange={setSelectedFilterSet} />
+      ) : null}
       {fetchFullOptions && currentFilterSet?.type === 'temp' ? (
         <NdlOptionsForm
           defaultValues={fetchFullOptions}
