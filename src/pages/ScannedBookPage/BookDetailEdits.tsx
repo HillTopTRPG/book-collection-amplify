@@ -56,29 +56,10 @@ export default function BookDetailEdits({ bookDetail }: Props) {
     [allFilterResults, bookDetail.book.isbn, bookDetail.collection.id]
   );
 
-  const [selectedFilterSet, setSelectedFilterSet] = useState<string | null>(
-    primeFilterSet?.filterSet.id ?? otherFilterSets.at(0)?.filterSet.id ?? null
+  const filterSet = useMemo(
+    () => primeFilterSet?.filterSet ?? otherFilterSets.at(0)?.filterSet ?? null,
+    [otherFilterSets, primeFilterSet?.filterSet]
   );
-
-  useEffect(() => {
-    console.log(`'${selectedFilterSet}'`);
-    if (selectedFilterSet) return;
-    const primeFilterSetId = primeFilterSet?.filterSet.id;
-    console.log(primeFilterSetId);
-    if (primeFilterSetId) {
-      setSelectedFilterSet(primeFilterSetId);
-      return;
-    }
-    const otherFilterSetId = otherFilterSets.at(0)?.filterSet.id;
-    console.log(otherFilterSetId);
-    if (otherFilterSetId) setSelectedFilterSet(otherFilterSetId);
-  }, [otherFilterSets, primeFilterSet?.filterSet.id, selectedFilterSet]);
-
-  const filterSet = useMemo(() => {
-    if (!selectedFilterSet) return null;
-    if (primeFilterSet?.filterSet.id === selectedFilterSet) return primeFilterSet.filterSet;
-    return otherFilterSets.find(({ filterSet }) => filterSet.id === selectedFilterSet)?.filterSet ?? null;
-  }, [otherFilterSets, primeFilterSet?.filterSet, selectedFilterSet]);
 
   const stringifyFetchOptions = useMemo(
     () => (filterSet?.fetch ? makeNdlOptionsStringByNdlFullOptions(filterSet.fetch) : ''),
@@ -154,12 +135,23 @@ export default function BookDetailEdits({ bookDetail }: Props) {
     [navigate]
   );
 
+  const bookCardNavi = useMemo(() => <BookCardNavi bookDetail={bookDetail} />, [bookDetail]);
+  const bookDetailView = useMemo(() => {
+    console.log('render bookDetailView', bookDetails.length, !!filterSet, groupByType, searchConditionsSize.height);
+    if (!filterSet) return null;
+    return (
+      <BookDetailView
+        stickyTop={searchConditionsSize.height}
+        setContentHeight={setContentHeight}
+        {...{ scrollParentRef, bookDetails, filterSet, groupByType }}
+      />
+    );
+  }, [bookDetails, filterSet, groupByType, searchConditionsSize.height]);
+
   return (
     <div className="flex flex-col w-full flex-1">
       <div className="flex flex-col gap-3 pt-3">
-        <div className="bg-background">
-          <BookCardNavi bookDetail={bookDetail} />
-        </div>
+        <div className="bg-background">{bookCardNavi}</div>
         <div ref={searchConditionsRef} className="sticky top-0 z-[110] flex flex-col bg-background px-2 pt-2">
           <div className="text-xs">関連フィルター一覧</div>
           {!options ? <Spinner variant="bars" /> : null}
@@ -194,13 +186,7 @@ export default function BookDetailEdits({ bookDetail }: Props) {
           </div>
         </div>
 
-        {filterSet ? (
-          <BookDetailView
-            stickyTop={searchConditionsSize.height}
-            setContentHeight={setContentHeight}
-            {...{ scrollParentRef, bookDetails, filterSet, groupByType }}
-          />
-        ) : null}
+        {bookDetailView}
       </div>
 
       <div className="min-h-viewport-with-offset" style={minHeightStyle} />

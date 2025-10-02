@@ -84,6 +84,13 @@ export default function GroupByBlock({
 
   const stickyStyle = useMemo(() => ({ top: stickyTop }), [stickyTop]);
 
+  const bookCardList = useMemo(
+    () => (
+      <BookCardList countRef={countRef} bookDetails={bookDetails} {...{ filterSet, orIndex, openType, setOpenType }} />
+    ),
+    [bookDetails, filterSet, openType, orIndex]
+  );
+
   return (
     <>
       <div
@@ -102,11 +109,7 @@ export default function GroupByBlock({
       <div ref={contentRef} className="flex">
         <div className="bg-green-800 w-2" />
         <div className="flex flex-col flex-1" style={{ maxWidth: 'calc(100% - 0.5rem)' }}>
-          <BookCardList
-            countRef={countRef}
-            bookDetails={bookDetails}
-            {...{ filterSet, orIndex, openType, setOpenType }}
-          />
+          {bookCardList}
         </div>
       </div>
     </>

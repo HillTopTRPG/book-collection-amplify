@@ -27,28 +27,33 @@ export default function BookDetailView({
   groupByType,
   orIndex,
 }: Props) {
-  const filteredResults = useMemo(
-    (): BookDetail[] => getFilteredItems(bookDetails, filterSet, orIndex),
-    [bookDetails, filterSet, orIndex]
-  );
+  const filteredResults = useMemo((): BookDetail[] => {
+    console.log('&&&&&&&&&1');
+    const result = getFilteredItems(bookDetails, filterSet, orIndex);
+    console.log('&&&&&&&&&2');
+    return result;
+  }, [bookDetails, filterSet, orIndex]);
   const groupedBooks = useMemo(() => groupByVolume(filteredResults), [filteredResults]);
 
-  return (
-    <div className="flex flex-col gap-5">
-      {!groupByType ? (
-        <BookCardList bookDetails={filteredResults} {...{ filterSet, orIndex, setContentHeight }} />
-      ) : (
-        groupedBooks.map((list, idx) => (
-          <div key={idx}>
-            {idx ? <Separator /> : null}
-            <GroupByBlock
-              stickyTop={stickyTop}
-              setContentHeight={setContentHeight}
-              {...{ scrollParentRef, list, idx, filterSet, orIndex }}
-            />
-          </div>
-        ))
-      )}
-    </div>
+  const bookCardList = useMemo(
+    () => <BookCardList bookDetails={filteredResults} {...{ filterSet, orIndex, setContentHeight }} />,
+    [filterSet, filteredResults, orIndex, setContentHeight]
   );
+
+  const groupedBooksElement = useMemo(
+    () =>
+      groupedBooks.map((list, idx) => (
+        <div key={idx}>
+          {idx ? <Separator /> : null}
+          <GroupByBlock
+            stickyTop={stickyTop}
+            setContentHeight={setContentHeight}
+            {...{ scrollParentRef, list, idx, filterSet, orIndex }}
+          />
+        </div>
+      )),
+    [filterSet, groupedBooks, orIndex, scrollParentRef, setContentHeight, stickyTop]
+  );
+
+  return <div className="flex flex-col gap-5">{!groupByType ? bookCardList : groupedBooksElement}</div>;
 }
