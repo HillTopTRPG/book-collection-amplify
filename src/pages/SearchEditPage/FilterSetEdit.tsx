@@ -43,7 +43,7 @@ export default function FilterSetEdit({ filterSet, onFilterSetUpdate }: Props) {
         </div>
       </div>
 
-      <div className="bg-background">
+      <div>
         <div className="text-xs bg-background pl-2 z-[60]">さらに絞り込む</div>
         {filterSet.filters.map((_, orIndex) => (
           <FilterBlock key={orIndex} {...{ scrollParentRef, filterSet, orIndex, bookDetails, onFilterSetUpdate }} />

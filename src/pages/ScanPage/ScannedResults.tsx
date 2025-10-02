@@ -1,6 +1,7 @@
 import type { AppDispatch } from '@/store';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
+import { X } from 'lucide-react';
 import { Fragment, memo, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
@@ -97,7 +98,8 @@ export default function ScannedResults() {
     <div className="flex-1 flex flex-col w-full bg-background">
       <div className="flex gap-3 justify-between items-center p-1">
         <h1 className="text-sm">読み込んだ書籍一覧</h1>
-        <Button className="rounded-full" size="sm" onClick={onClear} disabled={clearDisable}>
+        <Button className="rounded-full" variant="outline" size="sm" onClick={onClear} disabled={clearDisable}>
+          <X />
           クリア
         </Button>
       </div>

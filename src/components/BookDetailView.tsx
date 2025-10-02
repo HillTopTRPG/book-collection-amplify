@@ -1,7 +1,7 @@
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookDetail } from '@/types/book.ts';
 import type { RefObject } from 'react';
-import { Fragment, useMemo } from 'react';
+import { useMemo } from 'react';
 import BookCardList from '@/components/BookCardList.tsx';
 import GroupByBlock from '@/components/GroupByBlock.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
@@ -34,19 +34,19 @@ export default function BookDetailView({
   const groupedBooks = useMemo(() => groupByVolume(filteredResults), [filteredResults]);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-5">
       {!groupByType ? (
         <BookCardList bookDetails={filteredResults} {...{ filterSet, orIndex, setContentHeight }} />
       ) : (
         groupedBooks.map((list, idx) => (
-          <Fragment key={idx}>
+          <div key={idx}>
             {idx ? <Separator /> : null}
             <GroupByBlock
               stickyTop={stickyTop}
               setContentHeight={setContentHeight}
               {...{ scrollParentRef, list, idx, filterSet, orIndex }}
             />
-          </Fragment>
+          </div>
         ))
       )}
     </div>

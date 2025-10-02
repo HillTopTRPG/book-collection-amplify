@@ -1,5 +1,5 @@
 import type { BottomNavigationItem } from './BottomNavigation';
-import { Barcode, Home, Search } from 'lucide-react';
+import { Barcode, Home, LibraryBig } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
 import BookDetailDialog from '@/components/Dialog/BookDetailDialog';
 import FilterDetailDrawer from '@/components/Drawer/FilterDetailDrawer';
@@ -21,8 +21,8 @@ const MAIN_BOTTOM_NAVIGATE_LIST: BottomNavigationItem[] = [
   },
   {
     path: '/collection',
-    icon: Search,
-    label: '検索',
+    icon: LibraryBig,
+    label: '書目',
     handleClick: navigate => navigate('/collection'),
   },
 ];

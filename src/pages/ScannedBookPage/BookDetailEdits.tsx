@@ -195,13 +195,11 @@ export default function BookDetailEdits({ bookDetail }: Props) {
         </div>
 
         {filterSet ? (
-          <div className="bg-background">
-            <BookDetailView
-              stickyTop={searchConditionsSize.height}
-              setContentHeight={setContentHeight}
-              {...{ scrollParentRef, bookDetails, filterSet, groupByType }}
-            />
-          </div>
+          <BookDetailView
+            stickyTop={searchConditionsSize.height}
+            setContentHeight={setContentHeight}
+            {...{ scrollParentRef, bookDetails, filterSet, groupByType }}
+          />
         ) : null}
       </div>
 

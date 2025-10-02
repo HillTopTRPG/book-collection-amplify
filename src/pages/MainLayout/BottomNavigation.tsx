@@ -36,7 +36,7 @@ export default function BottomNavigation({ list, zIndex }: Props) {
             if (disabled) return 'text-gray-700 cursor-not-allowed';
             return isActive
               ? 'cursor-pointer text-purple-600 dark:text-purple-200 bg-purple-200 dark:bg-purple-800'
-              : 'cursor-pointer text-gray-600 dark:text-gray-400 hover:text-purple-500 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950';
+              : 'cursor-pointer text-gray-600 bg-purple-600/15 dark:text-gray-400 hover:text-purple-500 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950';
           })();
 
           return (
@@ -45,7 +45,8 @@ export default function BottomNavigation({ list, zIndex }: Props) {
               onClick={() => !disabled && handleClick(navigate)}
               className={cn(
                 'flex flex-col items-center justify-center',
-                'min-w-[4rem] p-2 rounded-lg transition-colors duration-200 select-none',
+                'min-w-[4rem] p-2 rounded-lg select-none',
+                'shadow-sm shadow-purple-600/70',
                 classValue
               )}
             >

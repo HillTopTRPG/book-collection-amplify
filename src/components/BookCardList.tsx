@@ -1,7 +1,6 @@
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookDetail } from '@/types/book.ts';
 import type { RefObject } from 'react';
-import { RippleContainer } from '@m_three_ui/m3ripple';
 import { Fragment, useCallback, useEffect } from 'react';
 import { Separator } from '@/components/ui/separator.tsx';
 import useDOMSize from '@/hooks/useDOMSize.ts';
@@ -53,7 +52,7 @@ export default function BookCardList({
   const collapseButtonIndex = 2;
 
   return (
-    <>
+    <div>
       <div ref={contentRef} className="flex flex-col bg-background">
         {isOpen
           ? bookDetails.map((bookDetail, idx) => (
@@ -88,11 +87,9 @@ export default function BookCardList({
             ))
           : null}
       </div>
-      <RippleContainer className="relative flex" rippleColor="hsla(29,81%,84%,0.15)">
-        <div ref={countRef} className="w-full px-2 py-1">
-          {bookDetails.length}件
-        </div>
-      </RippleContainer>
-    </>
+      <div ref={countRef} className="w-full px-2 py-1 bg-green-800 text-white">
+        {bookDetails.length}件
+      </div>
+    </div>
   );
 }
