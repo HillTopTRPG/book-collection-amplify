@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import Contents from '@/pages/ScannedBookPage/Contents.tsx';
 import { useAppSelector } from '@/store/hooks.ts';
 import { selectScanResultList } from '@/store/scannerSlice.ts';
 import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
+import BookDetailEdits from './BookDetailEdits.tsx';
 
 export default function ScannedBookPage() {
   const { maybeIsbn: raw } = useParams<{ maybeIsbn: string }>();
@@ -22,7 +22,7 @@ export default function ScannedBookPage() {
     if (selected.status !== 'done' || !selected.result?.bookDetail) {
       return <div>読み込み中...</div>;
     }
-    return <Contents scannedItemMapValue={selected.result} />;
+    return <BookDetailEdits bookDetail={selected.result.bookDetail} />;
   }, [maybeIsbn, scanResultList]);
 
   return <div className="flex flex-col w-full flex-1 gap-4">{content}</div>;

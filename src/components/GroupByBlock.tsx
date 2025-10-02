@@ -20,7 +20,7 @@ type Props = {
   idx: number;
   stickyTop: number;
   filterSet: FilterSet;
-  orIndex: number;
+  orIndex?: number;
   setContentHeight: (height: number) => void;
 };
 

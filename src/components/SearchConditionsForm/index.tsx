@@ -11,18 +11,20 @@ type Props = {
   ref: RefObject<HTMLDivElement | null>;
   filterSet: FilterSet;
   orIndex: number;
-  fetchedBooks: BookDetail[];
+  bookDetails: BookDetail[];
   filteredResults: BookDetail[];
   updateGroupingType: (value: boolean) => void;
+  onFilterSetUpdate: (value: FilterSet) => void;
 };
 
 export default function SearchConditionsForm({
   ref,
   filterSet,
   orIndex,
-  fetchedBooks,
+  bookDetails,
   filteredResults,
   updateGroupingType,
+  onFilterSetUpdate,
 }: Props) {
   return (
     <div
@@ -34,17 +36,17 @@ export default function SearchConditionsForm({
         <span>計{filteredResults.length}件</span>
         <div className="flex items-center gap-1">
           <Checkbox
-            id="terms"
-            checked={filterSet.filters[orIndex].grouping === 'date'}
+            id="use-group-by-volume"
+            checked={filterSet.filters[orIndex].groupByType === 'volume'}
             onCheckedChange={updateGroupingType}
           />
-          <Label htmlFor="terms">連載グルーピング</Label>
+          <Label htmlFor="use-group-by-volume">連載グルーピング</Label>
           <IconButton icon={MessageCircleQuestionMark} className="border-0" />
         </div>
       </div>
-      {fetchedBooks.length
+      {bookDetails.length
         ? filterSet.filters[orIndex].list.map((_, andIndex) => (
-            <SearchConditionItem key={andIndex} {...{ filterSet, orIndex, fetchedBooks, andIndex }} />
+            <SearchConditionItem key={andIndex} {...{ filterSet, orIndex, bookDetails, andIndex, onFilterSetUpdate }} />
           ))
         : null}
     </div>

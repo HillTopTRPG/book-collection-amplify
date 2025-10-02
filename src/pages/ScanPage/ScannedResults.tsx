@@ -1,13 +1,13 @@
 import type { AppDispatch } from '@/store';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
-import { ScrollArea } from '@radix-ui/react-scroll-area';
 import { Fragment, memo, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import BookCardNavi from '@/components/BookCardNavi.tsx';
 import { Button } from '@/components/ui/button.tsx';
+import { ScrollArea } from '@/components/ui/scroll-area.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
-import BookCardNavi from '@/pages/ScannedBookPage/FilterBlock/BookCardNavi.tsx';
 import { useAppSelector } from '@/store/hooks.ts';
 import { clearScanViewList, selectScanResultList } from '@/store/scannerSlice.ts';
 import { setBookDetailDialogValue } from '@/store/uiSlice.ts';

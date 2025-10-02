@@ -1,4 +1,4 @@
-import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData } from '@/types/book.ts';
@@ -24,21 +24,6 @@ export const getScannedItemMapValueByBookData = (
     updatedAt: '',
     owner: '',
   };
-  // const tempFilterSet: FilterSet = {
-  //   id: uuidv4(),
-  //   name: book.title ?? '無名のフィルター',
-  //   fetch: {
-  //     title: book.title ?? '無名',
-  //     publisher: book.publisher ?? '',
-  //     creator: book.creator?.at(0) ?? '',
-  //     usePublisher: true,
-  //     useCreator: true,
-  //   },
-  //   filters: [{ list: [{ keyword: '', sign: '*=' }], grouping: 'date' }],
-  //   createdAt: '',
-  //   updatedAt: '',
-  //   owner: '',
-  // };
   const filterSets: IdInfo[] = dbFilterSets.flatMap(filterSet => {
     const key = JSON.stringify(filterSet.fetch);
     const result = key in allNdlSearchResults ? allNdlSearchResults[key] : [];

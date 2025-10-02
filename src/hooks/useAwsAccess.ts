@@ -1,4 +1,4 @@
-import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
 import type { Collection, FilterAndGroup, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { Isbn13 } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
@@ -60,6 +60,14 @@ export const useAwsAccess = () => {
     ...collection,
   });
 
+  const makeUpdateFilterSet = (
+    filterSet: Partial<Omit<FilterSet, 'createdAt' | 'updatedAt' | 'owner'>> & { id: string }
+  ): Schema['FilterSet']['updateType'] => ({
+    ...filterSet,
+    fetch: JSON.stringify(filterSet.fetch),
+    filters: JSON.stringify(filterSet.filters),
+  });
+
   const makeFilterSetByDb = useCallback(
     (db: Schema['FilterSet']['type']): FilterSet => ({
       ...db,
@@ -107,6 +115,18 @@ export const useAwsAccess = () => {
     [dispatch, makeCollectionByDb]
   );
 
+  const updateFilterSet = useCallback(
+    async (filterSet: Parameters<typeof makeUpdateFilterSet>[0]): Promise<FilterSet | null> => {
+      const { errors, data } = await userPoolClient.models.FilterSet.update(
+        makeUpdateFilterSet(omit(filterSet, 'isbn'))
+      );
+      if (data) return makeFilterSetByDb(data);
+      if (errors) console.error('Error update filterSet', errors);
+      return null;
+    },
+    [makeFilterSetByDb]
+  );
+
   const deleteCollections = useCallback(
     async (collection: { id: string; isbn: Isbn13 }): Promise<Collection | null> => {
       // フィルターセットから参照されていたら削除しない
@@ -130,5 +150,6 @@ export const useAwsAccess = () => {
     updateCollections,
     deleteCollections,
     createFilterSet,
+    updateFilterSet,
   };
 };

@@ -41,7 +41,7 @@ export default function NdlOptionsForm({ defaultValues, onChange }: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="bg-background flex flex-col w-full items-stretch">
-        <div className="text-xs">国立国会図書館APIで検索</div>
+        <div className="text-xs">国立国会図書館APIの検索条件</div>
         <FormField
           control={form.control}
           name="title"

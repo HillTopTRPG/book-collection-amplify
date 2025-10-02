@@ -18,26 +18,31 @@ const isMatch = (filter: FilterBean, list: string[]) => {
 };
 
 export const getFilteredItems = (
-  fetchedBooks: BookDetail[],
+  bookDetails: BookDetail[],
   filterSet: FilterSet,
-  filterIndex: number
+  filterIndex?: number
 ): BookDetail[] => {
-  if (!fetchedBooks.length) return [];
+  if (!bookDetails.length) return [];
 
-  const filters = filterSet.filters[filterIndex].list.filter(({ keyword }) => keyword);
-  if (!filters.length) return !filterIndex ? fetchedBooks : [];
+  if (filterIndex !== undefined) {
+    const filters = filterSet.filters[filterIndex].list.filter(({ keyword }) => keyword);
+    if (!filters.length) return !filterIndex ? bookDetails : [];
+  }
 
-  return fetchedBooks.filter(bookDetail =>
-    filters.every(filter =>
-      isMatch(
-        filter,
-        getKeys(bookDetail.book).flatMap(property => {
-          const value = bookDetail.book[property];
-          if (isNil(value)) return [];
-          if (typeof value === 'string') return [value];
-          return value;
-        })
-      )
-    )
+  return bookDetails.filter(bookDetail =>
+    filterSet.filters.some(({ list }, idx) => {
+      if (filterIndex !== undefined && idx !== filterIndex) return false;
+      return list.every(filter =>
+        isMatch(
+          filter,
+          getKeys(bookDetail.book).flatMap(property => {
+            const value = bookDetail.book[property];
+            if (isNil(value)) return [];
+            if (typeof value === 'string') return [value];
+            return value;
+          })
+        )
+      );
+    })
   );
 };

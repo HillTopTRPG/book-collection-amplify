@@ -1,4 +1,4 @@
-import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
+import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
 import type { Isbn13 } from '@/types/book.ts';
 import type { Values } from '@/utils/type.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
@@ -41,7 +41,7 @@ export type Collection = Omit<Schema['Collection']['type'], 'isbn' | 'status'> &
 
 export type Sign = '==' | '*=' | '!=' | '!*';
 export type FilterBean = { keyword: string; sign: Sign };
-export type FilterAndGroup = { list: FilterBean[]; grouping: 'date' | null };
+export type FilterAndGroup = { list: FilterBean[]; groupByType: 'volume' | null };
 
 export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters'> & {
   fetch: NdlFullOptions;
@@ -89,6 +89,12 @@ export const subscriptionDataSlice = createSlice({
     addTempFilterSets: (state, action: PayloadAction<FilterSet[]>) => {
       state.tempFilterSets.push(...action.payload);
     },
+    updateTempFilterSet: (state, action: PayloadAction<FilterSet>) => {
+      const id = action.payload.id;
+      const idx = state.tempFilterSets.findIndex(filterMatch({ id }));
+      if (idx < 0) return;
+      state.tempFilterSets.splice(idx, 1, action.payload);
+    },
     updateTempFilterSetOption: (state, action: PayloadAction<{ id: string; fetch: NdlFullOptions }>) => {
       const id = action.payload.id;
       const filterSet = state.tempFilterSets.find(filterMatch({ id }));
@@ -113,6 +119,7 @@ export const {
   addTempCollections,
   setFilterSets,
   addTempFilterSets,
+  updateTempFilterSet,
   updateTempFilterSetOption,
   updateFetchedFilterAnywhere,
   addUpdatingCollectionIsbnList,

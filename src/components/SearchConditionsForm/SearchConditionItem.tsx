@@ -4,8 +4,6 @@ import type { BookData, BookDetail } from '@/types/book.ts';
 import { useCallback, useMemo } from 'react';
 import ComboInput from '@/components/ComboInput.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
-import { useAppDispatch } from '@/store/hooks.ts';
-import { updateFetchedFilterAnywhere } from '@/store/subscriptionDataSlice.ts';
 import { removeNumberText, unique } from '@/utils/primitive.ts';
 import { getKeys } from '@/utils/type.ts';
 
@@ -62,12 +60,11 @@ type Props = {
   filterSet: FilterSet;
   orIndex: number;
   andIndex: number;
-  fetchedBooks: BookDetail[];
+  bookDetails: BookDetail[];
+  onFilterSetUpdate: (filterSet: FilterSet) => void;
 };
 
-export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetchedBooks }: Props) {
-  const dispatch = useAppDispatch();
-
+export default function SearchConditionItem({ filterSet, orIndex, andIndex, bookDetails, onFilterSetUpdate }: Props) {
   const condition = filterSet.filters[orIndex].list[andIndex];
 
   const isPrimeFirst = !orIndex && !andIndex;
@@ -90,7 +87,7 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetc
         ndc: [],
       };
 
-      return fetchedBooks.reduce<KeywordInfo>(setKeywords, obj);
+      return bookDetails.reduce<KeywordInfo>(setKeywords, obj);
     })();
 
     return unique(
@@ -99,15 +96,18 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetc
         return acc;
       }, [])
     );
-  }, [fetchedBooks]);
+  }, [bookDetails]);
 
   const updateSign = useCallback(
     (sign: Sign) => {
       const newFilters = structuredClone(filterSet.filters);
       newFilters[orIndex].list[andIndex].sign = sign;
-      dispatch(updateFetchedFilterAnywhere({ id: filterSet.id, filters: newFilters }));
+      onFilterSetUpdate({
+        ...filterSet,
+        filters: newFilters,
+      });
     },
-    [filterSet.filters, filterSet.id, orIndex, andIndex, dispatch]
+    [andIndex, filterSet, onFilterSetUpdate, orIndex]
   );
 
   const updateAnywhere = useCallback(
@@ -130,7 +130,7 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetc
       if (orIndex === 0) {
         // プライマリブロックのための処理
         if (newFilters.length === 1 && newFilters[orIndex].list[0]) {
-          newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: 'date' });
+          newFilters.push({ list: [{ keyword: '', sign: '*=' }], groupByType: 'volume' });
         }
       } else {
         // ORブロックのための処理
@@ -138,13 +138,16 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, fetc
           newFilters.splice(orIndex, 1);
         } else {
           if (orIndex === newFilters.length - 1 && newFilters[orIndex].list[0]) {
-            newFilters.push({ list: [{ keyword: '', sign: '*=' }], grouping: 'date' });
+            newFilters.push({ list: [{ keyword: '', sign: '*=' }], groupByType: 'volume' });
           }
         }
       }
-      dispatch(updateFetchedFilterAnywhere({ id: filterSet.id, filters: newFilters }));
+      onFilterSetUpdate({
+        ...filterSet,
+        filters: newFilters,
+      });
     },
-    [filterSet.filters, filterSet.id, orIndex, andIndex, dispatch]
+    [andIndex, filterSet, onFilterSetUpdate, orIndex]
   );
 
   const comboInputList = useMemo(() => options.map(o => ({ label: o, value: o })), [options]);

@@ -15,7 +15,7 @@ type Props = {
   countRef?: RefObject<HTMLDivElement | null>;
   bookDetails: BookDetail[];
   filterSet: FilterSet;
-  orIndex: number;
+  orIndex?: number;
   openType?: 'collapse' | 'full' | 'close';
   setOpenType?: (openType: 'collapse' | 'full' | 'close') => void;
   setContentHeight?: (height: number) => void;
