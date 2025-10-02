@@ -15,12 +15,15 @@ import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectAllBookDetails, selectAllFilterResults } from '@/store/ndlSearchSlice.ts';
+import {
+  selectBookDetailsByKey,
+  selectFilterResultsByCollectionId,
+  selectFilterResultsByIsbn,
+} from '@/store/ndlSearchSlice.ts';
 import { BookStatusEnum } from '@/store/subscriptionDataSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 
 const BOTTOM_NAVIGATION_HEIGHT = 65;
-const EMPTY_ARRAY: BookDetail[] = [];
 
 type Props = {
   bookDetail: BookDetail;
@@ -28,8 +31,6 @@ type Props = {
 
 export default function BookDetailEdits({ bookDetail }: Props) {
   const dispatch = useAppDispatch();
-  const allBookDetails = useAppSelector(selectAllBookDetails);
-  const allFilterResults = useAppSelector(selectAllFilterResults);
   const [groupByType, setGroupByType] = useState<'volume' | null>('volume');
   const [searchConditionsRef, searchConditionsSize] = useDOMSize();
   const [contentHeight, setContentHeight] = useState(0);
@@ -43,18 +44,14 @@ export default function BookDetailEdits({ bookDetail }: Props) {
     [searchConditionsSize.height, contentHeight]
   );
 
-  const primeFilterSet: { filterSet: FilterSet; books: BookDetail[] } | null = useMemo(
-    () => allFilterResults?.find(({ filterSet }) => filterSet.collectionId === bookDetail.collection.id) ?? null,
-    [allFilterResults, bookDetail.collection.id]
+  // 特定のコレクションIDに対応するフィルターセットのみを取得
+  const primeFilterSet: { filterSet: FilterSet; books: BookDetail[] } | null = useAppSelector(state =>
+    selectFilterResultsByCollectionId(state, bookDetail.collection.id)
   );
-  const otherFilterSets: { filterSet: FilterSet; books: BookDetail[] }[] = useMemo(
-    () =>
-      allFilterResults?.filter(
-        ({ filterSet, books }) =>
-          filterSet.collectionId !== bookDetail.collection.id &&
-          books.some(({ book }) => book.isbn === bookDetail.book.isbn)
-      ) ?? [],
-    [allFilterResults, bookDetail.book.isbn, bookDetail.collection.id]
+
+  // 特定のISBNに関連するフィルターセットのみを取得（primeを除外）
+  const otherFilterSets: { filterSet: FilterSet; books: BookDetail[] }[] = useAppSelector(state =>
+    selectFilterResultsByIsbn(state, bookDetail.book.isbn, bookDetail.collection.id)
   );
 
   const filterSet = useMemo(
@@ -67,12 +64,8 @@ export default function BookDetailEdits({ bookDetail }: Props) {
     [filterSet?.fetch]
   );
 
-  const bookDetails: BookDetail[] = useMemo(() => {
-    if (!stringifyFetchOptions) return EMPTY_ARRAY;
-    const result = stringifyFetchOptions in allBookDetails ? allBookDetails[stringifyFetchOptions] : EMPTY_ARRAY;
-    if (typeof result === 'string') return EMPTY_ARRAY;
-    return result;
-  }, [allBookDetails, stringifyFetchOptions]);
+  // 特定のキーに対応するBookDetailsのみを取得
+  const bookDetails: BookDetail[] = useAppSelector(state => selectBookDetailsByKey(state, stringifyFetchOptions));
 
   useEffect(() => {
     if (!stringifyFetchOptions) return;
@@ -82,7 +75,8 @@ export default function BookDetailEdits({ bookDetail }: Props) {
   const { createFilterSet, createCollections } = useAwsAccess();
 
   const options = useMemo((): Record<string, { label: ReactNode; disabled: boolean }> | null => {
-    if (!allFilterResults) return null;
+    const hasAllData = primeFilterSet !== null || otherFilterSets.length > 0;
+    if (!hasAllData) return null;
     return [primeFilterSet, ...otherFilterSets].reduce<Record<string, { label: ReactNode; disabled: boolean }>>(
       (acc, info) => {
         if (info) {
@@ -92,7 +86,7 @@ export default function BookDetailEdits({ bookDetail }: Props) {
       },
       {}
     );
-  }, [allFilterResults, otherFilterSets, primeFilterSet]);
+  }, [otherFilterSets, primeFilterSet]);
 
   const filterSets: FilterSet[] = useMemo(
     () =>

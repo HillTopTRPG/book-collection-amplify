@@ -84,4 +84,39 @@ export const selectAllFilterResults = createSelector(
   }
 );
 
+const EMPTY_BOOK_DETAIL_ARRAY: BookDetail[] = [];
+
+/** 特定のキーに対応する BookDetail[] を取得するセレクター */
+export const selectBookDetailsByKey = createSelector(
+  [selectAllBookDetails, (_state, key: string) => key],
+  (allBookDetails, key): BookDetail[] => {
+    if (!key) return EMPTY_BOOK_DETAIL_ARRAY;
+    if (!(key in allBookDetails)) return EMPTY_BOOK_DETAIL_ARRAY;
+    const result = allBookDetails[key];
+
+    return typeof result === 'string' ? EMPTY_BOOK_DETAIL_ARRAY : result;
+  }
+);
+
+/** 特定のコレクションIDに対応する FilterResult を取得するセレクター */
+export const selectFilterResultsByCollectionId = createSelector(
+  [selectAllFilterResults, (_state, collectionId: string) => collectionId],
+  (allFilterResults, collectionId): { filterSet: FilterSet; books: BookDetail[] } | null => {
+    if (!allFilterResults) return null;
+    return allFilterResults.find(({ filterSet }) => filterSet.collectionId === collectionId) ?? null;
+  }
+);
+
+/** 特定のISBNに関連する FilterResults を取得するセレクター */
+export const selectFilterResultsByIsbn = createSelector(
+  [selectAllFilterResults, (_state, isbn: string, excludeCollectionId?: string) => ({ isbn, excludeCollectionId })],
+  (allFilterResults, { isbn, excludeCollectionId }): { filterSet: FilterSet; books: BookDetail[] }[] => {
+    if (!allFilterResults) return [];
+    return allFilterResults.filter(
+      ({ filterSet, books }) =>
+        filterSet.collectionId !== excludeCollectionId && books.some(({ book }) => book.isbn === isbn)
+    );
+  }
+);
+
 export default ndlSearchSlice.reducer;
