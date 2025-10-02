@@ -16,8 +16,10 @@ interface ScoredCandidate extends MatchCandidate {
   score: number;
 }
 
-const DEBUG_ISBN = ['9784086177849'];
-const shouldLogDebugInfo = (bookWithVolume: BookWithVolume) => DEBUG_ISBN.includes(bookWithVolume.bookDetail.book.isbn);
+// デバッグ用のISBNリスト（本番では空配列にして無効化）
+const DEBUG_ISBN: string[] = [];
+const shouldLogDebugInfo = (bookWithVolume: BookWithVolume) =>
+  DEBUG_ISBN.length > 0 && DEBUG_ISBN.includes(bookWithVolume.bookDetail.book.isbn);
 
 /**
  * 書籍のプロパティ値を取得する

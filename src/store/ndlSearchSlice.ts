@@ -61,7 +61,9 @@ export const selectAllBookDetails = createSelector(
 
     const newRecord: Record<string, BookDetail[]> = {};
 
-    getKeys(results).forEach(str => {
+    const currentKeys = getKeys(results);
+
+    currentKeys.forEach(str => {
       // このキーのデータが変更されていなければキャッシュを使用
       if (!collectionsChanged && results[str] === previousResults[str] && str in cachedBookDetailsRecord) {
         newRecord[str] = cachedBookDetailsRecord[str];
@@ -83,8 +85,13 @@ export const selectAllBookDetails = createSelector(
       }
     });
 
-    // キャッシュを更新
-    previousResults = results;
+    // キャッシュを更新（現在のキーのみを保持して肥大化を防ぐ）
+    const newPreviousResults: Record<string, BookData[]> = {};
+    currentKeys.forEach(key => {
+      newPreviousResults[key] = results[key];
+    });
+
+    previousResults = newPreviousResults;
     previousCollections = collections;
     previousTempCollections = tempCollections;
     cachedBookDetailsRecord = newRecord;

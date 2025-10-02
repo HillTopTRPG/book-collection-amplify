@@ -119,14 +119,12 @@ export default function BookDetailEdits({ bookDetail }: Props) {
 
     let collectionId = collection.id;
 
-    console.log('collectionId', collectionId);
-
     if (collection.type !== 'db') {
       const collection = await createCollections({ isbn: book.isbn, status: BookStatusEnum.Unregistered });
       if (!collection) return;
       collectionId = collection.id;
     }
-    console.log('collectionId', collectionId);
+
     void createFilterSet({
       name: book.title || '無名のフィルター',
       fetch: {
