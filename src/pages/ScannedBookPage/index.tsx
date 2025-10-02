@@ -30,7 +30,6 @@ export default function ScannedBookPage() {
   }, [maybeIsbn, scanResultList]);
 
   const content = useMemo(() => {
-    console.log('####################', type, bookDetail?.book.isbn);
     switch (type) {
       case 'invalid-isbn':
         return <div>ISBNコードを指定してください。</div>;

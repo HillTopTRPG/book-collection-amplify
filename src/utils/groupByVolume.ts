@@ -180,14 +180,24 @@ const MATCHING_RULES: MatchingRule[] = [
   },
 ];
 
-const calculateBookScore = (candidate: BookWithVolume, target: BookWithVolume): number =>
-  MATCHING_RULES.map(({ name, calculateScore }) => {
+const calculateBookScore = (candidate: BookWithVolume, target: BookWithVolume): number => {
+  let totalScore = 0;
+
+  for (const { name, calculateScore } of MATCHING_RULES) {
     const score = calculateScore(candidate, target);
     if (score && shouldLogDebugInfo(target)) {
       console.log(target.bookDetail.book.isbn, `+${score}`, candidate.bookDetail.book.isbn, name);
     }
-    return score;
-  }).reduce((totalScore, ruleScore) => totalScore + ruleScore, 0);
+    totalScore += score;
+
+    // ISBN一致なら他のルールをスキップ（最高スコアなので）
+    if (name === 'ISBN一致' && score === 1000) {
+      return totalScore;
+    }
+  }
+
+  return totalScore;
+};
 
 const isValidCandidate = (
   candidate: BookWithVolume,

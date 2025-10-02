@@ -1,7 +1,7 @@
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookDetail } from '@/types/book.ts';
 import type { RefObject } from 'react';
-import { Fragment, useCallback, useEffect, useMemo } from 'react';
+import { Fragment, memo, useCallback, useEffect, useMemo } from 'react';
 import { Separator } from '@/components/ui/separator.tsx';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { useAppDispatch } from '@/store/hooks.ts';
@@ -22,7 +22,7 @@ type Props = {
   setContentHeight?: (height: number) => void;
 };
 
-export default function BookCardList({
+const BookCardList = ({
   countRef,
   bookDetails,
   filterSet,
@@ -30,7 +30,7 @@ export default function BookCardList({
   openType,
   setOpenType,
   setContentHeight,
-}: Props) {
+}: Props) => {
   const dispatch = useAppDispatch();
   const [contentRef, contentSize] = useDOMSize();
   const isOpen = useMemo(() => !openType || ['collapse', 'full'].some(v => v === openType), [openType]);
@@ -100,4 +100,6 @@ export default function BookCardList({
       </div>
     </div>
   );
-}
+};
+
+export default memo(BookCardList);

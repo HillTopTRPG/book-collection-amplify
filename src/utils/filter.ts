@@ -1,5 +1,5 @@
 import type { FilterBean, FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookDetail } from '@/types/book.ts';
+import type { BookData, BookDetail } from '@/types/book.ts';
 import { isNil } from 'es-toolkit/compat';
 import { getKeys } from '@/utils/type.ts';
 
@@ -20,6 +20,23 @@ const isMatch = (filter: FilterBean, list: string[]) => {
 const EMPTY_BOOK_DETAIL_ARRAY: BookDetail[] = [];
 const EMPTY_STRING_ARRAY: string[] = [];
 
+// book properties のキャッシュ
+const bookPropertiesCache = new WeakMap<BookData, string[]>();
+
+const getBookProperties = (book: BookData): string[] => {
+  if (bookPropertiesCache.has(book)) {
+    return bookPropertiesCache.get(book)!;
+  }
+  const properties = getKeys(book).flatMap(property => {
+    const value = book[property];
+    if (isNil(value)) return EMPTY_STRING_ARRAY;
+    if (typeof value === 'string') return [value];
+    return value;
+  });
+  bookPropertiesCache.set(book, properties);
+  return properties;
+};
+
 export const getFilteredItems = (
   bookDetails: BookDetail[],
   filterSet: FilterSet,
@@ -35,17 +52,7 @@ export const getFilteredItems = (
   return bookDetails.filter(bookDetail =>
     filterSet.filters.some(({ list }, idx) => {
       if (filterIndex !== undefined && idx !== filterIndex) return false;
-      return list.every(filter =>
-        isMatch(
-          filter,
-          getKeys(bookDetail.book).flatMap(property => {
-            const value = bookDetail.book[property];
-            if (isNil(value)) return EMPTY_STRING_ARRAY;
-            if (typeof value === 'string') return [value];
-            return value;
-          })
-        )
-      );
+      return list.every(filter => isMatch(filter, getBookProperties(bookDetail.book)));
     })
   );
 };

@@ -34,7 +34,17 @@ export default function BookDetailEdits({ bookDetail }: Props) {
   const [groupByType, setGroupByType] = useState<'volume' | null>('volume');
   const [searchConditionsRef, searchConditionsSize] = useDOMSize();
   const [contentHeight, setContentHeight] = useState(0);
-  const scrollParentRef = useRef<HTMLDivElement>(document.getElementById('root') as HTMLDivElement);
+
+  // scrollParentRef を lazy initialization で最適化
+  const scrollParentRef = useRef<HTMLDivElement | null>(null);
+  if (!scrollParentRef.current) {
+    scrollParentRef.current = document.getElementById('root') as HTMLDivElement;
+  }
+
+  // setContentHeight を useCallback で安定化
+  const handleSetContentHeight = useCallback((height: number) => {
+    setContentHeight(height);
+  }, []);
 
   const minHeightStyle = useMemo(
     () =>
@@ -54,10 +64,17 @@ export default function BookDetailEdits({ bookDetail }: Props) {
     selectFilterResultsByIsbn(state, bookDetail.book.isbn, bookDetail.collection.id)
   );
 
-  const filterSet = useMemo(
-    () => primeFilterSet?.filterSet ?? otherFilterSets.at(0)?.filterSet ?? null,
-    [otherFilterSets, primeFilterSet?.filterSet]
+  // filterSet を ID ベースで選択（参照の安定化）
+  const filterSetId = useMemo(
+    () => primeFilterSet?.filterSet.id ?? otherFilterSets.at(0)?.filterSet.id ?? null,
+    [otherFilterSets, primeFilterSet?.filterSet.id]
   );
+
+  const filterSet = useMemo(() => {
+    if (!filterSetId) return null;
+    if (primeFilterSet?.filterSet.id === filterSetId) return primeFilterSet.filterSet;
+    return otherFilterSets.find(({ filterSet }) => filterSet.id === filterSetId)?.filterSet ?? null;
+  }, [filterSetId, otherFilterSets, primeFilterSet?.filterSet]);
 
   const stringifyFetchOptions = useMemo(
     () => (filterSet?.fetch ? makeNdlOptionsStringByNdlFullOptions(filterSet.fetch) : ''),
@@ -133,16 +150,15 @@ export default function BookDetailEdits({ bookDetail }: Props) {
 
   const bookCardNavi = useMemo(() => <BookCardNavi bookDetail={bookDetail} />, [bookDetail]);
   const bookDetailView = useMemo(() => {
-    console.log('render bookDetailView', bookDetails.length, !!filterSet, groupByType, searchConditionsSize.height);
     if (!filterSet) return null;
     return (
       <BookDetailView
         stickyTop={searchConditionsSize.height}
-        setContentHeight={setContentHeight}
+        setContentHeight={handleSetContentHeight}
         {...{ scrollParentRef, bookDetails, filterSet, groupByType }}
       />
     );
-  }, [bookDetails, filterSet, groupByType, searchConditionsSize.height]);
+  }, [bookDetails, filterSet, groupByType, handleSetContentHeight, searchConditionsSize.height]);
 
   return (
     <div className="flex flex-col w-full flex-1">

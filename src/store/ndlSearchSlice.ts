@@ -42,29 +42,55 @@ const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => uni
 export const selectNdlSearchTargets = createSelector([_selectQueue], queue => queue.slice(0, 2));
 /** NDL検索条件：書籍一覧 のRecord */
 export const selectAllNdlSearchResults = simpleSelector('ndlSearch', 'results');
+
+// 配列参照を安定化するためのキャッシュ
+let cachedBookDetailsRecord: Record<string, BookDetail[]> = {};
+let previousResults: Record<string, BookData[]> = {};
+let previousCollections: Collection[] = [];
+let previousTempCollections: Collection[] = [];
+
 export const selectAllBookDetails = createSelector(
   [selectAllNdlSearchResults, selectCollections, selectTempCollections],
   (
     results: Record<string, BookData[]>,
     collections: Collection[],
     tempCollections: Collection[]
-  ): Record<string, BookDetail[]> =>
-    getKeys(results).reduce<Record<string, BookDetail[]>>((acc, str) => {
-      acc[str] = results[str].map(book => {
-        const isbn = book.isbn;
-        const collection = collections.find(filterMatch({ isbn }));
-        const tempCollection = tempCollections.find(filterMatch({ isbn }));
+  ): Record<string, BookDetail[]> => {
+    // collections が変更されていない場合、変更されたキーのみ再計算
+    const collectionsChanged = collections !== previousCollections || tempCollections !== previousTempCollections;
 
-        return {
-          book,
-          collection: {
-            type: collection ? 'db' : 'temp',
-            id: collection?.id ?? tempCollection?.id ?? '',
-          },
-        } as const satisfies BookDetail;
-      });
-      return acc;
-    }, {})
+    const newRecord: Record<string, BookDetail[]> = {};
+
+    getKeys(results).forEach(str => {
+      // このキーのデータが変更されていなければキャッシュを使用
+      if (!collectionsChanged && results[str] === previousResults[str] && str in cachedBookDetailsRecord) {
+        newRecord[str] = cachedBookDetailsRecord[str];
+      } else {
+        // 変更されている場合のみ再計算
+        newRecord[str] = results[str].map(book => {
+          const isbn = book.isbn;
+          const collection = collections.find(filterMatch({ isbn }));
+          const tempCollection = tempCollections.find(filterMatch({ isbn }));
+
+          return {
+            book,
+            collection: {
+              type: collection ? 'db' : 'temp',
+              id: collection?.id ?? tempCollection?.id ?? '',
+            },
+          } as const satisfies BookDetail;
+        });
+      }
+    });
+
+    // キャッシュを更新
+    previousResults = results;
+    previousCollections = collections;
+    previousTempCollections = tempCollections;
+    cachedBookDetailsRecord = newRecord;
+
+    return newRecord;
+  }
 );
 export const selectFetchedAllBooks = createSelector([selectAllBookDetails], (results): BookDetail[] =>
   getKeys(results)

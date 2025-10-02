@@ -5,10 +5,18 @@ const DEFAULT_NGRAM_SIZE = 3;
 
 type NgramFrequencyMap = { [key: string]: number };
 
+// N-gram 頻度マップのキャッシュ
+const ngramCache = new Map<string, NgramFrequencyMap>();
+
 /**
- * 文字列からN-gramの頻度マップを生成する
+ * 文字列からN-gramの頻度マップを生成する（メモ化版）
  */
 const generateNgramFrequencyMap = (text: string, ngramSize: number = DEFAULT_NGRAM_SIZE): NgramFrequencyMap => {
+  const cacheKey = `${text}:${ngramSize}`;
+  if (ngramCache.has(cacheKey)) {
+    return ngramCache.get(cacheKey)!;
+  }
+
   const frequencyMap: NgramFrequencyMap = {};
 
   for (let gramLength = 1; gramLength <= ngramSize; gramLength++) {
@@ -18,6 +26,7 @@ const generateNgramFrequencyMap = (text: string, ngramSize: number = DEFAULT_NGR
     }
   }
 
+  ngramCache.set(cacheKey, frequencyMap);
   return frequencyMap;
 };
 

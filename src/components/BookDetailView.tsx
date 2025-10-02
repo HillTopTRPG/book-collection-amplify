@@ -1,7 +1,7 @@
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookDetail } from '@/types/book.ts';
 import type { RefObject } from 'react';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import BookCardList from '@/components/BookCardList.tsx';
 import GroupByBlock from '@/components/GroupByBlock.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
@@ -18,7 +18,7 @@ type Props = {
   orIndex?: number;
 };
 
-export default function BookDetailView({
+const BookDetailView = ({
   stickyTop,
   scrollParentRef,
   bookDetails,
@@ -26,20 +26,13 @@ export default function BookDetailView({
   setContentHeight,
   groupByType,
   orIndex,
-}: Props) {
-  const filteredResults = useMemo((): BookDetail[] => {
-    console.time('getFilteredItems');
-    const result = getFilteredItems(bookDetails, filterSet, orIndex);
-    console.timeEnd('getFilteredItems');
-    return result;
-  }, [bookDetails, filterSet, orIndex]);
+}: Props) => {
+  const filteredResults = useMemo(
+    (): BookDetail[] => getFilteredItems(bookDetails, filterSet, orIndex),
+    [bookDetails, filterSet, orIndex]
+  );
 
-  const groupedBooks = useMemo(() => {
-    console.time('groupByVolume');
-    const result = groupByVolume(filteredResults);
-    console.timeEnd('groupByVolume');
-    return result;
-  }, [filteredResults]);
+  const groupedBooks = useMemo(() => groupByVolume(filteredResults), [filteredResults]);
 
   const bookCardList = useMemo(
     () => <BookCardList bookDetails={filteredResults} {...{ filterSet, orIndex, setContentHeight }} />,
@@ -62,4 +55,6 @@ export default function BookDetailView({
   );
 
   return <div className="flex flex-col gap-5">{!groupByType ? bookCardList : groupedBooksElement}</div>;
-}
+};
+
+export default memo(BookDetailView);

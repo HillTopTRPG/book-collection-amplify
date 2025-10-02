@@ -2,7 +2,7 @@ import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookGroup } from '@/utils/groupByVolume';
 import type { ReactNode, RefObject } from 'react';
 import { ChevronsDownUp, ChevronsUpDown, UnfoldVertical } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import BookCardList from './BookCardList.tsx';
 
@@ -24,15 +24,7 @@ type Props = {
   setContentHeight: (height: number) => void;
 };
 
-export default function GroupByBlock({
-  scrollParentRef,
-  list,
-  idx,
-  stickyTop,
-  filterSet,
-  orIndex,
-  setContentHeight,
-}: Props) {
+const GroupByBlock = ({ scrollParentRef, list, idx, stickyTop, filterSet, orIndex, setContentHeight }: Props) => {
   const [stickyRef, stickySize] = useDOMSize();
   const [contentRef, contentSize] = useDOMSize();
   const countRef = useRef<HTMLDivElement>(null);
@@ -114,4 +106,6 @@ export default function GroupByBlock({
       </div>
     </>
   );
-}
+};
+
+export default memo(GroupByBlock);
