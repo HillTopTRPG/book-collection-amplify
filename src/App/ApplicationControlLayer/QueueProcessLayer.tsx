@@ -13,10 +13,10 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
 import {
+  selectAllFilterSets,
   selectCollections,
   selectFilterSets,
   selectTempCollections,
-  selectTempFilterSets,
 } from '@/store/subscriptionDataSlice.ts';
 import { callGoogleBooksApi } from '@/utils/fetch/google.ts';
 import { callNdlSearchApi } from '@/utils/fetch/ndl.tsx';
@@ -35,13 +35,13 @@ export default function QueueProcessLayer({ children }: Props) {
   const collections = useAppSelector(selectCollections);
   const tempCollections = useAppSelector(selectTempCollections);
   const filterSets = useAppSelector(selectFilterSets);
-  const tempFilterSets = useAppSelector(selectTempFilterSets);
+  const allFilterSets = useAppSelector(selectAllFilterSets);
   const allNdlSearchQueueResults = useAppSelector(selectAllNdlSearchResults);
 
   useLocalStorage();
   useBookImageQueueProcessor();
-  useNdlSearchQueueEnqueueer({ collections, tempCollections, filterSets });
-  useScanQueueProcessor({ collections, tempCollections, filterSets, tempFilterSets, allNdlSearchQueueResults });
+  useNdlSearchQueueEnqueueer({ collections, tempCollections, allFilterSets });
+  useScanQueueProcessor({ collections, tempCollections, filterSets, allNdlSearchQueueResults });
 
   const google = useSearchQueueProcessor(
     selectGoogleSearchTargets,

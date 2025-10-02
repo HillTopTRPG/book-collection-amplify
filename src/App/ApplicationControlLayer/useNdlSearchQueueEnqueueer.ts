@@ -48,10 +48,10 @@ const getRequests = (
 type Props = {
   collections: Collection[];
   tempCollections: Collection[];
-  filterSets: FilterSet[];
+  allFilterSets: FilterSet[];
 };
 
-export default function useNdlSearchQueueEnqueueer({ collections, tempCollections, filterSets }: Props) {
+export default function useNdlSearchQueueEnqueueer({ collections, tempCollections, allFilterSets }: Props) {
   const dispatch = useAppDispatch();
 
   // NDL検索キューの対象
@@ -117,10 +117,10 @@ export default function useNdlSearchQueueEnqueueer({ collections, tempCollection
 
   // 蔵書のグループ本を全て検索する
   useEffect(() => {
-    filterSets.forEach(filterSet => {
+    allFilterSets.forEach(filterSet => {
       dispatch(enqueueAllNdlSearch({ type: 'new', list: [makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)] }));
     });
-  }, [dispatch, filterSets]);
+  }, [dispatch, allFilterSets]);
 
   // 読み込み書籍のグループ本のフィルターが変更される毎に検索結果を取得し直す
   useEffect(() => {

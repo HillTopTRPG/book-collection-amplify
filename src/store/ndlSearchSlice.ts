@@ -1,9 +1,10 @@
-import type { Collection } from '@/store/subscriptionDataSlice.ts';
+import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookData, BookDetail } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
-import { selectCollections, selectTempCollections } from '@/store/subscriptionDataSlice.ts';
+import { selectAllFilterSets, selectCollections, selectTempCollections } from '@/store/subscriptionDataSlice.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
+import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import { filterMatch, unique } from '@/utils/primitive.ts';
 import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 import { getKeys } from '@/utils/type.ts';
@@ -69,6 +70,18 @@ export const selectFetchedAllBooks = createSelector([selectAllBookDetails], (res
   getKeys(results)
     .flatMap(option => (typeof results[option] === 'string' ? [] : results[option]))
     .filter((bookDetail, idx, self) => self.findIndex(b => b.book.isbn === bookDetail.book.isbn) === idx)
+);
+export const selectAllFilterResults = createSelector(
+  [selectAllFilterSets, selectAllBookDetails],
+  (allFilters, allBookDetails): { filterSet: FilterSet; books: BookDetail[] }[] | null => {
+    const list: { filterSet: FilterSet; books: BookDetail[] }[] = allFilters.flatMap(filterSet => {
+      const key = makeNdlOptionsStringByNdlFullOptions(filterSet.fetch);
+      if (!(key in allBookDetails)) return [];
+      return [{ filterSet, books: allBookDetails[key] }];
+    });
+    if (list.length !== allFilters.length) return null;
+    return list;
+  }
 );
 
 export default ndlSearchSlice.reducer;

@@ -3,7 +3,7 @@ import type { Isbn13 } from '@/types/book.ts';
 import type { Values } from '@/utils/type.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Schema } from '$/amplify/data/resource.ts';
-import { createSlice } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { filterMatch } from '@/utils/primitive.ts';
 import { createSimpleReducers, simpleSelector } from '@/utils/store.ts';
 import { getKeys } from '@/utils/type.ts';
@@ -122,7 +122,10 @@ export const selectCollections = simpleSelector('subscriptionData', 'collections
 export const selectTempCollections = simpleSelector('subscriptionData', 'tempCollections');
 export const selectFilterSets = simpleSelector('subscriptionData', 'filterSets');
 export const selectTempFilterSets = simpleSelector('subscriptionData', 'tempFilterSets');
-/** フィルターセットをDBに登録した直後にそのIDを取得するための特別なもの */
 export const selectUpdatingCollectionIsbnList = simpleSelector('subscriptionData', 'updatingCollectionIsbnList');
+export const selectAllFilterSets = createSelector(
+  [selectFilterSets, selectTempFilterSets],
+  (filterSets, tempFilterSets): FilterSet[] => [...filterSets, ...tempFilterSets]
+);
 
 export default subscriptionDataSlice.reducer;

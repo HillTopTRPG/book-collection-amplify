@@ -5,8 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import BookCardNavi from '@/pages/ScannedBookPage/FilterBlock/BookCardNavi.tsx';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import useIdInfo from '@/store/hooks/useIdInfo.ts';
-import { selectAllBookDetails } from '@/store/ndlSearchSlice.ts';
+import { selectAllBookDetails, selectAllFilterResults } from '@/store/ndlSearchSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import FilterBlock from './FilterBlock';
 import FilterSets from './FilterSets';
@@ -18,20 +17,49 @@ type Props = {
 export default function Contents({ scannedItemMapValue }: Props) {
   const dispatch = useAppDispatch();
   const allBookDetails = useAppSelector(selectAllBookDetails);
+  const allFilterResults = useAppSelector(selectAllFilterResults);
   const scrollParentRef = useRef<HTMLDivElement>(document.getElementById('root') as HTMLDivElement);
-  const { getFilterSetByIdInfo } = useIdInfo();
 
-  const [selectedFilterSet, setSelectedFilterSet] = useState<string>(scannedItemMapValue.filterSets.at(0)?.id ?? '');
-  useEffect(() => {
-    setSelectedFilterSet(scannedItemMapValue.filterSets.at(0)?.id ?? '');
-  }, [scannedItemMapValue.filterSets, setSelectedFilterSet]);
+  const primeFilterSet: { filterSet: FilterSet; books: BookDetail[] } | null = useMemo(
+    () =>
+      allFilterResults?.find(
+        ({ filterSet }) => filterSet.collectionId === scannedItemMapValue.bookDetail.collection.id
+      ) ?? null,
+    [allFilterResults, scannedItemMapValue.bookDetail.collection.id]
+  );
+  const otherFilterSets: { filterSet: FilterSet; books: BookDetail[] }[] = useMemo(
+    () =>
+      allFilterResults?.filter(
+        ({ filterSet, books }) =>
+          filterSet.collectionId !== scannedItemMapValue.bookDetail.collection.id &&
+          books.some(({ book }) => book.isbn === scannedItemMapValue.bookDetail.book.isbn)
+      ) ?? [],
+    [allFilterResults, scannedItemMapValue.bookDetail.book.isbn, scannedItemMapValue.bookDetail.collection.id]
+  );
 
-  const [filterSet, setFilterSet] = useState<FilterSet | null>(null);
+  const [selectedFilterSet, setSelectedFilterSet] = useState<string | null>(
+    primeFilterSet?.filterSet.id ?? otherFilterSets.at(0)?.filterSet.id ?? null
+  );
+
   useEffect(() => {
-    const currentFilterSet = scannedItemMapValue.filterSets.find(({ id }) => id === selectedFilterSet);
-    if (!currentFilterSet) return;
-    setFilterSet(getFilterSetByIdInfo(currentFilterSet));
-  }, [getFilterSetByIdInfo, scannedItemMapValue.filterSets, selectedFilterSet]);
+    console.log(`'${selectedFilterSet}'`);
+    if (selectedFilterSet) return;
+    const primeFilterSetId = primeFilterSet?.filterSet.id;
+    console.log(primeFilterSetId);
+    if (primeFilterSetId) {
+      setSelectedFilterSet(primeFilterSetId);
+      return;
+    }
+    const otherFilterSetId = otherFilterSets.at(0)?.filterSet.id;
+    console.log(otherFilterSetId);
+    if (otherFilterSetId) setSelectedFilterSet(otherFilterSetId);
+  }, [otherFilterSets, primeFilterSet?.filterSet.id, selectedFilterSet]);
+
+  const filterSet = useMemo(() => {
+    if (!selectedFilterSet) return null;
+    if (primeFilterSet?.filterSet.id === selectedFilterSet) return primeFilterSet.filterSet;
+    return otherFilterSets.find(({ filterSet }) => filterSet.id === selectedFilterSet)?.filterSet ?? null;
+  }, [otherFilterSets, primeFilterSet?.filterSet, selectedFilterSet]);
 
   const stringifyFetchOptions = useMemo(
     () => (filterSet?.fetch ? makeNdlOptionsStringByNdlFullOptions(filterSet.fetch) : ''),
@@ -55,7 +83,9 @@ export default function Contents({ scannedItemMapValue }: Props) {
         <div className="bg-background">
           <BookCardNavi bookDetail={scannedItemMapValue.bookDetail} />
         </div>
-        <FilterSets {...{ scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }} />
+        <FilterSets
+          {...{ primeFilterSet, otherFilterSets, scannedItemMapValue, selectedFilterSet, setSelectedFilterSet }}
+        />
       </div>
 
       {filterSet ? (

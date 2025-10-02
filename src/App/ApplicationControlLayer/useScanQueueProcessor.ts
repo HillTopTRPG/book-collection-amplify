@@ -4,15 +4,14 @@ import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueAllNdlSearch } from '@/store/ndlSearchSlice.ts';
 import { dequeueScan, selectScanQueueTargets } from '@/store/scannerSlice.ts';
-import { addTempCollections, addTempFilterSets } from '@/store/subscriptionDataSlice.ts';
-import { getScannedItemMapValueByBookData, makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
+import { addTempCollections } from '@/store/subscriptionDataSlice.ts';
+import { getScannedItemMapValueByBookData } from '@/utils/data.ts';
 import { entries } from '@/utils/primitive.ts';
 
 type Props = {
   collections: Collection[];
   tempCollections: Collection[];
   filterSets: FilterSet[];
-  tempFilterSets: FilterSet[];
   allNdlSearchQueueResults: Record<string, BookData[]>;
 };
 
@@ -20,7 +19,6 @@ export default function useScanQueueProcessor({
   collections,
   tempCollections,
   filterSets,
-  tempFilterSets,
   allNdlSearchQueueResults,
 }: Props) {
   const dispatch = useAppDispatch();
@@ -37,7 +35,6 @@ export default function useScanQueueProcessor({
   useEffect(() => {
     if (!scanQueueTargets.length) return;
     const tempCollections: Collection[] = [];
-    const tempFilterSets: FilterSet[] = [];
     const results = scanQueueTargets.reduce<Map<Isbn13, BookData>>((acc, isbn) => {
       const key = JSON.stringify({ isbn });
       if (!(key in allNdlSearchQueueResults)) return acc;
@@ -62,16 +59,7 @@ export default function useScanQueueProcessor({
     }, new Map<Isbn13, BookData>());
 
     if (tempCollections.length) dispatch(addTempCollections(tempCollections));
-    if (tempFilterSets.length) {
-      dispatch(addTempFilterSets(tempFilterSets));
-      dispatch(
-        enqueueAllNdlSearch({
-          type: 'new',
-          list: tempFilterSets.map(filterSet => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)),
-        })
-      );
-    }
     if (!results.size) return;
     dispatch(dequeueScan(entries(results)));
-  }, [dispatch, scanQueueTargets, allNdlSearchQueueResults, collections, filterSets, tempCollections, tempFilterSets]);
+  }, [dispatch, scanQueueTargets, allNdlSearchQueueResults, collections, filterSets, tempCollections]);
 }

@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "start": "vite --host",
     "dev": "vite --host",
     "dev:mock": "VITE_MOCK_MODE=true vite --host",
     "build": "tsc & vite build & wait",
