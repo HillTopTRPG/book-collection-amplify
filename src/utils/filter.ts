@@ -17,16 +17,19 @@ const isMatch = (filter: FilterBean, list: string[]) => {
   }
 };
 
+const EMPTY_BOOK_DETAIL_ARRAY: BookDetail[] = [];
+const EMPTY_STRING_ARRAY: string[] = [];
+
 export const getFilteredItems = (
   bookDetails: BookDetail[],
   filterSet: FilterSet,
   filterIndex?: number
 ): BookDetail[] => {
-  if (!bookDetails.length) return [];
+  if (!bookDetails.length) return EMPTY_BOOK_DETAIL_ARRAY;
 
   if (filterIndex !== undefined) {
     const filters = filterSet.filters[filterIndex].list.filter(({ keyword }) => keyword);
-    if (!filters.length) return !filterIndex ? bookDetails : [];
+    if (!filters.length) return !filterIndex ? bookDetails : EMPTY_BOOK_DETAIL_ARRAY;
   }
 
   return bookDetails.filter(bookDetail =>
@@ -37,7 +40,7 @@ export const getFilteredItems = (
           filter,
           getKeys(bookDetail.book).flatMap(property => {
             const value = bookDetail.book[property];
-            if (isNil(value)) return [];
+            if (isNil(value)) return EMPTY_STRING_ARRAY;
             if (typeof value === 'string') return [value];
             return value;
           })

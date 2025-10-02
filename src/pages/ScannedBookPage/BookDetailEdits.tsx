@@ -20,6 +20,7 @@ import { BookStatusEnum } from '@/store/subscriptionDataSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 
 const BOTTOM_NAVIGATION_HEIGHT = 65;
+const EMPTY_ARRAY: BookDetail[] = [];
 
 type Props = {
   bookDetail: BookDetail;
@@ -67,8 +68,9 @@ export default function BookDetailEdits({ bookDetail }: Props) {
   );
 
   const bookDetails: BookDetail[] = useMemo(() => {
-    const result = stringifyFetchOptions in allBookDetails ? allBookDetails[stringifyFetchOptions] : [];
-    if (typeof result === 'string') return [];
+    if (!stringifyFetchOptions) return EMPTY_ARRAY;
+    const result = stringifyFetchOptions in allBookDetails ? allBookDetails[stringifyFetchOptions] : EMPTY_ARRAY;
+    if (typeof result === 'string') return EMPTY_ARRAY;
     return result;
   }, [allBookDetails, stringifyFetchOptions]);
 

@@ -28,12 +28,18 @@ export default function BookDetailView({
   orIndex,
 }: Props) {
   const filteredResults = useMemo((): BookDetail[] => {
-    console.log('&&&&&&&&&1');
+    console.time('getFilteredItems');
     const result = getFilteredItems(bookDetails, filterSet, orIndex);
-    console.log('&&&&&&&&&2');
+    console.timeEnd('getFilteredItems');
     return result;
   }, [bookDetails, filterSet, orIndex]);
-  const groupedBooks = useMemo(() => groupByVolume(filteredResults), [filteredResults]);
+
+  const groupedBooks = useMemo(() => {
+    console.time('groupByVolume');
+    const result = groupByVolume(filteredResults);
+    console.timeEnd('groupByVolume');
+    return result;
+  }, [filteredResults]);
 
   const bookCardList = useMemo(
     () => <BookCardList bookDetails={filteredResults} {...{ filterSet, orIndex, setContentHeight }} />,
