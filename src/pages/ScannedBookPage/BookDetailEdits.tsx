@@ -15,7 +15,11 @@ import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectAllBookDetails, selectAllFilterResults } from '@/store/ndlSearchSlice.ts';
+import {
+  selectBookDetailsByKey,
+  selectFilterResultsByCollectionId,
+  selectFilterResultsByIsbn,
+} from '@/store/ndlSearchSlice.ts';
 import { BookStatusEnum } from '@/store/subscriptionDataSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 
@@ -27,12 +31,36 @@ type Props = {
 
 export default function BookDetailEdits({ bookDetail }: Props) {
   const dispatch = useAppDispatch();
-  const allBookDetails = useAppSelector(selectAllBookDetails);
-  const allFilterResults = useAppSelector(selectAllFilterResults);
   const [groupByType, setGroupByType] = useState<'volume' | null>('volume');
   const [searchConditionsRef, searchConditionsSize] = useDOMSize();
   const [contentHeight, setContentHeight] = useState(0);
-  const scrollParentRef = useRef<HTMLDivElement>(document.getElementById('root') as HTMLDivElement);
+
+  // パフォーマンス計測
+  const renderCountRef = useRef(0);
+  const mountTimeRef = useRef(performance.now());
+
+  useEffect(() => {
+    renderCountRef.current += 1;
+    const renderTime = performance.now() - mountTimeRef.current;
+
+    console.log(
+      `[BookDetailEdits] Render #${renderCountRef.current} in ${renderTime.toFixed(2)}ms (ISBN: ${bookDetail.book.isbn})`
+    );
+  });
+
+  // scrollParentRef を useEffect で初期化（レンダリング時の DOM 検索を回避）
+  const scrollParentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!scrollParentRef.current) {
+      scrollParentRef.current = document.getElementById('root') as HTMLDivElement;
+    }
+  }, []);
+
+  // setContentHeight を useCallback で安定化
+  const handleSetContentHeight = useCallback((height: number) => {
+    setContentHeight(height);
+  }, []);
 
   const minHeightStyle = useMemo(
     () =>
@@ -42,54 +70,35 @@ export default function BookDetailEdits({ bookDetail }: Props) {
     [searchConditionsSize.height, contentHeight]
   );
 
-  const primeFilterSet: { filterSet: FilterSet; books: BookDetail[] } | null = useMemo(
-    () => allFilterResults?.find(({ filterSet }) => filterSet.collectionId === bookDetail.collection.id) ?? null,
-    [allFilterResults, bookDetail.collection.id]
-  );
-  const otherFilterSets: { filterSet: FilterSet; books: BookDetail[] }[] = useMemo(
-    () =>
-      allFilterResults?.filter(
-        ({ filterSet, books }) =>
-          filterSet.collectionId !== bookDetail.collection.id &&
-          books.some(({ book }) => book.isbn === bookDetail.book.isbn)
-      ) ?? [],
-    [allFilterResults, bookDetail.book.isbn, bookDetail.collection.id]
+  // 特定のコレクションIDに対応するフィルターセットのみを取得
+  const primeFilterSet: { filterSet: FilterSet; books: BookDetail[] } | null = useAppSelector(state =>
+    selectFilterResultsByCollectionId(state, bookDetail.collection.id)
   );
 
-  const [selectedFilterSet, setSelectedFilterSet] = useState<string | null>(
-    primeFilterSet?.filterSet.id ?? otherFilterSets.at(0)?.filterSet.id ?? null
+  // 特定のISBNに関連するフィルターセットのみを取得（primeを除外）
+  const otherFilterSets: { filterSet: FilterSet; books: BookDetail[] }[] = useAppSelector(state =>
+    selectFilterResultsByIsbn(state, bookDetail.book.isbn, bookDetail.collection.id)
   );
 
-  useEffect(() => {
-    console.log(`'${selectedFilterSet}'`);
-    if (selectedFilterSet) return;
-    const primeFilterSetId = primeFilterSet?.filterSet.id;
-    console.log(primeFilterSetId);
-    if (primeFilterSetId) {
-      setSelectedFilterSet(primeFilterSetId);
-      return;
-    }
-    const otherFilterSetId = otherFilterSets.at(0)?.filterSet.id;
-    console.log(otherFilterSetId);
-    if (otherFilterSetId) setSelectedFilterSet(otherFilterSetId);
-  }, [otherFilterSets, primeFilterSet?.filterSet.id, selectedFilterSet]);
+  // filterSet を ID ベースで選択（参照の安定化）
+  const filterSetId = useMemo(
+    () => primeFilterSet?.filterSet.id ?? otherFilterSets.at(0)?.filterSet.id ?? null,
+    [otherFilterSets, primeFilterSet?.filterSet.id]
+  );
 
   const filterSet = useMemo(() => {
-    if (!selectedFilterSet) return null;
-    if (primeFilterSet?.filterSet.id === selectedFilterSet) return primeFilterSet.filterSet;
-    return otherFilterSets.find(({ filterSet }) => filterSet.id === selectedFilterSet)?.filterSet ?? null;
-  }, [otherFilterSets, primeFilterSet?.filterSet, selectedFilterSet]);
+    if (!filterSetId) return null;
+    if (primeFilterSet?.filterSet.id === filterSetId) return primeFilterSet.filterSet;
+    return otherFilterSets.find(({ filterSet }) => filterSet.id === filterSetId)?.filterSet ?? null;
+  }, [filterSetId, otherFilterSets, primeFilterSet?.filterSet]);
 
   const stringifyFetchOptions = useMemo(
     () => (filterSet?.fetch ? makeNdlOptionsStringByNdlFullOptions(filterSet.fetch) : ''),
     [filterSet?.fetch]
   );
 
-  const bookDetails: BookDetail[] = useMemo(() => {
-    const result = stringifyFetchOptions in allBookDetails ? allBookDetails[stringifyFetchOptions] : [];
-    if (typeof result === 'string') return [];
-    return result;
-  }, [allBookDetails, stringifyFetchOptions]);
+  // 特定のキーに対応するBookDetailsのみを取得
+  const bookDetails: BookDetail[] = useAppSelector(state => selectBookDetailsByKey(state, stringifyFetchOptions));
 
   useEffect(() => {
     if (!stringifyFetchOptions) return;
@@ -99,7 +108,8 @@ export default function BookDetailEdits({ bookDetail }: Props) {
   const { createFilterSet, createCollections } = useAwsAccess();
 
   const options = useMemo((): Record<string, { label: ReactNode; disabled: boolean }> | null => {
-    if (!allFilterResults) return null;
+    const hasAllData = primeFilterSet !== null || otherFilterSets.length > 0;
+    if (!hasAllData) return null;
     return [primeFilterSet, ...otherFilterSets].reduce<Record<string, { label: ReactNode; disabled: boolean }>>(
       (acc, info) => {
         if (info) {
@@ -109,7 +119,7 @@ export default function BookDetailEdits({ bookDetail }: Props) {
       },
       {}
     );
-  }, [allFilterResults, otherFilterSets, primeFilterSet]);
+  }, [otherFilterSets, primeFilterSet]);
 
   const filterSets: FilterSet[] = useMemo(
     () =>
@@ -125,14 +135,12 @@ export default function BookDetailEdits({ bookDetail }: Props) {
 
     let collectionId = collection.id;
 
-    console.log('collectionId', collectionId);
-
     if (collection.type !== 'db') {
       const collection = await createCollections({ isbn: book.isbn, status: BookStatusEnum.Unregistered });
       if (!collection) return;
       collectionId = collection.id;
     }
-    console.log('collectionId', collectionId);
+
     void createFilterSet({
       name: book.title || '無名のフィルター',
       fetch: {
@@ -154,12 +162,22 @@ export default function BookDetailEdits({ bookDetail }: Props) {
     [navigate]
   );
 
+  const bookCardNavi = useMemo(() => <BookCardNavi bookDetail={bookDetail} />, [bookDetail]);
+  const bookDetailView = useMemo(() => {
+    if (!filterSet) return null;
+    return (
+      <BookDetailView
+        stickyTop={searchConditionsSize.height}
+        setContentHeight={handleSetContentHeight}
+        {...{ scrollParentRef, bookDetails, filterSet, groupByType }}
+      />
+    );
+  }, [bookDetails, filterSet, groupByType, handleSetContentHeight, searchConditionsSize.height]);
+
   return (
     <div className="flex flex-col w-full flex-1">
       <div className="flex flex-col gap-3 pt-3">
-        <div className="bg-background">
-          <BookCardNavi bookDetail={bookDetail} />
-        </div>
+        <div className="bg-background">{bookCardNavi}</div>
         <div ref={searchConditionsRef} className="sticky top-0 z-[110] flex flex-col bg-background px-2 pt-2">
           <div className="text-xs">関連フィルター一覧</div>
           {!options ? <Spinner variant="bars" /> : null}
@@ -194,13 +212,7 @@ export default function BookDetailEdits({ bookDetail }: Props) {
           </div>
         </div>
 
-        {filterSet ? (
-          <BookDetailView
-            stickyTop={searchConditionsSize.height}
-            setContentHeight={setContentHeight}
-            {...{ scrollParentRef, bookDetails, filterSet, groupByType }}
-          />
-        ) : null}
+        {bookDetailView}
       </div>
 
       <div className="min-h-viewport-with-offset" style={minHeightStyle} />

@@ -2,7 +2,7 @@ import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
 import type { BookGroup } from '@/utils/groupByVolume';
 import type { ReactNode, RefObject } from 'react';
 import { ChevronsDownUp, ChevronsUpDown, UnfoldVertical } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import BookCardList from './BookCardList.tsx';
 
@@ -24,15 +24,7 @@ type Props = {
   setContentHeight: (height: number) => void;
 };
 
-export default function GroupByBlock({
-  scrollParentRef,
-  list,
-  idx,
-  stickyTop,
-  filterSet,
-  orIndex,
-  setContentHeight,
-}: Props) {
+const GroupByBlock = ({ scrollParentRef, list, idx, stickyTop, filterSet, orIndex, setContentHeight }: Props) => {
   const [stickyRef, stickySize] = useDOMSize();
   const [contentRef, contentSize] = useDOMSize();
   const countRef = useRef<HTMLDivElement>(null);
@@ -84,6 +76,13 @@ export default function GroupByBlock({
 
   const stickyStyle = useMemo(() => ({ top: stickyTop }), [stickyTop]);
 
+  const bookCardList = useMemo(
+    () => (
+      <BookCardList countRef={countRef} bookDetails={bookDetails} {...{ filterSet, orIndex, openType, setOpenType }} />
+    ),
+    [bookDetails, filterSet, openType, orIndex]
+  );
+
   return (
     <>
       <div
@@ -102,13 +101,11 @@ export default function GroupByBlock({
       <div ref={contentRef} className="flex">
         <div className="bg-green-800 w-2" />
         <div className="flex flex-col flex-1" style={{ maxWidth: 'calc(100% - 0.5rem)' }}>
-          <BookCardList
-            countRef={countRef}
-            bookDetails={bookDetails}
-            {...{ filterSet, orIndex, openType, setOpenType }}
-          />
+          {bookCardList}
         </div>
       </div>
     </>
   );
-}
+};
+
+export default memo(GroupByBlock);
