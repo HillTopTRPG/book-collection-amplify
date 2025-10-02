@@ -111,6 +111,10 @@ export const subscriptionDataSlice = createSlice({
       state.updatingCollectionIsbnList.push(...action.payload);
       console.log(JSON.stringify(state.updatingCollectionIsbnList));
     },
+    clearTempData: state => {
+      state.tempCollections = [];
+      state.tempFilterSets = [];
+    },
   },
 });
 
@@ -123,6 +127,7 @@ export const {
   updateTempFilterSetOption,
   updateFetchedFilterAnywhere,
   addUpdatingCollectionIsbnList,
+  clearTempData,
 } = subscriptionDataSlice.actions;
 
 export const selectCollections = simpleSelector('subscriptionData', 'collections');

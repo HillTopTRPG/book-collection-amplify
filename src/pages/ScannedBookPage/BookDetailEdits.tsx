@@ -35,11 +35,27 @@ export default function BookDetailEdits({ bookDetail }: Props) {
   const [searchConditionsRef, searchConditionsSize] = useDOMSize();
   const [contentHeight, setContentHeight] = useState(0);
 
-  // scrollParentRef を lazy initialization で最適化
+  // パフォーマンス計測
+  const renderCountRef = useRef(0);
+  const mountTimeRef = useRef(performance.now());
+
+  useEffect(() => {
+    renderCountRef.current += 1;
+    const renderTime = performance.now() - mountTimeRef.current;
+
+    console.log(
+      `[BookDetailEdits] Render #${renderCountRef.current} in ${renderTime.toFixed(2)}ms (ISBN: ${bookDetail.book.isbn})`
+    );
+  });
+
+  // scrollParentRef を useEffect で初期化（レンダリング時の DOM 検索を回避）
   const scrollParentRef = useRef<HTMLDivElement | null>(null);
-  if (!scrollParentRef.current) {
-    scrollParentRef.current = document.getElementById('root') as HTMLDivElement;
-  }
+
+  useEffect(() => {
+    if (!scrollParentRef.current) {
+      scrollParentRef.current = document.getElementById('root') as HTMLDivElement;
+    }
+  }, []);
 
   // setContentHeight を useCallback で安定化
   const handleSetContentHeight = useCallback((height: number) => {

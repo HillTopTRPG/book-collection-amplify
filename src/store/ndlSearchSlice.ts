@@ -34,6 +34,14 @@ export const ndlSearchSlice = createSlice({
   },
 });
 
+// グローバルキャッシュをクリアする関数（ページアンマウント時に使用）
+export const clearNdlSearchGlobalCache = () => {
+  cachedBookDetailsRecord = {};
+  previousResults = {};
+  previousCollections = [];
+  previousTempCollections = [];
+};
+
 export const { enqueueAllNdlSearch, dequeueAllNdlSearch } = ndlSearchSlice.actions;
 
 const _selectQueueUnUnique = simpleSelector('ndlSearch', 'queue');
@@ -49,6 +57,9 @@ let previousResults: Record<string, BookData[]> = {};
 let previousCollections: Collection[] = [];
 let previousTempCollections: Collection[] = [];
 
+// キャッシュの最大サイズ（メモリリーク防止）
+const MAX_CACHE_SIZE = 50;
+
 export const selectAllBookDetails = createSelector(
   [selectAllNdlSearchResults, selectCollections, selectTempCollections],
   (
@@ -59,9 +70,21 @@ export const selectAllBookDetails = createSelector(
     // collections が変更されていない場合、変更されたキーのみ再計算
     const collectionsChanged = collections !== previousCollections || tempCollections !== previousTempCollections;
 
-    const newRecord: Record<string, BookDetail[]> = {};
+    // 完全に同じ状態なら早期リターン（最適化）
+    // previousResultsとresultsの参照比較で判定
+    const resultsKeys = Object.keys(results);
+    const previousKeys = Object.keys(previousResults);
+    const resultsUnchanged =
+      !collectionsChanged &&
+      resultsKeys.length === previousKeys.length &&
+      resultsKeys.every(key => key in previousResults && results[key] === previousResults[key]);
+
+    if (resultsUnchanged) {
+      return cachedBookDetailsRecord;
+    }
 
     const currentKeys = getKeys(results);
+    const newRecord: Record<string, BookDetail[]> = {};
 
     currentKeys.forEach(str => {
       // このキーのデータが変更されていなければキャッシュを使用
@@ -91,10 +114,29 @@ export const selectAllBookDetails = createSelector(
       newPreviousResults[key] = results[key];
     });
 
-    previousResults = newPreviousResults;
+    // キャッシュサイズが上限を超えたら古いキーを削除（LRU方式）
+    const cacheKeys = Object.keys(newPreviousResults);
+    if (cacheKeys.length > MAX_CACHE_SIZE) {
+      const keysToKeep = cacheKeys.slice(-MAX_CACHE_SIZE);
+      const limitedPreviousResults: Record<string, BookData[]> = {};
+      const limitedCachedBookDetails: Record<string, BookDetail[]> = {};
+
+      keysToKeep.forEach(key => {
+        limitedPreviousResults[key] = newPreviousResults[key];
+        if (key in newRecord) {
+          limitedCachedBookDetails[key] = newRecord[key];
+        }
+      });
+
+      previousResults = limitedPreviousResults;
+      cachedBookDetailsRecord = limitedCachedBookDetails;
+    } else {
+      previousResults = newPreviousResults;
+      cachedBookDetailsRecord = newRecord;
+    }
+
     previousCollections = collections;
     previousTempCollections = tempCollections;
-    cachedBookDetailsRecord = newRecord;
 
     return newRecord;
   }

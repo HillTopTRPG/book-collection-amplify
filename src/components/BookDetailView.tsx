@@ -57,4 +57,16 @@ const BookDetailView = ({
   return <div className="flex flex-col gap-5">{!groupByType ? bookCardList : groupedBooksElement}</div>;
 };
 
-export default memo(BookDetailView);
+// カスタム比較関数で不要な再レンダリングを防止
+export default memo(BookDetailView, (prevProps, nextProps) => {
+  // bookDetails の配列参照が同じかチェック
+  if (prevProps.bookDetails !== nextProps.bookDetails) return false;
+  // filterSet の ID が同じかチェック
+  if (prevProps.filterSet.id !== nextProps.filterSet.id) return false;
+  // 他の props をチェック
+  if (prevProps.stickyTop !== nextProps.stickyTop) return false;
+  if (prevProps.groupByType !== nextProps.groupByType) return false;
+  if (prevProps.orIndex !== nextProps.orIndex) return false;
+  // scrollParentRef と setContentHeight は関数なので、変わらないと仮定
+  return true;
+});
