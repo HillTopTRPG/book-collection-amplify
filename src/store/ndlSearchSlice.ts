@@ -142,8 +142,12 @@ export const selectFilterResultsByCollectionId = createSelector(
 
 /** 特定のISBNに関連する FilterResults を取得するセレクター */
 export const selectFilterResultsByIsbn = createSelector(
-  [selectAllFilterResults, (_state, isbn: string, excludeCollectionId?: string) => ({ isbn, excludeCollectionId })],
-  (allFilterResults, { isbn, excludeCollectionId }): { filterSet: FilterSet; books: BookDetail[] }[] => {
+  [
+    selectAllFilterResults,
+    (_state, isbn: string) => isbn,
+    (_state, _isbn: string, excludeCollectionId?: string) => excludeCollectionId,
+  ],
+  (allFilterResults, isbn, excludeCollectionId): { filterSet: FilterSet; books: BookDetail[] }[] => {
     if (!allFilterResults) return [];
     return allFilterResults.filter(
       ({ filterSet, books }) =>

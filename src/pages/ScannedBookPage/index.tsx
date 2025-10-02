@@ -1,5 +1,5 @@
 import type { BookDetail } from '@/types/book.ts';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAppSelector } from '@/store/hooks.ts';
 import { selectScanResultList } from '@/store/scannerSlice.ts';
@@ -10,6 +10,36 @@ export default function ScannedBookPage() {
   const { maybeIsbn: raw } = useParams<{ maybeIsbn: string }>();
   const maybeIsbn = getIsbnCode(raw);
   const scanResultList = useAppSelector(selectScanResultList);
+
+  // パフォーマンス計測用
+  const mountTimeRef = useRef(performance.now());
+  const renderCountRef = useRef(0);
+
+  useEffect(() => {
+    renderCountRef.current += 1;
+    const renderTime = performance.now() - mountTimeRef.current;
+
+    console.log(
+      `[ScannedBookPage] Render #${renderCountRef.current} completed in ${renderTime.toFixed(2)}ms (ISBN: ${maybeIsbn || 'N/A'})`
+    );
+
+    // 初回レンダリングの場合、詳細ログを出力
+    if (renderCountRef.current < 5) {
+      console.log(`[ScannedBookPage] Initial mount completed in ${renderTime.toFixed(2)}ms`);
+    }
+  });
+
+  // アンマウント時の計測
+  useEffect(() => {
+    const mountTime = mountTimeRef.current;
+
+    return () => {
+      const totalTime = performance.now() - mountTime;
+      console.log(
+        `[ScannedBookPage] Unmounted after ${totalTime.toFixed(2)}ms, ${renderCountRef.current} renders (avg: ${(totalTime / renderCountRef.current).toFixed(2)}ms/render)`
+      );
+    };
+  }, []);
 
   const { type, bookDetail } = useMemo((): {
     type: 'invalid-isbn' | 'no-scanned-isbn' | 'loading' | 'done';
