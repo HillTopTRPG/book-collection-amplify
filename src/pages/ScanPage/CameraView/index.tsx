@@ -1,7 +1,7 @@
 import type { Isbn13 } from '@/types/book.ts';
 import Quagga from '@ericblade/quagga2';
 import { Volume2, VolumeOff } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react'; // eslint-disable-next-line import/no-named-as-default
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
 import se01 from '@/assets/se01.mp3';
