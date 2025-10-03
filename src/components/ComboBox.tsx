@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
+import { useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -16,7 +16,7 @@ type Props = {
 export default function ComboBox({ label, className, list, value, setValue }: Props) {
   const [open, setOpen] = useState(false);
 
-  const onSelect = useCallback(
+  const handleSelect = useCallback(
     (currentValue: string) => {
       setValue(currentValue === value ? '' : currentValue);
       setOpen(false);
@@ -46,7 +46,7 @@ export default function ComboBox({ label, className, list, value, setValue }: Pr
             <CommandEmpty>見つかりませんでした。</CommandEmpty>
             <CommandGroup>
               {list.map(item => (
-                <CommandItem key={item.value} value={item.value} onSelect={onSelect}>
+                <CommandItem key={item.value} value={item.value} onSelect={handleSelect}>
                   <CheckIcon className={cn('mr-2 h-4 w-4', value === item.value ? 'opacity-100' : 'opacity-0')} />
                   {item.label}
                 </CommandItem>

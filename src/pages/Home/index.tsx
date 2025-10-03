@@ -1,16 +1,19 @@
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { Barcode, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLogs } from '@/hooks/useLogs.ts';
 
 export default function Home() {
   const { user } = useAuthenticator(context => [context.user]);
+
+  useLogs({ componentName: 'Home' });
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen min-h-dvh p-4">
       <div className="max-w-md w-full bg-background rounded-lg shadow-lg p-8">
         <div className="text-center mb-4">
           <h1 className="text-3xl font-bold mb-2">マイ書目コンシェルジュ</h1>
-          <p className="text-sm">ようこそ、{user?.signInDetails?.loginId}さん</p>
+          <p className="text-sm">ようこそ、{user.signInDetails?.loginId}さん</p>
         </div>
 
         <p className="text-center mb-8">バーコードを読み取って書籍情報を取得・管理できます</p>

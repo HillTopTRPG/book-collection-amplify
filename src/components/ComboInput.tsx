@@ -1,6 +1,6 @@
 import type { ChangeEvent } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import { CheckIcon, ChevronsUpDownIcon, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { Input } from '@/components/ui/input';
@@ -94,24 +94,24 @@ export default function ComboInput({ label, className, list, value, setValue }: 
     [list, setValue]
   );
 
-  const onChangeInput = useCallback(
+  const handleChangeInput = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       handleInputChange(e.target.value);
     },
     [handleInputChange]
   );
 
-  const onFocusInput = useCallback(() => {
+  const handleFocusInput = useCallback(() => {
     updateDropdownPosition();
     setOpen(list.length > 0);
   }, [list.length]);
 
-  const onClickIcon = useCallback(() => {
+  const handleClickIcon = useCallback(() => {
     updateDropdownPosition();
     setOpen(!open);
   }, [open]);
 
-  const onSelect = useCallback((currentValue: string) => handleSelect(currentValue), [handleSelect]);
+  const handleSelectItem = useCallback((currentValue: string) => handleSelect(currentValue), [handleSelect]);
 
   return (
     <div className="relative flex-1" ref={containerRef}>
@@ -119,14 +119,14 @@ export default function ComboInput({ label, className, list, value, setValue }: 
         <Input
           placeholder={label}
           value={inputValue}
-          onChange={onChangeInput}
-          onFocus={onFocusInput}
+          onChange={handleChangeInput}
+          onFocus={handleFocusInput}
           className={`${open ? '' : 'pr-7'} ${className}`}
         />
         {!open && (
           <ChevronsUpDownIcon
             className="absolute right-2 top-1/2 transform -translate-y-1/2 h-5 w-5 text-background dark:text-background cursor-pointer pointer-events-auto z-30 bg-transparent"
-            onClick={onClickIcon}
+            onClick={handleClickIcon}
           />
         )}
       </div>
@@ -146,7 +146,12 @@ export default function ComboInput({ label, className, list, value, setValue }: 
                 <CommandList>
                   <CommandGroup>
                     {(inputValue.length > 0 ? filteredList : list).map(item => (
-                      <CommandItem key={item.value} value={item.value} onSelect={onSelect} className="cursor-pointer">
+                      <CommandItem
+                        key={item.value}
+                        value={item.value}
+                        onSelect={handleSelectItem}
+                        className="cursor-pointer"
+                      >
                         <CheckIcon
                           className={cn('mr-2 h-4 w-4', inputValue === item.label ? 'opacity-100' : 'opacity-0')}
                         />
@@ -157,7 +162,7 @@ export default function ComboInput({ label, className, list, value, setValue }: 
                       <CommandItem
                         key="clear-value"
                         value="clear-value"
-                        onSelect={onSelect}
+                        onSelect={handleSelectItem}
                         className="cursor-pointer rounded-none border-t text-muted-foreground"
                       >
                         <X className="mr-2 h-4 w-4" />

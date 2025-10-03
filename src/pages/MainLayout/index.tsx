@@ -1,32 +1,35 @@
-import { useCallback, useEffect } from 'react';
+import type { BottomNavigationItem } from './BottomNavigation';
+import { Barcode, Home, LibraryBig } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
+import BookDetailDialog from '@/components/Dialog/BookDetailDialog';
 import FilterDetailDrawer from '@/components/Drawer/FilterDetailDrawer';
-import { useAppDispatch } from '@/store/hooks.ts';
-import { setScrollValue } from '@/store/uiSlice.ts';
+import { useLogs } from '@/hooks/useLogs.ts';
 import BottomNavigation from './BottomNavigation';
 import MenuBar from './MenuBar';
 
+const MAIN_BOTTOM_NAVIGATE_LIST: BottomNavigationItem[] = [
+  {
+    path: '/',
+    icon: Home,
+    label: 'ホーム',
+    handleClick: navigate => navigate('/'),
+  },
+  {
+    path: '/scan',
+    icon: Barcode,
+    label: 'スキャン',
+    handleClick: navigate => navigate('/scan'),
+  },
+  {
+    path: '/collection',
+    icon: LibraryBig,
+    label: '書目',
+    handleClick: navigate => navigate('/collection'),
+  },
+];
+
 export default function MainLayout() {
-  const dispatch = useAppDispatch();
-
-  const onScroll = useCallback(
-    (e: Event) => {
-      e.preventDefault();
-      setTimeout(() => {
-        const scrollTop = document.getElementById('root')?.scrollTop;
-        if (scrollTop !== undefined) dispatch(setScrollValue({ key: 'body', value: scrollTop }));
-      });
-    },
-    [dispatch]
-  );
-
-  useEffect(() => {
-    console.log('regist scroll event', document.getElementById('root'));
-    document.getElementById('root')?.addEventListener('scroll', onScroll, false);
-    return () => {
-      document.getElementById('root')?.removeEventListener('scroll', onScroll);
-    };
-  }, [onScroll]);
+  useLogs({ componentName: 'MainLayout' });
 
   return (
     <>
@@ -39,10 +42,13 @@ export default function MainLayout() {
       </div>
 
       {/* ボトムナビゲーション */}
-      <BottomNavigation />
+      <BottomNavigation list={MAIN_BOTTOM_NAVIGATE_LIST} />
 
       {/* ドロワー */}
       <FilterDetailDrawer />
+
+      {/* ダイアログ */}
+      <BookDetailDialog />
     </>
   );
 }

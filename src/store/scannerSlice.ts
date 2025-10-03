@@ -1,35 +1,36 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit';
-import type { NdlFullOptions } from '@/pages/ScannedBookPage/FilterSets/NdlOptionsForm.tsx';
-import type { BookDetail } from '@/store/filterDetailDrawerSlice.ts';
-import type { FilterAndGroup, FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { Isbn13 } from '@/types/book.ts';
+import type { BookData, BookDetail, Isbn13 } from '@/types/book.ts';
 import type { QueueState } from '@/types/queue.ts';
+import type { IdInfo } from '@/types/system.ts';
+import type { PickRequired } from '@/utils/type.ts';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
+import {
+  selectCollections,
+  selectFilterSets,
+  selectTempCollections,
+  selectTempFilterSets,
+} from '@/store/subscriptionDataSlice.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
-import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
+import { getScannedItemMapValueByBookData, makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import {
   deleteScannedIsbnToLocalStorage,
   pushScannedIsbnToLocalStorage,
   resetScannedIsbnToLocalStorage,
 } from '@/utils/localStorage.ts';
-import { unique, deleteAllStrings } from '@/utils/primitive.ts';
-import { dequeue, enqueue, createSimpleReducers, simpleSelector } from '@/utils/store.ts';
-import type { PickRequired } from '@/utils/type.ts';
+import { deleteAllStrings, filterMatch, unique } from '@/utils/primitive.ts';
+import { createSimpleReducers, dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 import { getKeys } from '@/utils/type.ts';
-import type { PayloadAction } from '@reduxjs/toolkit';
 
 export type ScanningItemMapValue = {
   isbn: Isbn13;
-  status: 'loading' | 'new' | 'collection';
-  collectionId: string | null;
   bookDetail: BookDetail | null;
-  filterSets: FilterSet[];
+  filterSets: IdInfo[];
 };
-export type ScannedItemMapValue = Omit<ScanningItemMapValue, 'bookDetail'> & {
-  bookDetail: PickRequired<BookDetail, 'book'> | null;
-};
+export type ScannedItemMapValue = PickRequired<ScanningItemMapValue, 'bookDetail'>;
 
 type QueueType = Isbn13;
-type QueueResult = ScannedItemMapValue | null;
+type QueueResult = BookData | null;
 
 type State = QueueState<QueueType, QueueResult> & {
   // 読み込み処理 / 表示
@@ -73,38 +74,11 @@ export const scannerSlice = createSlice({
       // localStorageにも反映
       resetScannedIsbnToLocalStorage();
     },
-    updateFetchedFetchOption: (
-      state,
-      action: PayloadAction<{ isbn: QueueType; filterSetId: string; fetch: NdlFullOptions }>
-    ) => {
-      const scanningItemMapValue = state.results[action.payload.isbn];
-      if (!scanningItemMapValue) return;
-      const filterSet = scanningItemMapValue.filterSets.find(({ id }) => id === action.payload.filterSetId);
-      if (!filterSet) return;
-      filterSet.fetch = action.payload.fetch;
-    },
-    updateFetchedFilterAnywhere: (
-      state,
-      action: PayloadAction<{ key: QueueType; filterSetId: string; filters: FilterAndGroup[] }>
-    ) => {
-      const scanningItemMapValue = state.results[action.payload.key];
-      if (!scanningItemMapValue) return;
-      const filterSet = scanningItemMapValue.filterSets.find(({ id }) => id === action.payload.filterSetId);
-      if (!filterSet) return;
-      filterSet.filters = action.payload.filters;
-    },
     updateSelectedScanIsbn: createSimpleReducers('selectedIsbn'),
   },
 });
 
-export const {
-  enqueueScan,
-  dequeueScan,
-  clearScanViewList,
-  updateSelectedScanIsbn,
-  updateFetchedFetchOption,
-  updateFetchedFilterAnywhere,
-} = scannerSlice.actions;
+export const { enqueueScan, dequeueScan, clearScanViewList, updateSelectedScanIsbn } = scannerSlice.actions;
 
 const _selectQueueUnUnique = simpleSelector('scanner', 'queue');
 const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => unique(unUniqueQueue));
@@ -116,11 +90,47 @@ const _selectSelectedIsbn = simpleSelector('scanner', 'selectedIsbn');
 export const selectScanQueueTargets = createSelector([_selectQueue], queue => queue.slice(0, 1));
 // スキャン中に表示するデータの整形済データ
 export const selectScanResultList = createSelector(
-  [_selectScanQueueViewList, _selectScanQueueResults],
-  (viewList, results): { isbn: Isbn13; status: 'loading' | 'none' | 'done'; result: ScannedItemMapValue | null }[] =>
+  [
+    _selectScanQueueViewList,
+    _selectScanQueueResults,
+    selectCollections,
+    selectTempCollections,
+    selectFilterSets,
+    selectAllNdlSearchResults,
+  ],
+  (
+    viewList,
+    results,
+    collections,
+    tempCollections,
+    dbFilterSets,
+    allNdlSearchResults
+  ): { isbn: Isbn13; status: 'loading' | 'none' | 'done'; result: ScannedItemMapValue | null }[] =>
     unique(viewList).map(isbn => {
-      if (results[isbn] === undefined) return { isbn, status: 'loading' as const, result: null };
-      return { isbn, status: !results[isbn] ? ('none' as const) : ('done' as const), result: results[isbn] };
+      if (!(isbn in results)) return { isbn, status: 'loading' as const, result: null };
+      const book: BookData | null = results[isbn];
+
+      if (!book) {
+        return {
+          isbn,
+          status: 'none' as const,
+          result: null,
+        };
+      }
+
+      const { scannedItemMapValue } = getScannedItemMapValueByBookData(
+        book,
+        collections,
+        tempCollections,
+        dbFilterSets,
+        allNdlSearchResults
+      );
+
+      return {
+        isbn,
+        status: 'done' as const,
+        result: scannedItemMapValue,
+      };
     })
 );
 
@@ -132,19 +142,22 @@ export const selectScanSuccessCount = createSelector(
 // BookDetailDrawerに表示するデータ
 export const selectSelectedScannedItemMapValue = createSelector(
   [selectScanResultList, _selectSelectedIsbn],
-  (scanResultList, selectedIsbn): PickRequired<ScannedItemMapValue, 'bookDetail'> | null => {
+  (scanResultList, selectedIsbn): ScannedItemMapValue | null => {
     if (!selectedIsbn) return null;
     return (scanResultList.find(
       scanResult => scanResult.isbn === selectedIsbn && Boolean(scanResult.result?.bookDetail)
-    )?.result ?? null) as PickRequired<ScannedItemMapValue, 'bookDetail'> | null;
+    )?.result ?? null) as ScannedItemMapValue | null;
   }
 );
 // BookDetailDrawerで表示されている検索条件フォームの値（変化するたびにNDL検索キューにenqueueする）
 export const selectSelectedScannedItemFetchOptions = createSelector(
-  [selectSelectedScannedItemMapValue],
-  selectedScannedItemMapValue =>
-    selectedScannedItemMapValue?.filterSets.map(filterSet => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)) ||
-    []
+  [selectSelectedScannedItemMapValue, selectFilterSets, selectTempFilterSets],
+  (selectedScannedItemMapValue, filterSets, tempFilterSets) =>
+    selectedScannedItemMapValue?.filterSets.map(({ id, type }) => {
+      const filterSet = (type === 'db' ? filterSets : tempFilterSets).find(filterMatch({ id }))!;
+
+      return makeNdlOptionsStringByNdlFullOptions(filterSet.fetch);
+    }) || []
 );
 
 export default scannerSlice.reducer;

@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react';
+import type { Isbn13 } from '@/types/book.ts';
+import type { MouseEvent } from 'react';
 import { ImageOff } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useInView } from '@/hooks/useInView.ts';
 import { enqueueBookImage, selectFetchBookImageQueueResults } from '@/store/fetchBookImageSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
-import type { Isbn13 } from '@/types/book.ts';
 
 type Props = {
   isbn: Isbn13 | null | undefined;
   size?: 'small' | 'big';
-  onClick?: () => void;
+  onClick?: (e: MouseEvent) => void;
 };
 
 export default function BookImage({ isbn, size, onClick }: Props) {
@@ -39,7 +40,8 @@ export default function BookImage({ isbn, size, onClick }: Props) {
 
   useEffect(() => {
     if (!isbn) return;
-    const url = fetchBookImageQueueResults[isbn];
+    const url: string | null | undefined =
+      isbn in fetchBookImageQueueResults ? fetchBookImageQueueResults[isbn] : undefined;
     if (url !== undefined && imageUrl.status !== 'done') {
       if (url === 'retrying') {
         setImageUrl({ url: null, status: 'retrying' });
@@ -57,9 +59,10 @@ export default function BookImage({ isbn, size, onClick }: Props) {
       <img
         src={imageUrl.url}
         alt="表紙"
-        className="rounded border"
+        className="select-none"
         style={{ objectFit: 'cover', width, height }}
         onClick={onClick}
+        draggable="false"
       />
     );
   })();
@@ -67,7 +70,7 @@ export default function BookImage({ isbn, size, onClick }: Props) {
   return (
     <div
       ref={ref}
-      className="min-w-[50px] min-h-[75px] rounded border flex items-center justify-center"
+      className="min-w-[50px] min-h-[75px] bg-gradient-to-tr from-pink-300 via-red-300 to-orange-300 flex items-center justify-center"
       onClick={onClick}
       style={{ minWidth: width, maxWidth: width, minHeight: height, maxHeight: height }}
     >

@@ -47,7 +47,7 @@ jobs:
         run: |
           gh pr create \
             -B develop \
-            -t '【本番反映】${{ steps.check_pr.outputs.message }}' \
+            -t '【Feature】${{ steps.check_pr.outputs.message }}' \
             -a ${{ github.actor }}  \
             -r ${{ github.repository_owner }} \
             --body-file ./.github/RELEASE_WORKFLOW_TEMPLATE.md
@@ -63,8 +63,8 @@ jobs:
           gh pr edit  ${{ github.ref_name }} \
             -t "${TITLE} / ${{ steps.check_pr.outputs.message }}"
 
-      - name: Enable auto-merge for Pull Request
-        if: ${{ steps.check_pr.outputs.count == 0 }}
-        run: |
-          pr_number=$(gh pr list -H ${{ github.ref_name }} --json number | jq -r '.[0].number')
-          gh pr merge --auto --squash "$pr_number"
+#      - name: Enable auto-merge for Pull Request
+#        if: ${{ steps.check_pr.outputs.count == 0 }}
+#        run: |
+#          pr_number=$(gh pr list -H ${{ github.ref_name }} --json number | jq -r '.[0].number')
+#          gh pr merge --auto --squash "$pr_number"

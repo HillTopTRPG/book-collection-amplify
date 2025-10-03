@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import * as React from 'react';
-import { motion, AnimatePresence, type HTMLMotionProps, type Transition } from 'motion/react';
 import { cn } from '@/lib/utils';
+import { AnimatePresence, type HTMLMotionProps, motion, type Transition } from 'motion/react';
+import * as React from 'react';
 
 const sizes = {
   default: 'size-8 [&_svg]:size-5',
@@ -35,7 +35,7 @@ const IconButton = ({
   <motion.button
     data-slot="icon-button"
     className={cn(
-      `group/icon-button cursor-pointer relative inline-flex size-10 shrink-0 rounded-full hover:bg-[var(--icon-button-color)]/10 active:bg-[var(--icon-button-color)]/20 text-[var(--icon-button-color)]`,
+      `group/icon-button cursor-pointer relative inline-flex shrink-0 rounded-full hover:bg-[var(--icon-button-color)]/10 active:bg-[var(--icon-button-color)]/20 text-[var(--icon-button-color)]`,
       sizes[size],
       className
     )}

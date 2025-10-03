@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
 import { ArrowDownNarrowWide, ArrowUpWideNarrow } from 'lucide-react';
+import { useCallback } from 'react';
 import { Button } from '@/components/ui/button.tsx';
 
 type Props = {
@@ -8,12 +8,12 @@ type Props = {
 };
 
 export default function SortButton({ sortOrder, setSortOrder }: Props) {
-  const onClick = useCallback(() => {
+  const handleClick = useCallback(() => {
     setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
   }, [setSortOrder, sortOrder]);
 
   return (
-    <Button size="icon" className="rounded-full" onClick={onClick}>
+    <Button size="icon" className="rounded-full" onClick={handleClick}>
       {sortOrder === 'asc' ? <ArrowDownNarrowWide /> : <ArrowUpWideNarrow />}
     </Button>
   );
