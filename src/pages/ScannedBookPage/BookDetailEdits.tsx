@@ -13,6 +13,7 @@ import { IconButton } from '@/components/ui/shadcn-io/icon-button';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import useDOMSize from '@/hooks/useDOMSize.ts';
+import { useLogs } from '@/hooks/useLogs.ts';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import {
@@ -35,17 +36,10 @@ export default function BookDetailEdits({ bookDetail }: Props) {
   const [searchConditionsRef, searchConditionsSize] = useDOMSize();
   const [contentHeight, setContentHeight] = useState(0);
 
-  // パフォーマンス計測
-  const renderCountRef = useRef(0);
-  const mountTimeRef = useRef(performance.now());
-
-  useEffect(() => {
-    renderCountRef.current += 1;
-    const renderTime = performance.now() - mountTimeRef.current;
-
-    console.log(
-      `[BookDetailEdits] Render #${renderCountRef.current} in ${renderTime.toFixed(2)}ms (ISBN: ${bookDetail.book.isbn})`
-    );
+  // パフォーマンスログ
+  useLogs({
+    componentName: 'BookDetailEdits',
+    additionalInfo: `ISBN: ${bookDetail.book.isbn}`,
   });
 
   // scrollParentRef を useEffect で初期化（レンダリング時の DOM 検索を回避）

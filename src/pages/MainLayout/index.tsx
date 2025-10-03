@@ -3,6 +3,7 @@ import { Barcode, Home, LibraryBig } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
 import BookDetailDialog from '@/components/Dialog/BookDetailDialog';
 import FilterDetailDrawer from '@/components/Drawer/FilterDetailDrawer';
+import { useLogs } from '@/hooks/useLogs.ts';
 import BottomNavigation from './BottomNavigation';
 import MenuBar from './MenuBar';
 
@@ -28,6 +29,8 @@ const MAIN_BOTTOM_NAVIGATE_LIST: BottomNavigationItem[] = [
 ];
 
 export default function MainLayout() {
+  useLogs({ componentName: 'MainLayout' });
+
   return (
     <>
       {/* メニューバー */}

@@ -61,6 +61,32 @@ export default function CameraView() {
     setLastFetchedBookListCount(scannedBookDetails);
   }, [scannedBookDetails, lastFetchedBookListCount, play]);
 
+  // Quagga.onDetectedハンドラーをuseCallbackで作成（メモリリーク防止のため参照を安定化）
+  const handleDetected = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (result: any) => {
+      const maybeIsbn = getIsbnCode(result.codeResult.code);
+      if (!maybeIsbn) return;
+
+      const isbn13 = getIsbn13(maybeIsbn);
+
+      if (lastFetchIsbn.current === isbn13) return;
+      lastFetchIsbn.current = isbn13;
+
+      console.log('バーコード検出:', isbn13);
+
+      // トーストを表示
+      toast({
+        title: 'ISBN検出',
+        description: isbn13,
+        duration: 2000,
+      });
+
+      dispatch(enqueueScan({ type: 'new', list: [isbn13] }));
+    },
+    [dispatch, toast]
+  );
+
   const startBarcodeScanning = useCallback(async () => {
     console.log('バーコードスキャン開始を試行中...');
     setIsScanning(true);
@@ -109,31 +135,12 @@ export default function CameraView() {
     Quagga.start();
     console.log('Quaggaスキャン開始');
 
-    // イベントリスナーを設定
-    Quagga.onDetected(({ codeResult }) => {
-      const maybeIsbn = getIsbnCode(codeResult.code);
-      if (!maybeIsbn) return;
-
-      const isbn13 = getIsbn13(maybeIsbn);
-
-      if (lastFetchIsbn.current === isbn13) return;
-      lastFetchIsbn.current = isbn13;
-
-      console.log('バーコード検出:', isbn13);
-
-      // トーストを表示
-      toast({
-        title: 'ISBN検出',
-        description: isbn13,
-        duration: 2000,
-      });
-
-      dispatch(enqueueScan({ type: 'new', list: [isbn13] }));
-    });
+    // イベントリスナーを設定（handleDetectedを使用）
+    Quagga.onDetected(handleDetected);
 
     setError(null);
     setIsScanning(true);
-  }, [dispatch, toast]);
+  }, [handleDetected]);
 
   const startCamera = useCallback(async () => {
     setError(null);
@@ -157,10 +164,12 @@ export default function CameraView() {
   }, [startBarcodeScanning]);
 
   const stopCamera = useCallback(() => {
+    // Quaggaのイベントリスナーを解除（メモリリーク防止）
+    Quagga.offDetected(handleDetected);
     Quagga.stop().then();
     stream?.getTracks().forEach(track => track.stop());
     setIsScanning(false);
-  }, [stream]);
+  }, [handleDetected, stream]);
 
   // コンポーネントマウント時に自動でカメラを起動
   useInterval(() => {
@@ -177,6 +186,19 @@ export default function CameraView() {
   const toggleVolume = useCallback(() => {
     setVolume(volume ? 0 : 0.8);
   }, [setVolume, volume]);
+
+  // コンポーネントのアンマウント時にクリーンアップ（メモリリーク防止）
+  useEffect(
+    () => () => {
+      // Quaggaのイベントリスナーを解除
+      Quagga.offDetected(handleDetected);
+      Quagga.stop();
+      // カメラストリームを停止
+      stream?.getTracks().forEach(track => track.stop());
+      console.log('[CameraView] クリーンアップ完了');
+    },
+    [handleDetected, stream]
+  );
 
   return (
     <div className="flex flex-col items-center justify-normal bg-background p-1 relative">

@@ -124,6 +124,7 @@ export default function useNdlSearchQueueEnqueueer({ collections, tempCollection
 
   // 読み込み書籍のグループ本のフィルターが変更される毎に検索結果を取得し直す
   useEffect(() => {
+    if (!selectedScannedItemFetchOptions.length) return;
     dispatch(enqueueAllNdlSearch({ type: 'priority', list: selectedScannedItemFetchOptions }));
   }, [dispatch, selectedScannedItemFetchOptions]);
 }

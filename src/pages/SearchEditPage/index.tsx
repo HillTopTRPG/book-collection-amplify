@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
+import { useLogs } from '@/hooks/useLogs.ts';
 import BottomNavigation from '@/pages/MainLayout/BottomNavigation.tsx';
 import FilterSetEdit from '@/pages/SearchEditPage/FilterSetEdit.tsx';
 import { useAppSelector } from '@/store/hooks.ts';
@@ -15,6 +16,11 @@ export default function SearchEditPage() {
   const allFilterResults = useAppSelector(selectAllFilterResults);
   const [filterSet, setFilterSet] = useState<FilterSet | null>(null);
   const { updateFilterSet } = useAwsAccess();
+
+  useLogs({
+    componentName: 'SearchEditPage',
+    additionalInfo: `filterSetId: ${filterSetId || 'N/A'}`,
+  });
 
   // ロードが終わるまで待つ
   useEffect(() => {
