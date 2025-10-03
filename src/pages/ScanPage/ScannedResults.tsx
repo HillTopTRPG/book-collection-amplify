@@ -25,7 +25,7 @@ const ScanResultItem = memo(({ result, index }: { result: ScanResultItemType; in
 
   const handleClick = useCallback(() => {
     console.log(result.result?.isbn);
-    navigate(`/scan/${result.result?.isbn}`);
+    void navigate(`/scan/${result.result?.isbn}`);
   }, [navigate, result.result?.isbn]);
 
   const handleOpenDetail = useCallback(() => {

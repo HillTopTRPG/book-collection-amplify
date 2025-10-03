@@ -20,7 +20,7 @@ export const searchProcess = async <Key extends string, Value>(
     targets.map(
       isbn =>
         new Promise<{ isbn: Key; value: Value }>(resolve => {
-          fetchFunc(isbn).then(({ value, retry }) => {
+          void fetchFunc(isbn).then(({ value, retry }) => {
             if (retry) {
               retryList.push(isbn);
               resolve({ isbn, value: 'retrying' as Value });
@@ -70,7 +70,7 @@ export default function useSearchQueueProcessor<Key extends string, Value>(
   return useCallback(() => {
     if (!isFirst) return;
     setIsFirst(false);
-    searchProcess(fetchFunc, targets, lastEndTime).then(({ results, retryList }) => {
+    void searchProcess(fetchFunc, targets, lastEndTime).then(({ results, retryList }) => {
       if (getKeys(results).length) dispatch(dequeueFunc(results));
       if (retryList.length) {
         setTimeout(() => {

@@ -151,7 +151,7 @@ export default function BookDetailEdits({ bookDetail }: Props) {
 
   const handleFilterSetEdit = useCallback(
     (id: string) => {
-      navigate(`/search/${id}`);
+      void navigate(`/search/${id}`);
     },
     [navigate]
   );

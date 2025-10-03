@@ -28,7 +28,7 @@ export default function BookStatusSelector({ bookDetail }: Props) {
   };
   const handleSetValue = (value: BookStatus) => () => {
     setEditing(false);
-    setValue(value);
+    void setValue(value);
   };
   const current = OPTIONS.find(op => op.val === value);
 

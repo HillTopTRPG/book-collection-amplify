@@ -44,7 +44,7 @@ export default function SearchEditPage() {
         label: 'キャンセル',
         handleClick: navigate => {
           console.log('キャンセル');
-          navigate(-1);
+          void navigate(-1);
         },
         disabled: !filterSet,
       },
@@ -55,7 +55,7 @@ export default function SearchEditPage() {
           console.log('保存');
           if (!filterSet) return;
           await updateFilterSet(filterSet);
-          navigate(-1);
+          void navigate(-1);
         },
         disabled: !filterSet,
       },
