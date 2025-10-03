@@ -28,6 +28,7 @@ export default function useScanQueueProcessor({
 
   // スキャンキューの処理1 - NDL検索キューへのenqueue
   useEffect(() => {
+    if (!scanQueueTargets.length) return;
     dispatch(enqueueAllNdlSearch({ type: 'priority', list: scanQueueTargets.map(isbn => JSON.stringify({ isbn })) }));
   }, [dispatch, scanQueueTargets]);
 

@@ -1,9 +1,12 @@
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { Barcode, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLogs } from '@/hooks/useLogs.ts';
 
 export default function Home() {
   const { user } = useAuthenticator(context => [context.user]);
+
+  useLogs({ componentName: 'Home' });
 
   return (
     <div className="flex flex-col items-center justify-start min-h-screen min-h-dvh p-4">

@@ -9,7 +9,7 @@ export const enqueue = <T extends string, U>(
   action: PayloadAction<{ list: T[]; type: 'new' | 'retry' | 'priority' }>
 ) => {
   const addList = action.payload.list.filter(key => {
-    const result = state.results[key];
+    const result = key in state.results ? state.results[key] : undefined;
     switch (action.payload.type) {
       case 'new':
         return result === undefined && !state.queue.includes(key);
