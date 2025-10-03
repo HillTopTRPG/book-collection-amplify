@@ -1,6 +1,6 @@
+import type { BookData } from '@/types/book.ts';
 import Barcode from 'react-barcode';
 import BookImage from '@/components/BookImage.tsx';
-import type { BookData } from '@/types/book.ts';
 import { getIsbn10, getIsbn13, getIsbnWithHyphen } from '@/utils/isbn.ts';
 
 type Props = {

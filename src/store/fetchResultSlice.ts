@@ -1,7 +1,7 @@
-import { createSlice } from '@reduxjs/toolkit';
-import type { RootState } from './index.ts';
 import type { BookData } from '../types/book';
+import type { RootState } from './index.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 export type FetchResultMap = Record<string, BookData[]>;
 
@@ -21,7 +21,7 @@ export const fetchResultSlice = createSlice({
       state.fetchResultMap = { ...state.fetchResultMap, ...action.payload };
     },
     deleteFetchResult: (state, action: PayloadAction<string>) => {
-      if (!state.fetchResultMap[action.payload]) return;
+      if (!(action.payload in state.fetchResultMap)) return;
       delete state.fetchResultMap[action.payload];
     },
   },

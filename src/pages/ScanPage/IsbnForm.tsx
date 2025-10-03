@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Import } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanResultList } from '@/store/scannerSlice.ts';
-import { getIsbnCode, getIsbn13 } from '@/utils/isbn.ts';
+import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
 
 const FormSchema = z
   .object({
@@ -33,7 +33,7 @@ export default function IsbnForm() {
     mode: 'onChange',
   });
 
-  const onSubmit = useCallback(
+  const handleSubmit = useCallback(
     (data: z.infer<typeof FormSchema>) => {
       const maybeIsbn = getIsbnCode(data.isbn);
       if (!maybeIsbn) return;
@@ -62,25 +62,25 @@ export default function IsbnForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="bg-background rounded-xl p-3 flex items-center gap-3">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="bg-background flex items-stretch gap-1">
         <FormField
           control={form.control}
           name="isbn"
           render={({ field }) => (
-            <FormItem className="flex items-center gap-3 space-y-0 flex-1">
-              <FormLabel>ISBN</FormLabel>
-              <div className="flex flex-col flex-1">
+            <FormItem className="flex items-center gap-1 space-y-0 flex-1">
+              <FormLabel>手入力</FormLabel>
+              <div className="flex flex-col flex-1 h-full">
                 <FormControl>
-                  <Input placeholder="ISBN" {...field} className="flex-1" />
+                  <Input placeholder="ISBNコード" {...field} className="flex-1" />
                 </FormControl>
                 <FormMessage />
               </div>
             </FormItem>
           )}
         />
-        <Button size="sm" type="submit">
-          <Import />
-          読み込む
+        <Button className="rounded-full" size="sm" variant="outline" type="submit">
+          <Search />
+          検索
         </Button>
       </form>
     </Form>

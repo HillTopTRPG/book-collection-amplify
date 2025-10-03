@@ -12,7 +12,9 @@ export const callGoogleBooksApi = async (isbn: Isbn13): Promise<FetchProcessResu
     console.log('$$ google illegal response');
     console.log(JSON.stringify(data, null, 2));
     const error: string | null =
-      data.error?.errors?.map((error: Record<string, unknown>) => error?.['reason'])?.find(Boolean) ?? null;
+      data.error?.errors
+        ?.map((error: Record<string, unknown>) => ('reason' in error ? error['reason'] : undefined))
+        ?.find(Boolean) ?? null;
 
     return { value: null, error, retry: false };
   }

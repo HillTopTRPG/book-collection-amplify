@@ -1,9 +1,9 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { Isbn13 } from '@/types/book.ts';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { makeInitialQueueState } from '@/types/queue.ts';
 import { unique } from '@/utils/primitive.ts';
 import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
-import type { PayloadAction } from '@reduxjs/toolkit';
 
 type QueueType = Isbn13;
 type QueueResult = string | null;

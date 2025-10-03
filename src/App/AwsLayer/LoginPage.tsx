@@ -1,7 +1,6 @@
-import type { ReactNode } from 'react';
-import { Authenticator, useTheme, View, Image, Text, Heading } from '@aws-amplify/ui-react';
-
 import '@aws-amplify/ui-react/styles.css';
+import type { ReactNode } from 'react';
+import { Authenticator, Heading, Image, Text, useTheme, View } from '@aws-amplify/ui-react';
 
 const components = {
   Header() {

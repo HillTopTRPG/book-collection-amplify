@@ -1,9 +1,9 @@
+import type { BookData, Isbn13 } from '@/types/book.ts';
 import { useEffect } from 'react';
 import { dequeueBookImage, selectFetchBookImageQueueTargets } from '@/store/fetchBookImageSlice.ts';
 import { enqueueGoogleSearch, selectGoogleSearchResults } from '@/store/fetchGoogleSearchSlice.ts';
 import { enqueueRakutenSearch, selectRakutenSearchResults } from '@/store/fetchRakutenSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import type { BookData, Isbn13 } from '@/types/book.ts';
 import { isBookData } from '@/utils/bookData.ts';
 import { checkImageExists } from '@/utils/fetch';
 import { getKeys } from '@/utils/type.ts';
@@ -48,7 +48,7 @@ const mergeBookData = (b1: BookData | string | null, b2: BookData | string | nul
       ...pickBookDataProps('ndc', b1, b2),
       ...pickBookDataProps('cover', b1, b2),
       ...pickBookDataProps('extent', b1, b2),
-      ndcLabels: b1.ndcLabels || b2.ndcLabels,
+      ndcLabels: b1.ndcLabels.length ? b1.ndcLabels : b2.ndcLabels,
     } as const satisfies BookData;
   }
   if (isBookData(b1)) return b1;
@@ -87,8 +87,8 @@ export default function useBookImageQueueProcessor() {
   useEffect(() => {
     if (!fetchBookImageQueueTargets.length) return;
     const results = fetchBookImageQueueTargets.reduce<Record<Isbn13, string | null>>((acc, isbn) => {
-      const google = googleSearchQueueResults[isbn];
-      const rakuten = rakutenSearchQueueResults[isbn];
+      const google = isbn in googleSearchQueueResults ? googleSearchQueueResults[isbn] : undefined;
+      const rakuten = isbn in rakutenSearchQueueResults ? rakutenSearchQueueResults[isbn] : undefined;
       if (google === undefined || rakuten === undefined) return acc;
       acc[isbn] = mergeBookData(rakuten, google)?.cover ?? null;
       return acc;
