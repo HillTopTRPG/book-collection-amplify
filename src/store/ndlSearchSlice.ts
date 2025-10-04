@@ -72,6 +72,9 @@ export const selectFilterResultSetsByApiId = createSelector(
         return;
       }
       const books: BookData[] = allBooks[key];
+
+      if (!books.some(filterMatch({ apiId }))) return;
+
       const collectionBooks: CollectionBook[] = books.map(book => {
         const { apiId } = book;
         const collection = collections.find(filterMatch({ apiId })) ?? DEFAULT_COLLECTION;
