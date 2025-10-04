@@ -135,7 +135,7 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
       </div>
       <div ref={searchConditionsRef} className="sticky top-0 z-[110] flex flex-col bg-background px-2 pb-1">
         <GroupByTypeCheck groupByType={groupByType} onUpdateGroupByType={setGroupByType} />
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-3">
           <BookStatusChecks statusList={checkBookStatusList} onUpdate={handleCheckBookStatusListUpdate} />
         </div>
       </div>

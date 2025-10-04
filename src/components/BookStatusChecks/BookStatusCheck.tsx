@@ -17,7 +17,7 @@ export default function BookStatusCheck({ value, statusList, onUpdate }: Props) 
 
   return (
     <Toggle
-      className={cn('text-xs px-3 py-2 h-auto rounded-full', className)}
+      className={cn('text-xs px-2 py-2 min-w-[3rem] h-auto rounded-full', className)}
       aria-label="Toggle italic"
       pressed={checked}
       onPressedChange={handleCheckedChange}
