@@ -41,8 +41,6 @@ const GroupByBlock = ({
   const [stickyRef, stickySize] = useDOMSize();
   const [contentRef, contentSize] = useDOMSize();
   const countRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
-  const myHeaderRef = useRef<HTMLDivElement>(null);
 
   const books = useMemo(() => list.map(({ collectionBook }) => collectionBook), [list]);
 
@@ -82,8 +80,9 @@ const GroupByBlock = ({
 
     if (openType === 'close' && bookCollections.length >= 6) {
       setOpenType('collapse');
+      if (!contentRef.current) return;
       // コンテンツが見える位置までスクロールする
-      scrollToRef(contentRef.current ? contentRef : myHeaderRef);
+      scrollToRef(contentRef);
     } else {
       setOpenType('full');
     }
@@ -109,7 +108,7 @@ const GroupByBlock = ({
         style={stickyStyle}
         onClick={handleOpenChange}
       >
-        <div ref={headerRef} className="flex-1">
+        <div className="flex-1">
           {bookCollections[0].volume === -1
             ? 'グルーピングなし'
             : `グルーピング${idx + 1} (${bookCollections[0].volume}~${bookCollections[bookCollections.length - 1].volume}) ${bookCollections.length}件`}

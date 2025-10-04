@@ -1,44 +1,13 @@
 import type { AppDispatch } from '@/store';
-import type { CollectionBook, Isbn13 } from '@/types/book.ts';
 import { X } from 'lucide-react';
-import { Fragment, memo, useCallback } from 'react';
+import { Fragment, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import BookCardNavi from '@/components/BookCardNavi.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { ScrollArea } from '@/components/ui/scroll-area.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
+import ScanResultItem from '@/pages/ScanPage/ScanResultItem.tsx';
 import { useAppSelector } from '@/store/hooks.ts';
 import { clearScanViewList, selectScanResultList } from '@/store/scannerSlice.ts';
-import { setBookDialogValue } from '@/store/uiSlice.ts';
-
-type ScanResultItemType = {
-  isbn: Isbn13;
-  status: 'loading' | 'none' | 'done';
-  collectionBook: CollectionBook | null;
-};
-
-const ScanResultItem = memo(({ result, index }: { result: ScanResultItemType; index: number }) => {
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-
-  const handleClick = useCallback(() => {
-    console.log(result.collectionBook?.isbn);
-    void navigate(`/scan/${result.collectionBook?.isbn}`);
-  }, [navigate, result.collectionBook?.isbn]);
-
-  const handleOpenDetail = useCallback(() => {
-    dispatch(setBookDialogValue(result.collectionBook));
-  }, [dispatch, result.collectionBook]);
-
-  return (
-    <Fragment>
-      {index > 0 && <Separator />}
-      <BookCardNavi collectionBook={result.collectionBook} onClick={handleClick} onOpenBook={handleOpenDetail} />
-    </Fragment>
-  );
-});
-ScanResultItem.displayName = 'ScanResultItem';
 
 export default function ScannedResults() {
   const dispatch = useDispatch<AppDispatch>();
@@ -61,8 +30,11 @@ export default function ScannedResults() {
       </div>
       <Separator />
       <ScrollArea className="w-full max-h-max">
-        {scanResultList.map((result, index) => (
-          <ScanResultItem key={index} result={result} index={index} />
+        {scanResultList.map(({ isbn, collectionBook }, index) => (
+          <Fragment key={index}>
+            {index > 0 && <Separator />}
+            <ScanResultItem isbn={isbn} collectionBook={collectionBook} />
+          </Fragment>
         ))}
         {!scanResultList.length && <p className="w-full text-center text-xs">まだ１冊も読み込まれていません。</p>}
       </ScrollArea>

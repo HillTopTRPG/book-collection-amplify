@@ -96,6 +96,11 @@ export const selectAllFilterSets = createSelector(
   (filterSets, tempFilterSets): FilterSet[] => [...filterSets, ...tempFilterSets]
 );
 
+export const selectFilterSet = createSelector(
+  [selectFilterSets, (_state, filterSetId: string | null | undefined) => filterSetId],
+  (filterSets, id): FilterSet | null => filterSets.find(filterMatch({ id })) ?? null
+);
+
 export const DEFAULT_COLLECTION: Collection = {
   id: '',
   apiId: '',

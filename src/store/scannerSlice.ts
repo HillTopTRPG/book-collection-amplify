@@ -2,6 +2,7 @@ import type { BookData, BookStatus, CollectionBook, Isbn13 } from '@/types/book.
 import type { QueueState } from '@/types/queue.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
 import { DEFAULT_COLLECTION, selectCollections, selectTempFilterSets } from '@/store/subscriptionDataSlice.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
@@ -15,7 +16,7 @@ import { createSimpleReducers, dequeue, enqueue, simpleSelector } from '@/utils/
 import { getKeys } from '@/utils/type.ts';
 
 type QueueType = Isbn13;
-type QueueResult = BookData | null;
+type QueueResult = BookData;
 
 type State = QueueState<QueueType, QueueResult> & {
   // 読み込み処理 / 表示
@@ -49,7 +50,7 @@ export const scannerSlice = createSlice({
       // localStorageにも反映
       pushScannedIsbnToLocalStorage(action.payload.list);
     },
-    dequeueScan: (state, action: PayloadAction<Record<QueueType, QueueResult>>) => {
+    dequeueScan: (state, action: PayloadAction<Record<QueueType, QueueResult | null>>) => {
       dequeue(state, action);
       const deleteIsbnList = getKeys(action.payload).filter(isbn => !action.payload[isbn]);
       deleteAllStrings(state.queueViewList, deleteIsbnList);
@@ -91,27 +92,45 @@ export const selectScanQueueTargets = createSelector([_selectQueue], queue => qu
 // スキャン中に表示するデータの整形済データ
 export const selectScanResultList = createSelector(
   [_selectScanQueueViewList, selectCollections, _selectScanQueueResults],
-  (
-    viewList,
-    collections,
-    results
-  ): { isbn: Isbn13; status: 'loading' | 'none' | 'done'; collectionBook: CollectionBook | null }[] =>
+  (viewList, collections, results): { isbn: Isbn13; collectionBook: CollectionBook | null }[] =>
     unique(viewList).map(isbn => {
-      if (!(isbn in results)) return { isbn, status: 'loading', collectionBook: null };
-      const book: BookData | null = results[isbn];
-      if (!book) return { isbn, status: 'none', collectionBook: null };
+      if (!(isbn in results)) return { isbn, collectionBook: null };
+      const book: BookData = results[isbn];
       const { apiId } = book;
       const collection = collections.find(filterMatch({ apiId })) ?? DEFAULT_COLLECTION;
       const collectionBook = { ...collection, ...book };
 
-      return { isbn, status: 'done', collectionBook };
+      return { isbn, collectionBook };
     })
+);
+export const selectCollectionBookByIsbn = createSelector(
+  [selectAllNdlSearchResults, selectCollections, (_state, isbn: Isbn13) => isbn],
+  (allNdlSearchResults: Record<string, BookData[]>, collections, isbn): CollectionBook | null => {
+    if (!(JSON.stringify({ isbn }) in allNdlSearchResults)) return null;
+
+    let book: BookData | null = null;
+    for (const key of getKeys(allNdlSearchResults)) {
+      for (const b of allNdlSearchResults[key]) {
+        if (b.isbn === isbn) {
+          book = b;
+          break;
+        }
+      }
+      if (book) break;
+    }
+    if (!book) return null;
+
+    const { apiId } = book;
+    const collection = collections.find(filterMatch({ apiId })) ?? DEFAULT_COLLECTION;
+
+    return { ...collection, ...book } as const satisfies CollectionBook;
+  }
 );
 
 // スキャン成功件数（スキャン成功音を鳴らすための数値）
 export const selectScanSuccessCount = createSelector(
   [selectScanResultList],
-  (scanResultList): number => scanResultList.filter(({ status }) => status === 'done').length
+  (scanResultList): number => scanResultList.length
 );
 // BookDrawerに表示するデータ
 export const selectSelectedCollectionBook = createSelector(
