@@ -1,5 +1,5 @@
 import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
-import type { BookData, BookStatus, Collection, FilterAndGroup, FilterSet } from '@/types/book.ts';
+import type { BookData, BookStatus, Collection, CollectionBook, FilterAndGroup, FilterSet } from '@/types/book.ts';
 import type { BookWithVolume } from '@/utils/groupByVolume.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
@@ -96,7 +96,7 @@ export const selectAllFilterSets = createSelector(
   (filterSets, tempFilterSets): FilterSet[] => [...filterSets, ...tempFilterSets]
 );
 
-const DEFAULT_COLLECTION: Collection = {
+export const DEFAULT_COLLECTION: Collection = {
   id: '',
   apiId: '',
   status: 'Unregistered',
@@ -111,19 +111,19 @@ export const selectCollectionByApiId = createSelector(
     apiId ? (collections.find(filterMatch({ apiId })) ?? DEFAULT_COLLECTION) : DEFAULT_COLLECTION
 );
 
-export const selectBookCollections = createSelector(
+export const selectCollectionBooks = createSelector(
   [
     selectCollections,
     (_state, books: BookData[]) => books,
     (_state, _books: BookData[], bookStatusList: BookStatus[]) => bookStatusList,
   ],
-  (collections, books, bookStatusList): { book: BookData; collection: Collection }[] =>
+  (collections, books, bookStatusList): CollectionBook[] =>
     books.flatMap(book => {
       const { apiId } = book;
-      const dbCollection = collections.find(filterMatch({ apiId }));
-      if (!bookStatusList.includes(dbCollection?.status ?? 'Unregistered')) return [];
+      const collection = collections.find(filterMatch({ apiId })) ?? DEFAULT_COLLECTION;
+      if (!bookStatusList.includes(collection.status)) return [];
 
-      return [{ book, collection: dbCollection ?? DEFAULT_COLLECTION }];
+      return [{ ...collection, ...book }];
     })
 );
 
@@ -133,13 +133,13 @@ export const selectBookWithVolumeCollections = createSelector(
     (_state, books: BookWithVolume[]) => books,
     (_state, _books: BookWithVolume[], bookStatusList: BookStatus[]) => bookStatusList,
   ],
-  (collections, books, bookStatusList): { book: BookData; volume: number; collection: Collection }[] =>
-    books.flatMap(({ book, volume }) => {
-      const { apiId } = book;
+  (collections, books, bookStatusList): { collectionBook: CollectionBook; volume: number; collection: Collection }[] =>
+    books.flatMap(({ collectionBook, volume }) => {
+      const { apiId } = collectionBook;
       const dbCollection = collections.find(filterMatch({ apiId }));
       if (!bookStatusList.includes(dbCollection?.status ?? 'Unregistered')) return [];
 
-      return [{ book, volume, collection: dbCollection ?? DEFAULT_COLLECTION }];
+      return [{ collectionBook, volume, collection: dbCollection ?? DEFAULT_COLLECTION }];
     })
 );
 

@@ -4,7 +4,7 @@ import { Fragment, memo, useCallback, useEffect, useMemo } from 'react';
 import { Separator } from '@/components/ui/separator.tsx';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectBookCollections } from '@/store/subscriptionDataSlice.ts';
+import { selectCollectionBooks } from '@/store/subscriptionDataSlice.ts';
 import { setBookDialogValue } from '@/store/uiSlice.ts';
 import BookCardNavi from './BookCardNavi.tsx';
 
@@ -34,7 +34,7 @@ const BookCardList = ({
   viewBookStatusList,
 }: Props) => {
   const dispatch = useAppDispatch();
-  const bookCollections = useAppSelector(state => selectBookCollections(state, books, viewBookStatusList));
+  const collectionBooks = useAppSelector(state => selectCollectionBooks(state, books, viewBookStatusList));
   const [contentRef, contentSize] = useDOMSize();
   const isOpen = useMemo(() => !openType || ['collapse', 'full'].some(v => v === openType), [openType]);
 
@@ -60,14 +60,17 @@ const BookCardList = ({
 
   const booksElement = useMemo(
     () =>
-      bookCollections.map(({ book }, idx) => (
+      collectionBooks.map((collectionBook, idx) => (
         <Fragment key={idx}>
           {!isCollapse || idx < 2 || books.length - 3 < idx ? (
             <>
               {idx ? <Separator /> : null}
               <div className="relative">
                 <div className="absolute inset-0 bg-indigo-900" style={{ opacity: 0.2 + (idx / books.length) * 0.6 }} />
-                <BookCardNavi {...{ book, filterSet, orIndex }} onOpenBook={() => handleOpenBook(book)} />
+                <BookCardNavi
+                  {...{ collectionBook, filterSet, orIndex }}
+                  onOpenBook={() => handleOpenBook(collectionBook)}
+                />
               </div>
             </>
           ) : null}
@@ -84,10 +87,10 @@ const BookCardList = ({
           ) : null}
         </Fragment>
       )),
-    [bookCollections, books.length, filterSet, handleOpenBook, handleShowAll, isCollapse, orIndex]
+    [collectionBooks, books.length, filterSet, handleOpenBook, handleShowAll, isCollapse, orIndex]
   );
 
-  if (!bookCollections.length) return null;
+  if (!collectionBooks.length) return null;
 
   return (
     <div>
@@ -95,7 +98,7 @@ const BookCardList = ({
         {isOpen ? booksElement : null}
       </div>
       <div ref={countRef} className="w-full px-2 py-1 bg-green-800 text-white">
-        {bookCollections.length}件
+        {collectionBooks.length}件
       </div>
     </div>
   );

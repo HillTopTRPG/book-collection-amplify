@@ -1,20 +1,20 @@
-import type { BookData, FilterSet } from '@/types/book.ts';
+import type { CollectionBook, FilterSet } from '@/types/book.ts';
 import BookCard from '@/components/Card/BookCard.tsx';
 import FilterCard from '@/components/Card/FilterCard';
 
 type Props = {
   filterSet: FilterSet | null;
-  books: BookData[];
+  collectionBooks: CollectionBook[];
 };
 
-export default function DrawerContent({ filterSet, books }: Props) {
+export default function DrawerContent({ filterSet, collectionBooks }: Props) {
   if (!filterSet) return null;
 
   return (
     <div className="space-y-4">
       <FilterCard filterSet={filterSet} />
-      {books.map(scannedItemMapValue => (
-        <BookCard key={scannedItemMapValue.isbn} book={scannedItemMapValue} />
+      {collectionBooks.map(collectionBook => (
+        <BookCard key={collectionBook.id} collectionBook={collectionBook} />
       ))}
     </div>
   );

@@ -1,21 +1,25 @@
 import type { BottomNavigationItem } from '@/pages/MainLayout/BottomNavigation.tsx';
 import type { FilterSet } from '@/types/book.ts';
 import { Save, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import { useLogs } from '@/hooks/useLogs.ts';
 import BottomNavigation from '@/pages/MainLayout/BottomNavigation.tsx';
 import FilterSetEdit from '@/pages/SearchEditPage/FilterSetEdit.tsx';
-import { useAppSelector } from '@/store/hooks.ts';
+import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
+import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectAllFilterResults } from '@/store/ndlSearchSlice.ts';
+import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 
 export default function SearchEditPage() {
+  const dispatch = useAppDispatch();
   const { filterSetId } = useParams<{ filterSetId: string }>();
   const allFilterResults = useAppSelector(selectAllFilterResults);
   const [filterSet, setFilterSet] = useState<FilterSet | null>(null);
   const { updateFilterSet } = useAwsAccess();
+  const scrollParentRef = useRef<HTMLDivElement>(document.getElementById('root') as HTMLDivElement);
 
   useLogs({
     componentName: 'SearchEditPage',
@@ -30,11 +34,16 @@ export default function SearchEditPage() {
     setFilterSet(structuredClone(filterSetResult.filterSet));
   }, [allFilterResults, filterSet, filterSetId]);
 
+  useEffect(() => {
+    if (!filterSet?.fetch) return;
+    dispatch(enqueueNdlSearch({ type: 'priority', list: [makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)] }));
+  }, [dispatch, filterSet?.fetch]);
+
   const content = useMemo(() => {
     if (!allFilterResults) return <Spinner variant="bars" />;
     if (!filterSet) return '存在しないフィルターです。';
 
-    return <FilterSetEdit filterSet={filterSet} onFilterSetUpdate={setFilterSet} />;
+    return <FilterSetEdit filterSet={filterSet} scrollParentRef={scrollParentRef} onFilterSetUpdate={setFilterSet} />;
   }, [allFilterResults, filterSet]);
 
   const navigationList: BottomNavigationItem[] = useMemo(

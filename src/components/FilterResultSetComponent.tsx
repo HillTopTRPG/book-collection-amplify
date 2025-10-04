@@ -1,4 +1,4 @@
-import type { BookData, BookStatus, FilterSet } from '@/types/book.ts';
+import type { BookStatus, CollectionBook, FilterSet } from '@/types/book.ts';
 import type { RefObject } from 'react';
 import { memo, useMemo } from 'react';
 import BookCardList from '@/components/BookCardList.tsx';
@@ -9,7 +9,7 @@ import { groupByVolume } from '@/utils/groupByVolume.ts';
 type Props = {
   stickyTop: number;
   scrollParentRef: RefObject<HTMLDivElement | null>;
-  books: BookData[];
+  collectionBooks: CollectionBook[];
   filterSet: FilterSet;
   setContentHeight: (height: number) => void;
   groupByType: 'volume' | null;
@@ -17,10 +17,10 @@ type Props = {
   viewBookStatusList: BookStatus[];
 };
 
-const BookDetailView = ({
+const FilterResultSetComponent = ({
   stickyTop,
   scrollParentRef,
-  books,
+  collectionBooks,
   filterSet,
   setContentHeight,
   groupByType,
@@ -28,8 +28,8 @@ const BookDetailView = ({
   viewBookStatusList,
 }: Props) => {
   const filteredResults = useMemo(
-    (): BookData[] => getFilteredItems(books, filterSet, orIndex),
-    [books, filterSet, orIndex]
+    (): CollectionBook[] => getFilteredItems(collectionBooks, filterSet, orIndex),
+    [collectionBooks, filterSet, orIndex]
   );
 
   const groupedBooks = useMemo(() => groupByVolume(filteredResults), [filteredResults]);
@@ -57,4 +57,4 @@ const BookDetailView = ({
 };
 
 // カスタム比較関数で不要な再レンダリングを防止
-export default memo(BookDetailView);
+export default memo(FilterResultSetComponent);

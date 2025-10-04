@@ -1,7 +1,8 @@
-import type { BookData, FilterSet } from '@/types/book.ts';
+import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
+import type { BookData, CollectionBook, FilterResultSet, FilterSet } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
-import { selectAllFilterSets } from '@/store/subscriptionDataSlice.ts';
+import { DEFAULT_COLLECTION, selectAllFilterSets, selectCollections } from '@/store/subscriptionDataSlice.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import { filterMatch, unique } from '@/utils/primitive.ts';
@@ -68,13 +69,53 @@ export const selectBooksByKeys = createSelector(
   }
 );
 
-export const selectFilterResultsByApiId = createSelector(
-  [selectAllFilterResults, (_state, apiId: string) => apiId],
-  (allFilterResults, apiId): { hasPrime: boolean; list: { filterSet: FilterSet; books: BookData[] }[] | null } => {
-    if (!allFilterResults) return { hasPrime: false, list: null };
-    const list = allFilterResults.filter(({ books }) => books.some(filterMatch({ apiId })));
+export const selectFilterResultSetsByApiId = createSelector(
+  [selectAllFilterSets, selectAllNdlSearchResults, selectCollections, (_state, apiId: string) => apiId],
+  (
+    allFilters,
+    allBooks,
+    collections,
+    apiId
+  ): { hasPrime: boolean; priorityFetchList: string[]; filterResultSets: FilterResultSet[] | null } => {
+    const priorityFetchList: string[] = [];
+    const filterResultSets: FilterResultSet[] = [];
+    allFilters.forEach(filterSet => {
+      const key = makeNdlOptionsStringByNdlFullOptions(filterSet.fetch);
+      if (!(key in allBooks)) {
+        priorityFetchList.push(makeNdlOptionsStringByNdlFullOptions(filterSet.fetch));
+        return;
+      }
+      const books: BookData[] = allBooks[key];
+      const collectionBooks: CollectionBook[] = books.map(book => {
+        const { apiId } = book;
+        const collection = collections.find(filterMatch({ apiId })) ?? DEFAULT_COLLECTION;
 
-    return { hasPrime: list.some(({ filterSet }) => filterSet.apiId === apiId), list: list };
+        // 唯一プロパティが被っているのは apiId のみ
+        return { ...collection, ...book };
+      });
+
+      filterResultSets.push({ filterSet, collectionBooks });
+    });
+    const hasPrime = filterResultSets.some(({ filterSet }) => filterSet.apiId === apiId);
+
+    return { hasPrime, priorityFetchList, filterResultSets };
+  }
+);
+
+export const selectCollectionBooksByFetch = createSelector(
+  [selectAllNdlSearchResults, selectCollections, (_state, fetch: NdlFullOptions) => fetch],
+  (allNdlSearchResults, collections, fetch): CollectionBook[] | null => {
+    const key = makeNdlOptionsStringByNdlFullOptions(fetch);
+    if (!(key in allNdlSearchResults)) return null;
+    const books: BookData[] = allNdlSearchResults[key];
+
+    return books.map(book => {
+      const { apiId } = book;
+      const collection = collections.find(filterMatch({ apiId })) ?? DEFAULT_COLLECTION;
+
+      // 唯一プロパティが被っているのは apiId のみ
+      return { ...collection, ...book };
+    });
   }
 );
 

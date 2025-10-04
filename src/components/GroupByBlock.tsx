@@ -44,7 +44,7 @@ const GroupByBlock = ({
   const headerRef = useRef<HTMLDivElement>(null);
   const myHeaderRef = useRef<HTMLDivElement>(null);
 
-  const books = useMemo(() => list.map(({ book }) => book), [list]);
+  const books = useMemo(() => list.map(({ collectionBook }) => collectionBook), [list]);
 
   const bookCollections = useAppSelector(state => selectBookWithVolumeCollections(state, list, viewBookStatusList));
   const [openType, setOpenType] = useState<CollapseOpenType>(bookCollections.length < 6 ? 'full' : 'collapse');

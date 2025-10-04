@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { enqueueScan, selectScanSuccessCount, selectSelectedBookData } from '@/store/scannerSlice.ts';
+import { enqueueScan, selectScanSuccessCount, selectSelectedCollectionBook } from '@/store/scannerSlice.ts';
 import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
 import CornerFrame from './CornerFrame.tsx';
 
@@ -20,7 +20,7 @@ export default function CameraView() {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
   const scannedBooks = useAppSelector(selectScanSuccessCount);
-  const selectedBookData = useAppSelector(selectSelectedBookData);
+  const selectedBookData = useAppSelector(selectSelectedCollectionBook);
   const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBooks);
   const scannerRef = useRef<HTMLDivElement>(null);
   const lastFetchIsbn = useRef<Isbn13 | null>(null);

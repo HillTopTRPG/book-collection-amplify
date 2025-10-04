@@ -1,5 +1,5 @@
 import type { AppDispatch } from '@/store';
-import type { BookData, Isbn13 } from '@/types/book.ts';
+import type { CollectionBook, Isbn13 } from '@/types/book.ts';
 import { X } from 'lucide-react';
 import { Fragment, memo, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
@@ -15,7 +15,7 @@ import { setBookDialogValue } from '@/store/uiSlice.ts';
 type ScanResultItemType = {
   isbn: Isbn13;
   status: 'loading' | 'none' | 'done';
-  book: BookData | null;
+  collectionBook: CollectionBook | null;
 };
 
 const ScanResultItem = memo(({ result, index }: { result: ScanResultItemType; index: number }) => {
@@ -23,18 +23,18 @@ const ScanResultItem = memo(({ result, index }: { result: ScanResultItemType; in
   const navigate = useNavigate();
 
   const handleClick = useCallback(() => {
-    console.log(result.book?.isbn);
-    void navigate(`/scan/${result.book?.isbn}`);
-  }, [navigate, result.book?.isbn]);
+    console.log(result.collectionBook?.isbn);
+    void navigate(`/scan/${result.collectionBook?.isbn}`);
+  }, [navigate, result.collectionBook?.isbn]);
 
   const handleOpenDetail = useCallback(() => {
-    dispatch(setBookDialogValue(result.book));
-  }, [dispatch, result.book]);
+    dispatch(setBookDialogValue(result.collectionBook));
+  }, [dispatch, result.collectionBook]);
 
   return (
     <Fragment>
       {index > 0 && <Separator />}
-      <BookCardNavi book={result.book} onClick={handleClick} onOpenBook={handleOpenDetail} />
+      <BookCardNavi collectionBook={result.collectionBook} onClick={handleClick} onOpenBook={handleOpenDetail} />
     </Fragment>
   );
 });

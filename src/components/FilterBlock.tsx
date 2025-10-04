@@ -1,26 +1,32 @@
-import type { BookData, FilterSet } from '@/types/book.ts';
+import type { CollectionBook, FilterSet } from '@/types/book.ts';
 import { type CSSProperties, type RefObject, useCallback, useMemo, useState } from 'react';
-import BookDetailView from '@/components/BookDetailView.tsx';
 import SearchConditionsForm from '@/components/SearchConditionsForm';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { getFilteredItems } from '@/utils/filter.ts';
+import FilterResultSetComponent from './FilterResultSetComponent.tsx';
 
 const BOTTOM_NAVIGATION_HEIGHT = 65;
 
 type Props = {
   scrollParentRef: RefObject<HTMLDivElement | null>;
-  books: BookData[];
+  collectionBooks: CollectionBook[];
   filterSet: FilterSet;
   orIndex: number;
   onFilterSetUpdate: (filterSet: FilterSet) => void;
 };
 
-export default function FilterBlock({ scrollParentRef, books, filterSet, orIndex, onFilterSetUpdate }: Props) {
+export default function FilterBlock({
+  scrollParentRef,
+  collectionBooks,
+  filterSet,
+  orIndex,
+  onFilterSetUpdate,
+}: Props) {
   const [searchConditionsRef, searchConditionsSize] = useDOMSize();
   const [contentHeight, setContentHeight] = useState(0);
   const filteredResults = useMemo(
-    (): BookData[] => getFilteredItems(books, filterSet, orIndex),
-    [books, filterSet, orIndex]
+    (): CollectionBook[] => getFilteredItems(collectionBooks, filterSet, orIndex),
+    [collectionBooks, filterSet, orIndex]
   );
 
   const handleGroupByTypeUpdate = useCallback(
@@ -45,12 +51,12 @@ export default function FilterBlock({ scrollParentRef, books, filterSet, orIndex
       <SearchConditionsForm
         ref={searchConditionsRef}
         onUpdateGroupByType={handleGroupByTypeUpdate}
-        {...{ filterSet, orIndex, books, filteredResults, onFilterSetUpdate }}
+        {...{ filterSet, orIndex, books: collectionBooks, filteredResults, onFilterSetUpdate }}
       />
 
       {/* TODO viewBookStatusList */}
-      <BookDetailView
-        books={filteredResults}
+      <FilterResultSetComponent
+        collectionBooks={filteredResults}
         stickyTop={searchConditionsSize.height}
         groupByType={filterSet.filters[orIndex].groupByType}
         viewBookStatusList={[]}

@@ -1,4 +1,4 @@
-import type { BookData, FilterBean, FilterSet } from '@/types/book.ts';
+import type { BookData, CollectionBook, FilterBean, FilterSet } from '@/types/book.ts';
 import { isNil } from 'es-toolkit/compat';
 import { getKeys } from '@/utils/type.ts';
 
@@ -16,7 +16,7 @@ const isMatch = (filter: FilterBean, list: string[]) => {
   }
 };
 
-const EMPTY_BOOK_DETAIL_ARRAY: BookData[] = [];
+const EMPTY_BOOK_DETAIL_ARRAY: CollectionBook[] = [];
 const EMPTY_STRING_ARRAY: string[] = [];
 
 // book properties のキャッシュ
@@ -36,7 +36,11 @@ const getBookProperties = (book: BookData): string[] => {
   return properties;
 };
 
-export const getFilteredItems = (books: BookData[], filterSet: FilterSet, filterIndex?: number): BookData[] => {
+export const getFilteredItems = (
+  books: CollectionBook[],
+  filterSet: FilterSet,
+  filterIndex?: number
+): CollectionBook[] => {
   if (!books.length) return EMPTY_BOOK_DETAIL_ARRAY;
 
   if (filterIndex !== undefined) {

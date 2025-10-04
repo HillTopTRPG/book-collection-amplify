@@ -55,6 +55,7 @@ export type Collection = Omit<Schema['Collection']['type'], 'status'> & {
 };
 
 export type CollectionBook = Collection & BookData;
+export type FilterResultSet = { filterSet: FilterSet; collectionBooks: CollectionBook[] };
 
 export type Sign = '==' | '*=' | '!=' | '!*';
 export type FilterBean = { keyword: string; sign: Sign };

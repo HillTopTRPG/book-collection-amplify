@@ -1,4 +1,4 @@
-import type { BookData } from '@/types/book.ts';
+import type { CollectionBook } from '@/types/book.ts';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useLogs } from '@/hooks/useLogs.ts';
@@ -25,22 +25,22 @@ export default function ScannedBookPage() {
     },
   });
 
-  const { type, book } = useMemo((): {
+  const { type, collectionBook } = useMemo((): {
     type: 'invalid-isbn' | 'no-scanned-isbn' | 'loading' | 'done';
-    book: BookData | null;
+    collectionBook: CollectionBook | null;
   } => {
     if (!maybeIsbn) {
-      return { type: 'invalid-isbn', book: null };
+      return { type: 'invalid-isbn', collectionBook: null };
     }
     const isbn = getIsbn13(maybeIsbn);
     const selected = scanResultList.find(item => item.isbn === isbn);
     if (!selected) {
-      return { type: 'no-scanned-isbn', book: null };
+      return { type: 'no-scanned-isbn', collectionBook: null };
     }
-    if (selected.status !== 'done' || !selected.book) {
-      return { type: 'loading', book: null };
+    if (selected.status !== 'done' || !selected.collectionBook) {
+      return { type: 'loading', collectionBook: null };
     }
-    return { type: 'done', book: selected.book };
+    return { type: 'done', collectionBook: selected.collectionBook };
   }, [maybeIsbn, scanResultList]);
 
   const content = useMemo(() => {
@@ -52,10 +52,10 @@ export default function ScannedBookPage() {
       case 'loading':
         return <div>読み込み中...</div>;
       case 'done':
-        if (!book) return null;
-        return <ScannedBookView book={book} />;
+        if (!collectionBook) return null;
+        return <ScannedBookView collectionBook={collectionBook} />;
     }
-  }, [book, type]);
+  }, [collectionBook, type]);
 
   return <div className="flex flex-col w-full flex-1 gap-4">{content}</div>;
 }

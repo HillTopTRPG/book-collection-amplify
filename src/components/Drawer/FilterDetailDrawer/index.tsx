@@ -1,4 +1,4 @@
-import type { BookData, FilterSet } from '@/types/book.ts';
+import type { CollectionBook, FilterSet } from '@/types/book.ts';
 import { CircleChevronLeft } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -35,7 +35,7 @@ export default function FilterDetailDrawer() {
   });
 
   const [bufferedFilterSet] = useState<FilterSet | null>(null);
-  const [bufferedBookDatas] = useState<BookData[]>([]);
+  const [bufferedBookDatas] = useState<CollectionBook[]>([]);
   // useEffect(() => {
   //   if (filterSet) {
   //     setBufferedFilterSet(structuredClone(filterSet));
@@ -59,7 +59,7 @@ export default function FilterDetailDrawer() {
 
   const drawerContent = (
     <DrawerFrame drawerType="bookDetail" isVisible={isVisible} header={header} onClose={handleClose}>
-      <DrawerContent filterSet={bufferedFilterSet} books={bufferedBookDatas} />
+      <DrawerContent filterSet={bufferedFilterSet} collectionBooks={bufferedBookDatas} />
     </DrawerFrame>
   );
 

@@ -1,4 +1,4 @@
-import type { BookData, BookStatus } from '@/types/book.ts';
+import type { BookStatus, CollectionBook } from '@/types/book.ts';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useState } from 'react';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
@@ -12,13 +12,13 @@ import BookStatusParts from './BookStatusParts.tsx';
 const OPTIONS = getKeys(BookStatusLabelMap).map(key => ({ ...BookStatusLabelMap[key], val: key }));
 
 type Props = {
-  book: BookData | null;
+  collectionBook: CollectionBook | null;
 };
 
-export default function BookStatusSelector({ book }: Props) {
+export default function BookStatusSelector({ collectionBook }: Props) {
   const { createCollections, updateCollections, deleteCollections } = useAwsAccess();
   const updatingCollectionApiIdList = useAppSelector(selectUpdatingCollectionApiIdList);
-  const collection = useAppSelector(state => selectCollectionByApiId(state, book?.apiId));
+  const collection = useAppSelector(state => selectCollectionByApiId(state, collectionBook?.apiId));
   const value = collection.status;
   const [editing, setEditing] = useState(false);
   const toEdit = () => {
@@ -32,9 +32,9 @@ export default function BookStatusSelector({ book }: Props) {
 
   const setValue = useCallback(
     async (status: BookStatus) => {
-      if (!book) return;
+      if (!collectionBook) return;
 
-      const { apiId } = book;
+      const { apiId } = collectionBook;
 
       const collectionId = collection.id;
       if (status !== BookStatusEnum.Unregistered) {
@@ -54,7 +54,7 @@ export default function BookStatusSelector({ book }: Props) {
         return;
       }
     },
-    [book, collection, createCollections, deleteCollections, updateCollections]
+    [collectionBook, collection, createCollections, deleteCollections, updateCollections]
   );
 
   if (!current) return null;
@@ -69,7 +69,11 @@ export default function BookStatusSelector({ book }: Props) {
         isFirst
         {...current}
         label={
-          updatingCollectionApiIdList.some(apiId => apiId === book?.apiId) ? <Spinner variant="bars" /> : current.label
+          updatingCollectionApiIdList.some(apiId => apiId === collectionBook?.apiId) ? (
+            <Spinner variant="bars" />
+          ) : (
+            current.label
+          )
         }
         zIndex={100}
         onClick={toEdit}
