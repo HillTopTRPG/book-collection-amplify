@@ -1,6 +1,6 @@
-import { isNil } from 'es-toolkit/compat';
 import type { FilterBean, FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookData } from '@/types/book.ts';
+import type { BookData, BookDetail } from '@/types/book.ts';
+import { isNil } from 'es-toolkit/compat';
 import { getKeys } from '@/utils/type.ts';
 
 const isMatch = (filter: FilterBean, list: string[]) => {
@@ -17,23 +17,42 @@ const isMatch = (filter: FilterBean, list: string[]) => {
   }
 };
 
-export const getFilteredItems = (fetchedBooks: BookData[], filterSet: FilterSet, filterIndex: number): BookData[] => {
-  if (!fetchedBooks?.length) return [];
+const EMPTY_BOOK_DETAIL_ARRAY: BookDetail[] = [];
+const EMPTY_STRING_ARRAY: string[] = [];
 
-  const filters = filterSet.filters[filterIndex].list.filter(({ keyword }) => keyword);
-  if (!filters.length) return !filterIndex ? fetchedBooks : [];
+// book properties のキャッシュ
+const bookPropertiesCache = new WeakMap<BookData, string[]>();
 
-  return fetchedBooks.filter(book =>
-    filters.every(filter =>
-      isMatch(
-        filter,
-        getKeys(book).flatMap(property => {
-          const value = book[property];
-          if (isNil(value)) return [];
-          if (typeof value === 'string') return [value];
-          return value;
-        })
-      )
-    )
+const getBookProperties = (book: BookData): string[] => {
+  if (bookPropertiesCache.has(book)) {
+    return bookPropertiesCache.get(book)!;
+  }
+  const properties = getKeys(book).flatMap(property => {
+    const value = book[property];
+    if (isNil(value)) return EMPTY_STRING_ARRAY;
+    if (typeof value === 'string') return [value];
+    return value;
+  });
+  bookPropertiesCache.set(book, properties);
+  return properties;
+};
+
+export const getFilteredItems = (
+  bookDetails: BookDetail[],
+  filterSet: FilterSet,
+  filterIndex?: number
+): BookDetail[] => {
+  if (!bookDetails.length) return EMPTY_BOOK_DETAIL_ARRAY;
+
+  if (filterIndex !== undefined) {
+    const filters = filterSet.filters[filterIndex].list.filter(({ keyword }) => keyword);
+    if (!filters.length) return !filterIndex ? bookDetails : EMPTY_BOOK_DETAIL_ARRAY;
+  }
+
+  return bookDetails.filter(bookDetail =>
+    filterSet.filters.some(({ list }, idx) => {
+      if (filterIndex !== undefined && idx !== filterIndex) return false;
+      return list.every(filter => isMatch(filter, getBookProperties(bookDetail.book)));
+    })
   );
 };

@@ -24,7 +24,7 @@ module.exports = {
   parserOptions: {
     project: './tsconfig.json',
   },
-  plugins: ['react-refresh', 'import', 'react', 'unused-imports'],
+  plugins: ['react-refresh', 'import', 'react', 'unused-imports', 'simple-import-sort'],
   settings: {
     react: {
       version: 'detect',
@@ -47,29 +47,40 @@ module.exports = {
     //   }
     // ],
     'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-    'import/order': [
+    '@typescript-eslint/require-array-sort-compare': [
       'error',
       {
-        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'type'],
-        pathGroups: [
-          {
-            pattern: 'react',
-            group: 'external',
-            position: 'before',
-          },
-          {
-            pattern: '@/**',
-            group: 'internal',
-          },
-        ],
-        pathGroupsExcludedImportTypes: ['react'],
-        'newlines-between': 'never',
-        alphabetize: {
-          order: 'asc',
-          caseInsensitive: true,
-        },
+        ignoreStringArrays: true,
       },
     ],
+    'react-hooks/exhaustive-deps': 'error',
+    'react-hooks/rules-of-hooks': 'error',
+    'simple-import-sort/imports': [
+      'error',
+      {
+        groups: [
+          // すべてのimportを1つのグループにまとめて空行なし
+          [
+            // CSS imports (side effect imports without variables)
+            '^.+\\.css$',
+            // Type imports
+            '^.+\\u0000$',
+            // Packages (things that start with a letter, digit, underscore, or "@")
+            '^@?\\w',
+            // Internal packages (paths starting with "@/")
+            '^@/',
+            // Parent imports (paths starting with "../")
+            '^\\.\\.(?!/?$)',
+            '^\\.\\./?$',
+            // Other relative imports (paths starting with "./")
+            '^\\./(?=.*/)(?!/?$)',
+            '^\\.(?!/?$)',
+            '^\\./?$',
+          ],
+        ],
+      },
+    ],
+    'simple-import-sort/exports': 'error',
     'no-multiple-empty-lines': [
       'error',
       {
@@ -136,7 +147,10 @@ module.exports = {
       },
     ],
     'import/no-unresolved': 'error',
+    'import/no-cycle': 'error',
     'no-unused-vars': 'off',
     'prettier/prettier': 'off',
+    '@typescript-eslint/no-unnecessary-condition': 'error',
+    '@typescript-eslint/method-signature-style': 'error',
   },
 };

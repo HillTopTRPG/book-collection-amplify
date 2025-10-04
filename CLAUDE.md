@@ -6,6 +6,10 @@
 
 これは認証、GraphQL API、DynamoDBデータベースを備えたAWS Amplify Gen 2 Reactアプリケーション（Vite使用）です。リアルタイム更新機能を持つシンプルなTodoアプリケーションのデモです。
 
+## 開発環境
+
+- **IDE**: WebStorm
+
 ## コマンド
 
 ```

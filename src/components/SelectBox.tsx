@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select.tsx';
 import { cn } from '@/lib/utils.ts';
 
-const COLOR_CLASS = 'bg-foreground text-background';
+const COLOR_CLASS = 'bg-foreground text-background box-border';
 
 export type SelectBoxOption = { label: ReactNode; disabled?: boolean };
 
@@ -32,7 +32,7 @@ export default function SelectBox<Options extends Record<string, SelectBoxOption
 }: Props<Options>) {
   return (
     <Select value={value.toString()} onValueChange={onChange}>
-      <SelectTrigger className={cn(COLOR_CLASS, className)}>
+      <SelectTrigger className={cn(COLOR_CLASS, 'w-auto', className)}>
         <SelectValue placeholder={label} />
       </SelectTrigger>
       <SelectContent className={COLOR_CLASS}>

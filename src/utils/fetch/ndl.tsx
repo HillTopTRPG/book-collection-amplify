@@ -1,9 +1,9 @@
-import ndc8Map from '@/assets/ndc8.json';
-import ndc9Map from '@/assets/ndc9.json';
 import type { NdlSearchResult } from '@/store/fetchNdlSearchSlice.ts';
 import type { BookData } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/types/fetch.ts';
 import type { FetchProcessResult } from '@/utils/fetch';
+import ndc8Map from '@/assets/ndc8.json';
+import ndc9Map from '@/assets/ndc9.json';
 import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
 import { getKeys } from '@/utils/type.ts';
 
@@ -73,14 +73,14 @@ const getNdlBooks = (recordElm: Element): [BookData] | [] => {
   const ndcLabels = ((): string[] => {
     if (!ndcInfo) return [];
     const { ndcType, ndcCode } = ndcInfo;
-    const dataMap = NDC_MAPS[ndcType];
+    const dataMap: Record<string, string> = NDC_MAPS[ndcType];
     const ndc = `${ndcType}:${ndcCode}`;
 
     // １文字ずつ増やして分類のラベルを取得していく
     return [...Array(ndc.length - 5)].flatMap((_, i) => {
       const code = ndc.slice(0, 6 + i);
       if (code.endsWith('.')) return [];
-      const text = dataMap[code as keyof typeof dataMap];
+      const text = code in dataMap ? dataMap[code] : undefined;
 
       return text ? [text] : [];
     });
@@ -192,23 +192,23 @@ export class XmlProcessor<T extends Record<string, string>> {
   }
 
   public getContents(query: keyof T) {
-    return this.parentElm?.querySelector(this.queryMap[query])?.textContent?.trim() ?? null;
+    return this.parentElm.querySelector(this.queryMap[query])?.textContent?.trim() ?? null;
   }
 
   public getAllContents(query: keyof T) {
-    return Array.from(this.parentElm?.querySelectorAll(this.queryMap[query]) ?? []).flatMap(elm =>
-      elm?.textContent ? [elm?.textContent] : []
+    return Array.from(this.parentElm.querySelectorAll(this.queryMap[query])).flatMap(elm =>
+      elm.textContent ? [elm.textContent] : []
     );
   }
 
   public getContentsByAttribute(query: keyof T, attribute: keyof T, match: keyof T) {
-    return Array.from(this.parentElm?.querySelectorAll(this.queryMap[query]) ?? []).find(
+    return Array.from(this.parentElm.querySelectorAll(this.queryMap[query])).find(
       elm => elm.getAttribute(this.queryMap[attribute]) === this.queryMap[match]
     )?.textContent;
   }
 
   public getAllAttributes(query: keyof T, attribute: keyof T) {
-    return Array.from(this.parentElm?.querySelectorAll(this.queryMap[query]) ?? []).flatMap(elm => {
+    return Array.from(this.parentElm.querySelectorAll(this.queryMap[query])).flatMap(elm => {
       const attr = elm.getAttribute(this.queryMap[attribute]);
 
       return attr ? [attr] : [];

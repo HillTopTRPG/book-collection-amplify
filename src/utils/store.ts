@@ -1,15 +1,15 @@
-import { omit } from 'es-toolkit/compat';
 import type { RootState } from '@/store';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { omit } from 'es-toolkit/compat';
 import { deleteAllStrings } from '@/utils/primitive.ts';
 import { getKeys } from '@/utils/type.ts';
-import type { PayloadAction } from '@reduxjs/toolkit';
 
 export const enqueue = <T extends string, U>(
   state: { queue: T[]; results: Record<T, U | 'retrying'> },
   action: PayloadAction<{ list: T[]; type: 'new' | 'retry' | 'priority' }>
 ) => {
   const addList = action.payload.list.filter(key => {
-    const result = state.results[key];
+    const result = key in state.results ? state.results[key] : undefined;
     switch (action.payload.type) {
       case 'new':
         return result === undefined && !state.queue.includes(key);
