@@ -1,7 +1,7 @@
-import BookCard from '@/components/Card/BookCard.tsx';
-import FilterCard from '@/components/Card/FilterCard';
 import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
 import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import BookCard from '@/components/Card/BookCard.tsx';
+import FilterCard from '@/components/Card/FilterCard';
 
 type Props = {
   filterSet: FilterSet | null;

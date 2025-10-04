@@ -7,3 +7,5 @@ export type RequiredNotNull<T> = {
 export type PickRequired<T, K extends keyof T> = T & RequiredNotNull<Pick<T, K>>;
 
 export const getKeys = <Obj extends Record<string | number | symbol, unknown>>(obj: Obj) => keys(obj) as (keyof Obj)[];
+
+export type Values<T> = T[keyof T];

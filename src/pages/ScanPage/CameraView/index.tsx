@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import type { Isbn13 } from '@/types/book.ts';
 import Quagga from '@ericblade/quagga2';
 import { Volume2, VolumeOff } from 'lucide-react';
-// eslint-disable-next-line import/no-named-as-default
+import { useCallback, useEffect, useRef, useState } from 'react'; // eslint-disable-next-line import/no-named-as-default
 import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
 import se01 from '@/assets/se01.mp3';
@@ -10,8 +10,7 @@ import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanSuccessCount, selectSelectedScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { Isbn13 } from '@/types/book.ts';
-import { getIsbnCode, getIsbn13 } from '@/utils/isbn.ts';
+import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
 import CornerFrame from './CornerFrame.tsx';
 
 const WIDTH = 300;
@@ -29,7 +28,7 @@ export default function CameraView() {
   const [error, setError] = useState<string | null>(null);
   const [isFirst, setIsFirst] = useState(true);
   const [isScanning, setIsScanning] = useState(false);
-  const [volume, _setVolume] = useState(Number(localStorage.volume) ?? 0.8);
+  const [volume, _setVolume] = useState('volume' in localStorage ? Number(localStorage['volume']) : 0.8);
   const [play] = useSound(se01, {
     volume,
     interrupt: true,
@@ -61,6 +60,32 @@ export default function CameraView() {
     }
     setLastFetchedBookListCount(scannedBookDetails);
   }, [scannedBookDetails, lastFetchedBookListCount, play]);
+
+  // Quagga.onDetectedハンドラーをuseCallbackで作成（メモリリーク防止のため参照を安定化）
+  const handleDetected = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (result: any) => {
+      const maybeIsbn = getIsbnCode(result.codeResult.code);
+      if (!maybeIsbn) return;
+
+      const isbn13 = getIsbn13(maybeIsbn);
+
+      if (lastFetchIsbn.current === isbn13) return;
+      lastFetchIsbn.current = isbn13;
+
+      console.log('バーコード検出:', isbn13);
+
+      // トーストを表示
+      toast({
+        title: 'ISBN検出',
+        description: isbn13,
+        duration: 2000,
+      });
+
+      dispatch(enqueueScan({ type: 'new', list: [isbn13] }));
+    },
+    [dispatch, toast]
+  );
 
   const startBarcodeScanning = useCallback(async () => {
     console.log('バーコードスキャン開始を試行中...');
@@ -110,31 +135,12 @@ export default function CameraView() {
     Quagga.start();
     console.log('Quaggaスキャン開始');
 
-    // イベントリスナーを設定
-    Quagga.onDetected(({ codeResult }) => {
-      const maybeIsbn = getIsbnCode(codeResult.code);
-      if (!maybeIsbn) return;
-
-      const isbn13 = getIsbn13(maybeIsbn);
-
-      if (lastFetchIsbn.current === isbn13) return;
-      lastFetchIsbn.current = isbn13;
-
-      console.log('バーコード検出:', isbn13);
-
-      // トーストを表示
-      toast({
-        title: 'ISBN検出',
-        description: isbn13,
-        duration: 2000,
-      });
-
-      dispatch(enqueueScan({ type: 'new', list: [isbn13] }));
-    });
+    // イベントリスナーを設定（handleDetectedを使用）
+    Quagga.onDetected(handleDetected);
 
     setError(null);
     setIsScanning(true);
-  }, [dispatch, toast]);
+  }, [handleDetected]);
 
   const startCamera = useCallback(async () => {
     setError(null);
@@ -158,10 +164,12 @@ export default function CameraView() {
   }, [startBarcodeScanning]);
 
   const stopCamera = useCallback(() => {
+    // Quaggaのイベントリスナーを解除（メモリリーク防止）
+    Quagga.offDetected(handleDetected);
     Quagga.stop().then();
     stream?.getTracks().forEach(track => track.stop());
     setIsScanning(false);
-  }, [stream]);
+  }, [handleDetected, stream]);
 
   // コンポーネントマウント時に自動でカメラを起動
   useInterval(() => {
@@ -179,13 +187,26 @@ export default function CameraView() {
     setVolume(volume ? 0 : 0.8);
   }, [setVolume, volume]);
 
+  // コンポーネントのアンマウント時にクリーンアップ（メモリリーク防止）
+  useEffect(
+    () => () => {
+      // Quaggaのイベントリスナーを解除
+      Quagga.offDetected(handleDetected);
+      Quagga.stop();
+      // カメラストリームを停止
+      stream?.getTracks().forEach(track => track.stop());
+      console.log('[CameraView] クリーンアップ完了');
+    },
+    [handleDetected, stream]
+  );
+
   return (
-    <div className="flex flex-col items-center justify-normal bg-background rounded-lg shadow-lg p-1 relative">
+    <div className="flex flex-col items-center justify-normal bg-background p-1 relative">
       {error ? <div style={{ color: 'red', marginBottom: '20px' }}>エラー: {error}</div> : null}
 
       {stream && isScanning ? (
         <Button
-          className="absolute bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40"
+          className="absolute outline-white outline bg-foreground active:bg-foreground focus:bg-foreground text-background active:text-background focus:text-background border-foreground active:border-foreground focus:border-foreground right-[3px] top-[3px] rounded-full z-40"
           size="icon"
           variant="outline"
           onClick={toggleVolume}

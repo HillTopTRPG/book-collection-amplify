@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -60,7 +60,7 @@ jobs:
 
       - name: Get repository owner
         id: repo_info
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -74,7 +74,7 @@ jobs:
 
       - name: Calculate Final Version
         id: final_version
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -196,7 +196,7 @@ jobs:
 
       - name: Create Pull Request
         id: create_pr
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         env:
           TEMPLATE_CONTENT: ${{ steps.changelog.outputs.template_content }}
           COMMIT_CHANGES: ${{ steps.changelog.outputs.commit_changes }}
@@ -322,7 +322,7 @@ jobs:
 
       - name: Create Tag and Release
         id: create_release
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -396,7 +396,7 @@ jobs:
             }
 
       - name: Summary
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
@@ -417,7 +417,7 @@ jobs:
             console.log('3. The release is already published!');
 
       - name: Comment on PR with release info
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |

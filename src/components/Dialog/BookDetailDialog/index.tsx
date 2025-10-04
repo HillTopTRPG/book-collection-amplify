@@ -8,17 +8,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import type { BookData } from '@/types/book.ts';
+import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { selectBookDetailDialogValue, setBookDetailDialogValue } from '@/store/uiSlice.ts';
 import BookDetailDialogContent from './BookDetailDialogContent.tsx';
 
-type Props = {
-  book: BookData | null;
-  onClose: () => void;
-};
+export default function BookDetailDialog() {
+  const dispatch = useAppDispatch();
+  const bookDetail = useAppSelector(selectBookDetailDialogValue);
+  const handleClose = () => {
+    dispatch(setBookDetailDialogValue(null));
+  };
+  const book = bookDetail?.book;
 
-export default function BookDetailDialog({ book, onClose }: Props) {
   return (
-    <Dialog open={Boolean(book)} onOpenChange={onClose}>
+    <Dialog open={Boolean(book)} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px] max-h-[90svh] overflow-scroll z-[1001]">
         <DialogHeader>
           <DialogTitle>

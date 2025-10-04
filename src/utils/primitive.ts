@@ -25,3 +25,6 @@ export const deleteAllStrings = <T extends string>(list: T[], values: T[]) => {
 };
 
 export const entries = <T extends string, U>(map: Map<T, U>): Record<T, U> => Object.fromEntries(map) as Record<T, U>;
+
+export const recordAt = <T extends string, U>(record: Record<T, U>, key: T): U | undefined =>
+  key in record ? record[key] : undefined;

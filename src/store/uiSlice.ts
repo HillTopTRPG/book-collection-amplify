@@ -1,30 +1,28 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { RootState } from './index.ts';
+import type { BookDetail } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 
 type State = {
-  scrollValueMap: Record<'bookDetail' | 'body', number>;
+  bookDetailDialogValue: BookDetail | null;
 };
 
 const initialState: State = {
-  scrollValueMap: {} as State['scrollValueMap'],
+  bookDetailDialogValue: null,
 } as const;
 
 export const uiSlice = createSlice({
   name: 'ui',
   initialState,
   reducers: {
-    setScrollValue: (state, action: PayloadAction<{ key: keyof State['scrollValueMap']; value: number }>) => {
-      state.scrollValueMap[action.payload.key] = action.payload.value;
+    setBookDetailDialogValue: (state, action: PayloadAction<BookDetail | null>) => {
+      state.bookDetailDialogValue = action.payload;
     },
   },
 });
 
-export const { setScrollValue } = uiSlice.actions;
+export const { setBookDetailDialogValue } = uiSlice.actions;
 
-const _selectUiScrollValueMap = (state: RootState) => state.ui.scrollValueMap;
-
-export const selectBookDetailScrollValue = createSelector([_selectUiScrollValueMap], valueMap => valueMap.bookDetail);
-export const selectBodyScrollValue = createSelector([_selectUiScrollValueMap], valueMap => valueMap.body);
+export const selectBookDetailDialogValue = (state: RootState) => state.ui.bookDetailDialogValue;
 
 export default uiSlice.reducer;

@@ -1,9 +1,9 @@
-import { createSelector, createSlice } from '@reduxjs/toolkit';
 import type { BookData } from '@/types/book.ts';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { makeInitialQueueState } from '@/types/queue.ts';
 import { unique } from '@/utils/primitive.ts';
 import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
-import type { PayloadAction } from '@reduxjs/toolkit';
 
 export type NdlSearchResult = {
   list: BookData[];

@@ -1,7 +1,7 @@
-import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import type { RootState } from '@/store';
-import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import type { FetchProcessResult } from '@/utils/fetch';
+import { type RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { wait } from '@/utils/primitive.ts';
 import { getKeys } from '@/utils/type.ts';
 

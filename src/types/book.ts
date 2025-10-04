@@ -1,3 +1,5 @@
+import type { IdInfo } from '@/types/system.ts';
+
 export type Isbn13 = string & { readonly __brand: 'Isbn13' };
 
 // 書籍データの型定義
@@ -15,4 +17,9 @@ export type BookData = {
   ndcLabels: string[];
   cover?: string | null;
   extent?: string | null;
+};
+
+export type BookDetail = {
+  book: BookData;
+  collection: IdInfo;
 };
