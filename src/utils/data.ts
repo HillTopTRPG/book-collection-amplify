@@ -1,47 +1,25 @@
 import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
-import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookData } from '@/types/book.ts';
+import type { BookData, Collection } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/types/fetch.ts';
-import type { IdInfo } from '@/types/system.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { filterMatch } from '@/utils/primitive.ts';
 
-export const getScannedItemMapValueByBookData = (
+export const getBookDataByBookData = (
   book: BookData,
   dbCollections: Collection[],
-  tempCollections: Collection[],
-  dbFilterSets: FilterSet[],
-  allNdlSearchResults: Record<string, BookData[]>
-): { scannedItemMapValue: ScannedItemMapValue; tempCollection: Collection | null } => {
-  const isbn = book.isbn;
-  const collection = dbCollections.find(filterMatch({ isbn }));
-  const tempCollection: Collection = tempCollections.find(filterMatch({ isbn })) ?? {
+  tempCollections: Collection[]
+): { scannedItemMapValue: BookData; tempCollection: Collection | null } => {
+  const { apiId } = book;
+  const collection = dbCollections.find(filterMatch({ apiId }));
+  const tempCollection: Collection = tempCollections.find(filterMatch({ apiId })) ?? {
     id: uuidv4(),
-    isbn,
+    apiId,
     status: 'Unregistered',
     createdAt: '',
     updatedAt: '',
     owner: '',
   };
-  const filterSets: IdInfo[] = dbFilterSets.flatMap(filterSet => {
-    const key = JSON.stringify(filterSet.fetch);
-    const result = key in allNdlSearchResults ? allNdlSearchResults[key] : [];
-
-    return result.some(filterMatch({ isbn })) ? [{ type: 'db', id: filterSet.id }] : [];
-  });
-
-  const scannedItemMapValue: ScannedItemMapValue = {
-    isbn,
-    bookDetail: {
-      book,
-      collection: {
-        type: collection ? 'db' : 'temp',
-        id: collection ? collection.id : tempCollection.id,
-      },
-    },
-    filterSets,
-  };
+  const scannedItemMapValue: BookData = book;
 
   return {
     scannedItemMapValue,

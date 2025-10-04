@@ -1,6 +1,5 @@
 import type { SelectBoxOption } from '@/components/SelectBox.tsx';
-import type { FilterSet, Sign } from '@/store/subscriptionDataSlice.ts';
-import type { BookData, BookDetail } from '@/types/book.ts';
+import type { BookData, FilterSet, Sign } from '@/types/book.ts';
 import { useCallback, useMemo } from 'react';
 import ComboInput from '@/components/ComboInput.tsx';
 import SelectBox from '@/components/SelectBox.tsx';
@@ -34,8 +33,7 @@ type KeywordInfo = {
   seriesTitle: string[];
 };
 
-const setKeywords = (obj: KeywordInfo, bookDetail: BookDetail) => {
-  const book = bookDetail.book;
+const setKeywords = (obj: KeywordInfo, book: BookData) => {
   setAllTag(obj, book, 'volume');
   setAllTag(obj, book, 'volumeTitle');
   setAllTag(obj, book, 'edition');
@@ -60,11 +58,11 @@ type Props = {
   filterSet: FilterSet;
   orIndex: number;
   andIndex: number;
-  bookDetails: BookDetail[];
+  books: BookData[];
   onFilterSetUpdate: (filterSet: FilterSet) => void;
 };
 
-export default function SearchConditionItem({ filterSet, orIndex, andIndex, bookDetails, onFilterSetUpdate }: Props) {
+export default function SearchConditionItem({ filterSet, orIndex, andIndex, books, onFilterSetUpdate }: Props) {
   const condition = filterSet.filters[orIndex].list[andIndex];
 
   const isPrimeFirst = !orIndex && !andIndex;
@@ -87,7 +85,7 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, book
         ndc: [],
       };
 
-      return bookDetails.reduce<KeywordInfo>(setKeywords, obj);
+      return books.reduce<KeywordInfo>(setKeywords, obj);
     })();
 
     return unique(
@@ -96,7 +94,7 @@ export default function SearchConditionItem({ filterSet, orIndex, andIndex, book
         return acc;
       }, [])
     );
-  }, [bookDetails]);
+  }, [books]);
 
   const updateSign = useCallback(
     (sign: Sign) => {

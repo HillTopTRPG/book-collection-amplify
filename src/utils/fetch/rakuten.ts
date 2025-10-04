@@ -34,6 +34,7 @@ export const callRakutenBooksApi = async (isbn: Isbn13): Promise<FetchProcessRes
   const item = data['Items'].flatMap(({ Item }: any) => (!getIsbnCode(Item.isbn) ? [] : [Item])).at(0) ?? null;
 
   const value: BookData = {
+    apiId: '',
     isbn,
     title: item?.title,
     volume: item?.subTitle,

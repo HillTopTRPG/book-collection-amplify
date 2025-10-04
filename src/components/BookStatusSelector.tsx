@@ -1,61 +1,60 @@
-import type { BookStatus } from '@/store/subscriptionDataSlice.ts';
-import type { BookDetail } from '@/types/book.ts';
+import type { BookStatus, CollectionBook } from '@/types/book.ts';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useState } from 'react';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import { useAppSelector } from '@/store/hooks.ts';
-import useIdInfo from '@/store/hooks/useIdInfo.ts';
-import { BookStatusEnum, BookStatusLabelMap, selectUpdatingCollectionIsbnList } from '@/store/subscriptionDataSlice.ts';
+import { selectCollectionByApiId, selectUpdatingCollectionApiIdList } from '@/store/subscriptionDataSlice.ts';
+import { BookStatusEnum, BookStatusLabelMap } from '@/types/book.ts';
 import { getKeys } from '@/utils/type.ts';
 import BookStatusParts from './BookStatusParts.tsx';
 
 const OPTIONS = getKeys(BookStatusLabelMap).map(key => ({ ...BookStatusLabelMap[key], val: key }));
 
 type Props = {
-  bookDetail: BookDetail | null;
+  collectionBook: CollectionBook | null;
 };
 
-export default function BookStatusSelector({ bookDetail }: Props) {
-  const { getCollectionByIdInfo } = useIdInfo();
+export default function BookStatusSelector({ collectionBook }: Props) {
   const { createCollections, updateCollections, deleteCollections } = useAwsAccess();
-  const updatingCollectionIsbnList = useAppSelector(selectUpdatingCollectionIsbnList);
-  const collection = bookDetail ? getCollectionByIdInfo(bookDetail.collection) : null;
-  const value = collection?.status ?? BookStatusEnum.Unregistered;
+  const updatingCollectionApiIdList = useAppSelector(selectUpdatingCollectionApiIdList);
+  const collection = useAppSelector(state => selectCollectionByApiId(state, collectionBook?.apiId));
+  const value = collection.status;
   const [editing, setEditing] = useState(false);
   const toEdit = () => {
     setEditing(!editing);
   };
   const handleSetValue = (value: BookStatus) => () => {
     setEditing(false);
-    setValue(value);
+    void setValue(value);
   };
   const current = OPTIONS.find(op => op.val === value);
 
   const setValue = useCallback(
     async (status: BookStatus) => {
-      if (!bookDetail || !collection) return;
+      if (!collectionBook) return;
 
-      const isbn = bookDetail.book.isbn;
+      const { apiId } = collectionBook;
 
+      const collectionId = collection.id;
       if (status !== BookStatusEnum.Unregistered) {
-        if (bookDetail.collection.type === 'db') {
+        if (collectionId) {
           console.log('# update db collection (meta)');
-          const id = bookDetail.collection.id;
-          await updateCollections({ id, isbn, status });
+          await updateCollections({ id: collectionId, apiId, status });
         } else {
           console.log('# create db collection (meta)');
-          await createCollections({ isbn, status });
+          await createCollections({ apiId, status });
         }
         return;
       } else {
+        if (!collectionId) return;
+
         console.log('# delete db collection (meta)');
-        const id = bookDetail.collection.id;
-        await deleteCollections({ id, isbn });
+        await deleteCollections({ id: collectionId, apiId });
         return;
       }
     },
-    [bookDetail, collection, createCollections, deleteCollections, updateCollections]
+    [collectionBook, collection, createCollections, deleteCollections, updateCollections]
   );
 
   if (!current) return null;
@@ -70,7 +69,7 @@ export default function BookStatusSelector({ bookDetail }: Props) {
         isFirst
         {...current}
         label={
-          updatingCollectionIsbnList.some(isbn => isbn === bookDetail?.book.isbn) ? (
+          updatingCollectionApiIdList.some(apiId => apiId === collectionBook?.apiId) ? (
             <Spinner variant="bars" />
           ) : (
             current.label

@@ -27,7 +27,7 @@ export default function MenuBar() {
 
   const handleLogout = useCallback(() => {
     signOut();
-    navigate('/');
+    void navigate('/');
   }, [navigate, signOut]);
 
   return (

@@ -1,10 +1,9 @@
-import type { BookData, BookDetail } from '@/types/book.ts';
+import type { BookData, CollectionBook } from '@/types/book.ts';
 import { getVolumeNumber, isNearDateBook } from '@/utils/bookData.ts';
 import { getStringSimilarity } from '@/utils/stringSimilarity.ts';
 import { removeNumberText } from './primitive.ts';
 
-type BookWithVolume = { bookDetail: BookDetail; volume: number };
-export type BookGroup = BookWithVolume[];
+export type BookWithVolume = { collectionBook: CollectionBook; volume: number };
 
 interface MatchCandidate {
   bookWithVolume: BookWithVolume;
@@ -19,13 +18,13 @@ interface ScoredCandidate extends MatchCandidate {
 // デバッグ用のISBNリスト（本番では空配列にして無効化）
 const DEBUG_ISBN: string[] = [];
 const shouldLogDebugInfo = (bookWithVolume: BookWithVolume) =>
-  DEBUG_ISBN.length > 0 && DEBUG_ISBN.includes(bookWithVolume.bookDetail.book.isbn);
+  DEBUG_ISBN.length > 0 && DEBUG_ISBN.includes(bookWithVolume.collectionBook.isbn);
 
 /**
  * 書籍のプロパティ値を取得する
  */
 const getBookProperty = <Property extends keyof BookData>(bookWithVolume: BookWithVolume, property: Property) =>
-  bookWithVolume.bookDetail.book[property];
+  bookWithVolume.collectionBook[property];
 
 /**
  * 2つの書籍の指定プロパティが等しいかどうかを判定する
@@ -82,7 +81,7 @@ const MATCHING_RULES: MatchingRule[] = [
       if (arePropertiesEqual(book1, book2, 'title')) return 1;
       const similarity = calculateStringSimilarity(book1, book2, 'title');
       if (shouldLogDebugInfo(book2)) {
-        console.log('calc:', similarity, book1.bookDetail.book.isbn);
+        console.log('calc:', similarity, book1.collectionBook.isbn);
       }
       return similarity >= 0.9 ? 1 : 0;
     },
@@ -164,7 +163,7 @@ const MATCHING_RULES: MatchingRule[] = [
     calculateScore: (book1, book2) => {
       const [edition1, edition2] = [book1, book2].map(book => getBookProperty(book, 'edition') ?? null);
       if ((!edition1 && !edition2) || edition1 === edition2) return 0;
-      return isNearDateBook(book1.bookDetail.book, book2.bookDetail.book) ? 1 : 0;
+      return isNearDateBook(book1.collectionBook, book2.collectionBook) ? 1 : 0;
     },
   },
   {
@@ -188,7 +187,7 @@ const calculateBookScore = (candidate: BookWithVolume, target: BookWithVolume): 
   for (const { name, calculateScore } of MATCHING_RULES) {
     const score = calculateScore(candidate, target);
     if (score && shouldLogDebugInfo(target)) {
-      console.log(target.bookDetail.book.isbn, `+${score}`, candidate.bookDetail.book.isbn, name);
+      console.log(target.collectionBook.isbn, `+${score}`, candidate.collectionBook.isbn, name);
     }
     totalScore += score;
 
@@ -205,7 +204,7 @@ const isValidCandidate = (
   candidate: BookWithVolume,
   target: BookWithVolume,
   groupIndex: number,
-  groups: BookGroup[]
+  groups: BookWithVolume[][]
 ): boolean => {
   const lastVolumeInGroup = groups[groupIndex][groups[groupIndex].length - 1].volume;
   // if (shouldLogDebugInfo(target) && target.volume - 2 <= candidate.volume && candidate.volume <= target.volume + 1) {
@@ -226,7 +225,7 @@ const isValidCandidate = (
   return candidate.volume + 1 === target.volume;
 };
 
-const findBestMatchingCandidates = (target: BookWithVolume, groups: BookGroup[]): ScoredCandidate[] => {
+const findBestMatchingCandidates = (target: BookWithVolume, groups: BookWithVolume[][]): ScoredCandidate[] => {
   const allCandidates = groups.flatMap((group, groupIndex) =>
     group.map((bookWithVolume, itemIndex) => ({
       bookWithVolume,
@@ -257,16 +256,16 @@ const logBookPlacement = (bookWithVolume: BookWithVolume, label: string, groupIn
   console.log(
     label,
     groupIndex,
-    bookWithVolume.bookDetail.book.isbn,
+    bookWithVolume.collectionBook.isbn,
     score,
-    `'${bookWithVolume.bookDetail.book.title}'`,
-    `'${bookWithVolume.bookDetail.book.volume}'`,
-    `'${bookWithVolume.bookDetail.book.volumeTitle}'`,
+    `'${bookWithVolume.collectionBook.title}'`,
+    `'${bookWithVolume.collectionBook.volume}'`,
+    `'${bookWithVolume.collectionBook.volumeTitle}'`,
     bookWithVolume.volume
   );
 };
 
-const addBookToGroups = (bookWithVolume: BookWithVolume, groups: BookGroup[]): void => {
+const addBookToGroups = (bookWithVolume: BookWithVolume, groups: BookWithVolume[][]): void => {
   const bestCandidates = findBestMatchingCandidates(bookWithVolume, groups);
 
   if (bestCandidates.length === 0) {
@@ -337,12 +336,12 @@ const addBookToGroups = (bookWithVolume: BookWithVolume, groups: BookGroup[]): v
   logBookPlacement(bookWithVolume, 'else', groupIndex, score);
 };
 
-export const groupByVolume = (bookDetails: BookDetail[]): BookGroup[] => {
-  const groups: BookGroup[] = [[]];
+export const groupByVolume = (collectionBooks: CollectionBook[]): BookWithVolume[][] => {
+  const groups: BookWithVolume[][] = [[]];
 
-  bookDetails.forEach(bookDetail => {
-    const volume = getVolumeNumber(bookDetail.book) ?? -1;
-    const bookWithVolume: BookWithVolume = { bookDetail, volume };
+  collectionBooks.forEach(collectionBook => {
+    const volume = getVolumeNumber(collectionBook) ?? -1;
+    const bookWithVolume: BookWithVolume = { collectionBook, volume };
     addBookToGroups(bookWithVolume, groups);
   });
 

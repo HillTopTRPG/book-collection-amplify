@@ -7,7 +7,7 @@ type Props = {
   book: BookData;
 };
 
-export default function BookDetailDialogContent({ book }: Props) {
+export default function BookDialogContent({ book }: Props) {
   const isbn = book.isbn;
 
   const tableData = [

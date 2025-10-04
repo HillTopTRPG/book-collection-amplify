@@ -1,5 +1,4 @@
-import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { CollectionBook, FilterSet } from '@/types/book.ts';
 import { CircleChevronLeft } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -14,7 +13,7 @@ import DrawerContent from './DrawerContent.tsx';
 export default function FilterDetailDrawer() {
   const dispatch = useDispatch();
   const filterSet = useAppSelector(selectSelectedFilterSet);
-  // const scannedItemMapValueBySelectedFilterSet = useAppSelector(selectScannedItemMapValueBySelectedFilterSet);
+  // const scannedItemMapValueBySelectedFilterSet = useAppSelector(selectBookDataBySelectedFilterSet);
 
   // const filterSetId = filterSet?.id;
 
@@ -36,14 +35,14 @@ export default function FilterDetailDrawer() {
   });
 
   const [bufferedFilterSet] = useState<FilterSet | null>(null);
-  const [bufferedScannedItemMapValues] = useState<ScannedItemMapValue[]>([]);
+  const [bufferedBookDatas] = useState<CollectionBook[]>([]);
   // useEffect(() => {
   //   if (filterSet) {
   //     setBufferedFilterSet(structuredClone(filterSet));
-  //     setBufferedScannedItemMapValues(structuredClone(scannedItemMapValueBySelectedFilterSet));
+  //     setBufferedBookDatas(structuredClone(scannedItemMapValueBySelectedFilterSet));
   //   } else if (!shouldRender) {
   //     setBufferedFilterSet(null);
-  //     setBufferedScannedItemMapValues([]);
+  //     setBufferedBookDatas([]);
   //   }
   // }, [scannedItemMapValueBySelectedFilterSet, filterSet, shouldRender]);
 
@@ -60,7 +59,7 @@ export default function FilterDetailDrawer() {
 
   const drawerContent = (
     <DrawerFrame drawerType="bookDetail" isVisible={isVisible} header={header} onClose={handleClose}>
-      <DrawerContent filterSet={bufferedFilterSet} scannedItemMapValues={bufferedScannedItemMapValues} />
+      <DrawerContent filterSet={bufferedFilterSet} collectionBooks={bufferedBookDatas} />
     </DrawerFrame>
   );
 

@@ -1,7 +1,7 @@
 import type { Isbn13 } from '@/types/book.ts';
 import Quagga from '@ericblade/quagga2';
 import { Volume2, VolumeOff } from 'lucide-react';
-import { useCallback, useEffect, useRef, useState } from 'react'; // eslint-disable-next-line import/no-named-as-default
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
 import se01 from '@/assets/se01.mp3';
@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { enqueueScan, selectScanSuccessCount, selectSelectedScannedItemMapValue } from '@/store/scannerSlice.ts';
+import { enqueueScan, selectScanSuccessCount, selectSelectedCollectionBook } from '@/store/scannerSlice.ts';
 import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
 import CornerFrame from './CornerFrame.tsx';
 
@@ -19,9 +19,9 @@ const HEIGHT = 100;
 export default function CameraView() {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
-  const scannedBookDetails = useAppSelector(selectScanSuccessCount);
-  const selectedScannedItemMapValue = useAppSelector(selectSelectedScannedItemMapValue);
-  const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBookDetails);
+  const scannedBooks = useAppSelector(selectScanSuccessCount);
+  const selectedBookData = useAppSelector(selectSelectedCollectionBook);
+  const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBooks);
   const scannerRef = useRef<HTMLDivElement>(null);
   const lastFetchIsbn = useRef<Isbn13 | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -37,7 +37,7 @@ export default function CameraView() {
   // cameraEnabledが更新されたら、初回フラグを立てる
   useEffect(() => {
     setIsFirst(true);
-  }, [selectedScannedItemMapValue]);
+  }, [selectedBookData]);
 
   const setVolume = useCallback((volume: number) => {
     localStorage.volume = volume;
@@ -45,8 +45,8 @@ export default function CameraView() {
   }, []);
 
   useEffect(() => {
-    if (lastFetchedBookListCount !== scannedBookDetails) {
-      if (scannedBookDetails > 0) {
+    if (lastFetchedBookListCount !== scannedBooks) {
+      if (scannedBooks > 0) {
         // fetch済みリストの件数が変化するたびに音を鳴らす
         try {
           play();
@@ -58,8 +58,8 @@ export default function CameraView() {
         lastFetchIsbn.current = null;
       }
     }
-    setLastFetchedBookListCount(scannedBookDetails);
-  }, [scannedBookDetails, lastFetchedBookListCount, play]);
+    setLastFetchedBookListCount(scannedBooks);
+  }, [scannedBooks, lastFetchedBookListCount, play]);
 
   // Quagga.onDetectedハンドラーをuseCallbackで作成（メモリリーク防止のため参照を安定化）
   const handleDetected = useCallback(
@@ -94,7 +94,7 @@ export default function CameraView() {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const error = await new Promise<any>(resolve => {
-      Quagga.init(
+      void Quagga.init(
         {
           inputStream: {
             name: 'Live',
@@ -154,7 +154,7 @@ export default function CameraView() {
 
       // カメラ起動後、少し待ってからバーコードスキャンを自動開始
       setTimeout(() => {
-        startBarcodeScanning();
+        void startBarcodeScanning();
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'カメラにアクセスできませんでした';
@@ -163,10 +163,10 @@ export default function CameraView() {
     }
   }, [startBarcodeScanning]);
 
-  const stopCamera = useCallback(() => {
+  const stopCamera = useCallback(async () => {
     // Quaggaのイベントリスナーを解除（メモリリーク防止）
     Quagga.offDetected(handleDetected);
-    Quagga.stop().then();
+    await Quagga.stop();
     stream?.getTracks().forEach(track => track.stop());
     setIsScanning(false);
   }, [handleDetected, stream]);
@@ -175,10 +175,10 @@ export default function CameraView() {
   useInterval(() => {
     if (!isFirst) return;
     if (!scannerRef.current) return;
-    if (selectedScannedItemMapValue) {
-      stopCamera();
+    if (selectedBookData) {
+      void stopCamera();
     } else {
-      startCamera().then();
+      void startCamera();
     }
     setIsFirst(false);
   }, 100);
@@ -192,10 +192,11 @@ export default function CameraView() {
     () => () => {
       // Quaggaのイベントリスナーを解除
       Quagga.offDetected(handleDetected);
-      Quagga.stop();
-      // カメラストリームを停止
-      stream?.getTracks().forEach(track => track.stop());
-      console.log('[CameraView] クリーンアップ完了');
+      void Quagga.stop().then(() => {
+        // カメラストリームを停止
+        stream?.getTracks().forEach(track => track.stop());
+        console.log('[CameraView] クリーンアップ完了');
+      });
     },
     [handleDetected, stream]
   );

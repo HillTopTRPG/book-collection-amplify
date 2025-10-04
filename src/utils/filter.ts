@@ -1,5 +1,4 @@
-import type { FilterBean, FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookData, BookDetail } from '@/types/book.ts';
+import type { BookData, CollectionBook, FilterBean, FilterSet } from '@/types/book.ts';
 import { isNil } from 'es-toolkit/compat';
 import { getKeys } from '@/utils/type.ts';
 
@@ -17,7 +16,7 @@ const isMatch = (filter: FilterBean, list: string[]) => {
   }
 };
 
-const EMPTY_BOOK_DETAIL_ARRAY: BookDetail[] = [];
+const EMPTY_BOOK_DETAIL_ARRAY: CollectionBook[] = [];
 const EMPTY_STRING_ARRAY: string[] = [];
 
 // book properties のキャッシュ
@@ -38,21 +37,21 @@ const getBookProperties = (book: BookData): string[] => {
 };
 
 export const getFilteredItems = (
-  bookDetails: BookDetail[],
+  books: CollectionBook[],
   filterSet: FilterSet,
   filterIndex?: number
-): BookDetail[] => {
-  if (!bookDetails.length) return EMPTY_BOOK_DETAIL_ARRAY;
+): CollectionBook[] => {
+  if (!books.length) return EMPTY_BOOK_DETAIL_ARRAY;
 
   if (filterIndex !== undefined) {
     const filters = filterSet.filters[filterIndex].list.filter(({ keyword }) => keyword);
-    if (!filters.length) return !filterIndex ? bookDetails : EMPTY_BOOK_DETAIL_ARRAY;
+    if (!filters.length) return !filterIndex ? books : EMPTY_BOOK_DETAIL_ARRAY;
   }
 
-  return bookDetails.filter(bookDetail =>
+  return books.filter(book =>
     filterSet.filters.some(({ list }, idx) => {
       if (filterIndex !== undefined && idx !== filterIndex) return false;
-      return list.every(filter => isMatch(filter, getBookProperties(bookDetail.book)));
+      return list.every(filter => isMatch(filter, getBookProperties(book)));
     })
   );
 };

@@ -1,21 +1,20 @@
-import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { CollectionBook, FilterSet } from '@/types/book.ts';
 import BookCard from '@/components/Card/BookCard.tsx';
 import FilterCard from '@/components/Card/FilterCard';
 
 type Props = {
   filterSet: FilterSet | null;
-  scannedItemMapValues: ScannedItemMapValue[];
+  collectionBooks: CollectionBook[];
 };
 
-export default function DrawerContent({ filterSet, scannedItemMapValues }: Props) {
+export default function DrawerContent({ filterSet, collectionBooks }: Props) {
   if (!filterSet) return null;
 
   return (
     <div className="space-y-4">
       <FilterCard filterSet={filterSet} />
-      {scannedItemMapValues.map(scannedItemMapValue => (
-        <BookCard key={scannedItemMapValue.isbn} bookDetail={scannedItemMapValue.bookDetail} />
+      {collectionBooks.map(collectionBook => (
+        <BookCard key={collectionBook.id} collectionBook={collectionBook} />
       ))}
     </div>
   );
