@@ -1,14 +1,15 @@
 import type { ClassValue } from 'clsx';
 import type { LucideProps } from 'lucide-react';
 import type { ForwardRefExoticComponent, RefAttributes } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 import { cn } from '@/lib/utils.ts';
 
 export type BottomNavigationItem = {
   path?: RegExp | string;
   icon: ForwardRefExoticComponent<Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>>;
   label: string;
-  handleClick: (navigate: ReturnType<typeof useNavigate>) => void;
+  handleClick: (navigate: (to: string | number) => void) => void | Promise<void>;
   disabled?: boolean;
 };
 
@@ -19,7 +20,7 @@ type Props = {
 
 export default function BottomNavigation({ list, zIndex }: Props) {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigateWithLoading();
   zIndex ||= 1000;
 
   return (

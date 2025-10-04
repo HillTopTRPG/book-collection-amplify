@@ -1,8 +1,8 @@
 import { useAuthenticator } from '@aws-amplify/ui-react';
 import { LogOut, Moon, Sun } from 'lucide-react';
 import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button.tsx';
+import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 
 const changeDarkMode = (mode: 'dark' | 'light') => {
   localStorage.theme = mode;
@@ -11,7 +11,7 @@ const changeDarkMode = (mode: 'dark' | 'light') => {
 
 export default function MenuBar() {
   const { signOut, user } = useAuthenticator();
-  const navigate = useNavigate();
+  const navigate = useNavigateWithLoading();
   const [theme, setTheme] = useState<'dark' | 'light'>(
     localStorage.theme === 'dark' ||
       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
@@ -27,7 +27,7 @@ export default function MenuBar() {
 
   const handleLogout = useCallback(() => {
     signOut();
-    void navigate('/');
+    navigate('/');
   }, [navigate, signOut]);
 
   return (

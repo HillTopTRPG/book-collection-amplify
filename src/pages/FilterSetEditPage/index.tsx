@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import { useLogs } from '@/hooks/useLogs.ts';
+import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 import FilterSetEdit from '@/pages/FilterSetEditPage/FilterSetEdit.tsx';
 import BottomNavigation from '@/pages/MainLayout/BottomNavigation.tsx';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
@@ -18,6 +19,7 @@ export default function FilterSetEditPage() {
   const dbFilterSet = useAppSelector(state => selectFilterSet(state, filterSetId));
   const [filterSet, setFilterSet] = useState<FilterSet | null>(null);
   const { updateFilterSet } = useAwsAccess();
+  const navigate = useNavigateWithLoading();
 
   useEffect(() => {
     if (filterSet) return;
@@ -53,25 +55,25 @@ export default function FilterSetEditPage() {
       {
         icon: X,
         label: 'キャンセル',
-        handleClick: navigate => {
+        handleClick: () => {
           console.log('キャンセル');
-          void navigate(-1);
+          navigate(-1);
         },
         disabled: !filterSet,
       },
       {
         icon: Save,
         label: '保存',
-        handleClick: async navigate => {
+        handleClick: async () => {
           console.log('保存');
           if (!filterSet) return;
           await updateFilterSet(filterSet);
-          void navigate(-1);
+          navigate(-1);
         },
         disabled: !filterSet,
       },
     ],
-    [filterSet, updateFilterSet]
+    [filterSet, updateFilterSet, navigate]
   );
 
   return (

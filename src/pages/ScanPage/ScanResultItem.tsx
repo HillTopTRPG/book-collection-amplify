@@ -1,7 +1,7 @@
 import type { CollectionBook, Isbn13 } from '@/types/book.ts';
 import { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import BookCardNavi from '@/components/BookCardNavi.tsx';
+import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 import { useAppDispatch } from '@/store/hooks.ts';
 import { setBookDialogValue } from '@/store/uiSlice.ts';
 
@@ -12,11 +12,11 @@ type Props = {
 
 export default function ScanResultItem({ isbn, collectionBook }: Props) {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
+  const navigate = useNavigateWithLoading();
 
   const handleClick = useCallback(() => {
     console.log(isbn);
-    void navigate(`/book/${isbn}`);
+    navigate(`/book/${isbn}`);
   }, [navigate, isbn]);
 
   const handleOpenDetail = useCallback(() => {
