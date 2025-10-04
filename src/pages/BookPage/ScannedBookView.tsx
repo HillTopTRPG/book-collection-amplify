@@ -4,8 +4,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import BookCardNavi from '@/components/BookCardNavi.tsx';
 import { useLogs } from '@/hooks/useLogs.ts';
 import CollectionBooksFilterResultView from '@/pages/BookPage/CollectionBooksFilterResultView.tsx';
-import { useAppSelector } from '@/store/hooks.ts';
+import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectCollectionBookByIsbn } from '@/store/scannerSlice.ts';
+import { setBookDialogValue } from '@/store/uiSlice.ts';
 
 const BOTTOM_NAVIGATION_HEIGHT = 65;
 
@@ -14,6 +15,7 @@ type Props = {
 };
 
 export default function ScannedBookView({ isbn }: Props) {
+  const dispatch = useAppDispatch();
   const [contentHeight, setContentHeight] = useState(0);
   const collectionBook = useAppSelector(state => selectCollectionBookByIsbn(state, isbn));
 
@@ -40,7 +42,13 @@ export default function ScannedBookView({ isbn }: Props) {
     [contentHeight]
   );
 
-  const bookCardNavi = useMemo(() => <BookCardNavi collectionBook={collectionBook} />, [collectionBook]);
+  const bookCardNavi = useMemo(() => {
+    const handleBookOpen = () => {
+      dispatch(setBookDialogValue(collectionBook));
+    };
+
+    return <BookCardNavi collectionBook={collectionBook} onOpenBook={handleBookOpen} />;
+  }, [collectionBook, dispatch]);
 
   return (
     <div className="flex flex-col w-full flex-1">

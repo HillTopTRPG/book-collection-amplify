@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BookStatusChecks from '@/components/BookStatusChecks';
 import FilterResultSetComponent from '@/components/FilterResultSetComponent.tsx';
+import FilterSetCollapsibleHeader from '@/components/FilterSetCollapsibleHeader.tsx';
 import GroupByTypeCheck from '@/components/GroupByTypeCheck.tsx';
 import { Button } from '@/components/ui/button.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
@@ -109,15 +110,14 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
         ) : (
           <div className="flex flex-col gap-1 pt-1">
             {filterResultSets.map(({ filterSet }) => (
-              <Button
+              <div
                 key={filterSet.id}
-                className="ml-4 box-border gap-1"
-                variant="outline"
+                className="flex items-center justify-between ml-4 px-2 border rounded-md box-border gap-1"
                 onClick={() => handleFilterSetEdit(filterSet.id)}
               >
-                <span className="flex-1 flex justify-start text-sm">{filterSet.name}</span>
+                <FilterSetCollapsibleHeader filterSet={filterSet} />
                 <Pencil />
-              </Button>
+              </div>
             ))}
           </div>
         )}

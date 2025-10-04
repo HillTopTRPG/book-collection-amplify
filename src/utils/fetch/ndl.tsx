@@ -124,6 +124,7 @@ const getNdlQueryStr = (options: NdlFetchOptions): string => {
           case 'creator':
           case 'publisher':
           case 'anywhere':
+          case 'itemno':
             return [`${key}="${value}"`];
           case 'isbn':
             return [`${key}=${value}`];

@@ -5,6 +5,7 @@ export type NdlFetchOptions = {
   isbn?: string;
   dpid?: string;
   mediatype?: string;
+  itemno?: string;
   anywhere?: string;
   startRecord?: number;
 };

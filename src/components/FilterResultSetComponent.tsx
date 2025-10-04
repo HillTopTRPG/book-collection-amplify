@@ -3,6 +3,7 @@ import type { RefObject } from 'react';
 import { memo, useCallback, useMemo } from 'react';
 import BookCardList from '@/components/BookCardList.tsx';
 import CollapsibleFrame from '@/components/CollapsibleFrame.tsx';
+import FilterSetCollapsibleHeader from '@/components/FilterSetCollapsibleHeader.tsx';
 import GroupByBlock from '@/components/GroupByBlock.tsx';
 import { getFilteredItems } from '@/utils/filter.ts';
 import { groupByVolume } from '@/utils/groupByVolume.ts';
@@ -73,14 +74,14 @@ const FilterResultSetComponent = ({
         className="bg-orange-800 text-white"
         stickyTop={stickyTop}
         scrollParentRef={scrollParentRef}
-        headerText={filterSet.name}
+        headerText={<FilterSetCollapsibleHeader filterSet={filterSet} />}
         setContentHeight={setContentHeight}
         zIndex={11}
       >
         {!groupByType ? [bookCardList] : stickyTop => groupedBookElms(stickyTop)}
       </CollapsibleFrame>
     ),
-    [bookCardList, filterSet.name, groupByType, groupedBookElms, scrollParentRef, setContentHeight, stickyTop]
+    [bookCardList, filterSet, groupByType, groupedBookElms, scrollParentRef, setContentHeight, stickyTop]
   );
 
   return <div className="flex flex-col">{groupedBooksElement}</div>;

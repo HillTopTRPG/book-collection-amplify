@@ -1,5 +1,5 @@
 import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
-import type { BookData, CollectionBook, FilterResultSet, FilterSet } from '@/types/book.ts';
+import type { BookData, CollectionBook, FilterResultSet, FilterSet, Isbn13 } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { DEFAULT_COLLECTION, selectAllFilterSets, selectCollections } from '@/store/subscriptionDataSlice.ts';
@@ -7,6 +7,7 @@ import { makeInitialQueueState } from '@/types/queue.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import { filterMatch, unique } from '@/utils/primitive.ts';
 import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
+import { getKeys } from '@/utils/type.ts';
 
 type QueueType = string;
 type QueueResult = BookData[];
@@ -55,6 +56,17 @@ export const selectAllFilterResults = createSelector(
   }
 );
 
+export const selectIsbnByApiId = createSelector(
+  [selectAllNdlSearchResults, (_state, apiId: string) => apiId],
+  (allNdlSearchResults, apiId): Isbn13 | null => {
+    for (const key of getKeys(allNdlSearchResults)) {
+      const isbn = allNdlSearchResults[key].find(filterMatch({ apiId }))?.isbn;
+      if (isbn) return isbn;
+    }
+    return null;
+  }
+);
+
 const EMPTY_BOOK_DETAIL_ARRAY: BookData[] = [];
 
 /** 特定のキーに対応する Book[] を取得するセレクター */
@@ -79,6 +91,7 @@ export const selectFilterResultSetsByApiId = createSelector(
   ): { hasPrime: boolean; priorityFetchList: string[]; filterResultSets: FilterResultSet[] | null } => {
     const priorityFetchList: string[] = [];
     const filterResultSets: FilterResultSet[] = [];
+    let hasPrime: boolean = false;
     allFilters.forEach(filterSet => {
       const key = makeNdlOptionsStringByNdlFullOptions(filterSet.fetch);
       if (!(key in allBooks)) {
@@ -94,9 +107,13 @@ export const selectFilterResultSetsByApiId = createSelector(
         return { ...collection, ...book };
       });
 
-      filterResultSets.push({ filterSet, collectionBooks });
+      if (filterSet.apiId === apiId) {
+        hasPrime = true;
+        filterResultSets.unshift({ filterSet, collectionBooks });
+      } else {
+        filterResultSets.push({ filterSet, collectionBooks });
+      }
     });
-    const hasPrime = filterResultSets.some(({ filterSet }) => filterSet.apiId === apiId);
 
     return { hasPrime, priorityFetchList, filterResultSets };
   }

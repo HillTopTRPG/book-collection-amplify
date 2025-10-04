@@ -109,7 +109,11 @@ export default function BookCard({ className, style, collectionBook, onClick, fi
   }, [isbn, onClick]);
 
   return (
-    <CardFrame onClick={onClickWrap} className={cn('flex-col items-start gap-1 py-1 px-2', className)} style={style}>
+    <CardFrame
+      onClick={onClick ? onClickWrap : undefined}
+      className={cn('flex-col items-start gap-1 py-1 px-2', className)}
+      style={style}
+    >
       {content}
     </CardFrame>
   );

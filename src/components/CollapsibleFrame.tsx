@@ -134,7 +134,7 @@ export default function CollapsibleFrame({
     <>
       <div
         ref={headerRef}
-        className={cn('flex px-2 py-1 sticky cursor-pointer', className)}
+        className={cn('flex items-center px-2 py-1 sticky cursor-pointer', className)}
         style={stickyStyle}
         onClick={handleOpenChange}
       >
