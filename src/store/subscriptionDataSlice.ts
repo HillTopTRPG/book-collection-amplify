@@ -71,6 +71,7 @@ export const subscriptionDataSlice = createSlice({
       state.tempCollections = [];
       state.tempFilterSets = [];
     },
+    resetSubscriptionData: () => initialState,
   },
 });
 
@@ -84,6 +85,7 @@ export const {
   updateFetchedFilterAnywhere,
   addUpdatingCollectionApiIdList,
   clearTempData,
+  resetSubscriptionData,
 } = subscriptionDataSlice.actions;
 
 export const selectCollections = simpleSelector('subscriptionData', 'collections');
