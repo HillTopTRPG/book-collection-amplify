@@ -8,7 +8,9 @@ const schema = a.schema({
       apiId: a.string().required(),
       status: a.string().required(),
     })
-    .authorization((allow) => [allow.owner()]),
+    .authorization((allow) => [
+      allow.owner().to(['create', 'read', 'update', 'delete'])
+    ]),
   // FilterSet : API result = 1 : 1
   FilterSet: a
     .model({
@@ -17,7 +19,9 @@ const schema = a.schema({
       fetch: a.string().required(),
       filters: a.string().required(),
     })
-    .authorization((allow) => [allow.owner()]),
+    .authorization((allow) => [
+      allow.owner().to(['create', 'read', 'update', 'delete'])
+    ]),
 });
 
 export type Schema = ClientSchema<typeof schema>;

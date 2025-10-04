@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { useInterval } from 'usehooks-ts';
 import useLocalStorage from '@/App/ApplicationControlLayer/useLocalStorage.ts';
 import useSearchQueueProcessor from '@/App/ApplicationControlLayer/useSearchQueueProcessor.ts';
@@ -26,11 +25,7 @@ import useBookImageQueueProcessor from './useBookImageQueueProcessor.ts';
 import useNdlSearchQueueEnqueueer from './useNdlSearchQueueEnqueueer.ts';
 import useScanQueueProcessor from './useScanQueueProcessor.ts';
 
-type Props = {
-  children: ReactNode;
-};
-
-export default function QueueProcessLayer({ children }: Props) {
+export default function QueueProcessLayer() {
   const dispatch = useAppDispatch();
   const collections = useAppSelector(selectCollections);
   const tempCollections = useAppSelector(selectTempCollections);
@@ -80,5 +75,6 @@ export default function QueueProcessLayer({ children }: Props) {
     ndl();
   }, 100);
 
-  return children;
+  // このコンポーネントはUIを持たない
+  return null;
 }
