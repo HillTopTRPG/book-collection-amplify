@@ -1,13 +1,12 @@
-import type { BookDetail } from '@/types/book.ts';
+import type { BookData } from '@/types/book.ts';
 import { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useLogs } from '@/hooks/useLogs.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { clearNdlSearchGlobalCache } from '@/store/ndlSearchSlice.ts';
 import { selectScanResultList } from '@/store/scannerSlice.ts';
 import { clearTempData } from '@/store/subscriptionDataSlice.ts';
 import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
-import BookDetailEdits from './BookDetailEdits.tsx';
+import ScannedBookView from './ScannedBookView.tsx';
 
 export default function ScannedBookPage() {
   const dispatch = useAppDispatch();
@@ -21,29 +20,27 @@ export default function ScannedBookPage() {
     additionalInfo: `ISBN: ${maybeIsbn || 'N/A'}`,
     includeDetailedMetrics: true,
     onUnmount: () => {
-      // グローバルキャッシュと一時データをクリアしてメモリリークを防止
-      clearNdlSearchGlobalCache();
       dispatch(clearTempData());
       console.log('[ScannedBookPage] Global cache and temp data cleared');
     },
   });
 
-  const { type, bookDetail } = useMemo((): {
+  const { type, book } = useMemo((): {
     type: 'invalid-isbn' | 'no-scanned-isbn' | 'loading' | 'done';
-    bookDetail: BookDetail | null;
+    book: BookData | null;
   } => {
     if (!maybeIsbn) {
-      return { type: 'invalid-isbn', bookDetail: null };
+      return { type: 'invalid-isbn', book: null };
     }
     const isbn = getIsbn13(maybeIsbn);
     const selected = scanResultList.find(item => item.isbn === isbn);
     if (!selected) {
-      return { type: 'no-scanned-isbn', bookDetail: null };
+      return { type: 'no-scanned-isbn', book: null };
     }
-    if (selected.status !== 'done' || !selected.result?.bookDetail) {
-      return { type: 'loading', bookDetail: null };
+    if (selected.status !== 'done' || !selected.book) {
+      return { type: 'loading', book: null };
     }
-    return { type: 'done', bookDetail: selected.result.bookDetail };
+    return { type: 'done', book: selected.book };
   }, [maybeIsbn, scanResultList]);
 
   const content = useMemo(() => {
@@ -55,10 +52,10 @@ export default function ScannedBookPage() {
       case 'loading':
         return <div>読み込み中...</div>;
       case 'done':
-        if (!bookDetail) return null;
-        return <BookDetailEdits bookDetail={bookDetail} />;
+        if (!book) return null;
+        return <ScannedBookView book={book} />;
     }
-  }, [bookDetail, type]);
+  }, [book, type]);
 
   return <div className="flex flex-col w-full flex-1 gap-4">{content}</div>;
 }

@@ -1,7 +1,7 @@
 import type { BottomNavigationItem } from './BottomNavigation';
 import { Barcode, Home, LibraryBig } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
-import BookDetailDialog from '@/components/Dialog/BookDetailDialog';
+import BookDialog from '@/components/Dialog/BookDialog';
 import FilterDetailDrawer from '@/components/Drawer/FilterDetailDrawer';
 import { useLogs } from '@/hooks/useLogs.ts';
 import BottomNavigation from './BottomNavigation';
@@ -48,7 +48,7 @@ export default function MainLayout() {
       <FilterDetailDrawer />
 
       {/* ダイアログ */}
-      <BookDetailDialog />
+      <BookDialog />
     </>
   );
 }

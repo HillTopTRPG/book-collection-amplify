@@ -12,7 +12,7 @@ const BookCardNavi = (props: Props) =>
   useMemo(
     () => (
       <div className="relative flex h-fit w-full overflow-hidden">
-        <BookStatusSelector bookDetail={props.bookDetail} />
+        <BookStatusSelector book={props.book} />
         <BookCard
           className="pl-8"
           style={{

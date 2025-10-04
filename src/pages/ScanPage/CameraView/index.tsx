@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { enqueueScan, selectScanSuccessCount, selectSelectedScannedItemMapValue } from '@/store/scannerSlice.ts';
+import { enqueueScan, selectScanSuccessCount, selectSelectedBookData } from '@/store/scannerSlice.ts';
 import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
 import CornerFrame from './CornerFrame.tsx';
 
@@ -19,9 +19,9 @@ const HEIGHT = 100;
 export default function CameraView() {
   const dispatch = useAppDispatch();
   const { toast } = useToast();
-  const scannedBookDetails = useAppSelector(selectScanSuccessCount);
-  const selectedScannedItemMapValue = useAppSelector(selectSelectedScannedItemMapValue);
-  const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBookDetails);
+  const scannedBooks = useAppSelector(selectScanSuccessCount);
+  const selectedBookData = useAppSelector(selectSelectedBookData);
+  const [lastFetchedBookListCount, setLastFetchedBookListCount] = useState<number>(scannedBooks);
   const scannerRef = useRef<HTMLDivElement>(null);
   const lastFetchIsbn = useRef<Isbn13 | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -37,7 +37,7 @@ export default function CameraView() {
   // cameraEnabledが更新されたら、初回フラグを立てる
   useEffect(() => {
     setIsFirst(true);
-  }, [selectedScannedItemMapValue]);
+  }, [selectedBookData]);
 
   const setVolume = useCallback((volume: number) => {
     localStorage.volume = volume;
@@ -45,8 +45,8 @@ export default function CameraView() {
   }, []);
 
   useEffect(() => {
-    if (lastFetchedBookListCount !== scannedBookDetails) {
-      if (scannedBookDetails > 0) {
+    if (lastFetchedBookListCount !== scannedBooks) {
+      if (scannedBooks > 0) {
         // fetch済みリストの件数が変化するたびに音を鳴らす
         try {
           play();
@@ -58,8 +58,8 @@ export default function CameraView() {
         lastFetchIsbn.current = null;
       }
     }
-    setLastFetchedBookListCount(scannedBookDetails);
-  }, [scannedBookDetails, lastFetchedBookListCount, play]);
+    setLastFetchedBookListCount(scannedBooks);
+  }, [scannedBooks, lastFetchedBookListCount, play]);
 
   // Quagga.onDetectedハンドラーをuseCallbackで作成（メモリリーク防止のため参照を安定化）
   const handleDetected = useCallback(
@@ -175,7 +175,7 @@ export default function CameraView() {
   useInterval(() => {
     if (!isFirst) return;
     if (!scannerRef.current) return;
-    if (selectedScannedItemMapValue) {
+    if (selectedBookData) {
       void stopCamera();
     } else {
       void startCamera();

@@ -1,6 +1,5 @@
 import type { AppDispatch } from '@/store';
-import type { ScannedItemMapValue } from '@/store/scannerSlice.ts';
-import type { Isbn13 } from '@/types/book.ts';
+import type { BookData, Isbn13 } from '@/types/book.ts';
 import { X } from 'lucide-react';
 import { Fragment, memo, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
@@ -11,12 +10,12 @@ import { ScrollArea } from '@/components/ui/scroll-area.tsx';
 import { Separator } from '@/components/ui/separator.tsx';
 import { useAppSelector } from '@/store/hooks.ts';
 import { clearScanViewList, selectScanResultList } from '@/store/scannerSlice.ts';
-import { setBookDetailDialogValue } from '@/store/uiSlice.ts';
+import { setBookDialogValue } from '@/store/uiSlice.ts';
 
 type ScanResultItemType = {
   isbn: Isbn13;
   status: 'loading' | 'none' | 'done';
-  result: ScannedItemMapValue | null;
+  book: BookData | null;
 };
 
 const ScanResultItem = memo(({ result, index }: { result: ScanResultItemType; index: number }) => {
@@ -24,22 +23,18 @@ const ScanResultItem = memo(({ result, index }: { result: ScanResultItemType; in
   const navigate = useNavigate();
 
   const handleClick = useCallback(() => {
-    console.log(result.result?.isbn);
-    void navigate(`/scan/${result.result?.isbn}`);
-  }, [navigate, result.result?.isbn]);
+    console.log(result.book?.isbn);
+    void navigate(`/scan/${result.book?.isbn}`);
+  }, [navigate, result.book?.isbn]);
 
   const handleOpenDetail = useCallback(() => {
-    dispatch(setBookDetailDialogValue(result.result?.bookDetail ?? null));
-  }, [dispatch, result.result?.bookDetail]);
+    dispatch(setBookDialogValue(result.book));
+  }, [dispatch, result.book]);
 
   return (
     <Fragment>
       {index > 0 && <Separator />}
-      <BookCardNavi
-        bookDetail={result.result?.bookDetail ?? null}
-        onClick={handleClick}
-        onOpenBookDetail={handleOpenDetail}
-      />
+      <BookCardNavi book={result.book} onClick={handleClick} onOpenBook={handleOpenDetail} />
     </Fragment>
   );
 });
@@ -54,45 +49,6 @@ export default function ScannedResults() {
   const onClear = useCallback(() => {
     dispatch(clearScanViewList());
   }, [dispatch]);
-
-  // const onRegister = useCallback(async () => {
-  //   setRegistering(true);
-  //   for (const { isbn, result: scanningItemMapValue } of scanResultList) {
-  //     if (!scanningItemMapValue) return;
-  //     const bookDetail = scanningItemMapValue.bookDetail;
-  //     const collection = getCollectionByIdInfo(bookDetail.collection);
-  //
-  //     // ステータスが未登録以外の蔵書はDBに登録する
-  //     if (bookDetail.collection.type === 'temp' && collection.meta.status !== BookStatusEnum.Unregistered) {
-  //       userPoolClient.models.Collection.create({ isbn, meta: JSON.stringify(collection.meta), memo: '' });
-  //       await wait(100);
-  //     }
-  //
-  //     const isHave = collection.meta.status === BookStatusEnum.Owned;
-  //     const { title } = bookDetail.book;
-  //
-  //     // 未登録のフィルターを登録する
-  //     for (const idInfo of scanningItemMapValue.filterSets.filter(({ type }) => type === 'temp')) {
-  //       const filterSet = getFilterSetByIdInfo(idInfo);
-  //       userPoolClient.models.FilterSet.create({
-  //         ...filterSet,
-  //         fetch: JSON.stringify(filterSet.fetch),
-  //         filters: JSON.stringify(filterSet.filters),
-  //       });
-  //       await wait(100);
-  //     }
-  //
-  //     setTimeout(() => {
-  //       toast({
-  //         title: isHave ? '登録スキップ' : '登録',
-  //         description: `${title}`,
-  //         duration: 2000,
-  //       });
-  //     });
-  //   }
-  //   onClear();
-  //   setRegistering(false);
-  // }, [getCollectionByIdInfo, getFilterSetByIdInfo, onClear, scanResultList, toast]);
 
   return (
     <div className="flex-1 flex flex-col w-full bg-background">

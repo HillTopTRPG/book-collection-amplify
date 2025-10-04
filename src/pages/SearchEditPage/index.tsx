@@ -1,5 +1,5 @@
 import type { BottomNavigationItem } from '@/pages/MainLayout/BottomNavigation.tsx';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { FilterSet } from '@/types/book.ts';
 import { Save, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';

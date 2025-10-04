@@ -1,5 +1,4 @@
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookDetail, Isbn13 } from '@/types/book.ts';
+import type { BookData, FilterSet, Isbn13 } from '@/types/book.ts';
 import type { CSSProperties } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { Fragment, useCallback, useMemo } from 'react';
@@ -14,36 +13,27 @@ import HighLightText from './HighLightText.tsx';
 type Props = {
   className?: string;
   style?: CSSProperties;
-  bookDetail: BookDetail | null;
+  book: BookData | null;
   filterSet?: FilterSet;
   orIndex?: number;
-  onOpenBookDetail?: (isbn: string | null) => void;
+  onOpenBook?: (isbn: string | null) => void;
   onClick?: (isbn: Isbn13) => void;
 };
 
-export default function BookCard({
-  className,
-  style,
-  bookDetail,
-  onClick,
-  filterSet,
-  orIndex,
-  onOpenBookDetail,
-}: Props) {
-  const isbn = bookDetail?.book.isbn ?? null;
+export default function BookCard({ className, style, book, onClick, filterSet, orIndex, onOpenBook }: Props) {
+  const isbn = book?.isbn ?? null;
 
   const handleImageClick = useCallback(
     (e: React.MouseEvent) => {
-      if (onOpenBookDetail) {
-        onOpenBookDetail(isbn);
+      if (onOpenBook) {
+        onOpenBook(isbn);
         e.stopPropagation();
       }
     },
-    [onOpenBookDetail, isbn]
+    [onOpenBook, isbn]
   );
 
   const content = useMemo(() => {
-    const book = bookDetail?.book;
     if (!book) return <Spinner variant="bars" />;
 
     const options = filterSet?.fetch;
@@ -102,7 +92,7 @@ export default function BookCard({
         </div>
       </>
     );
-  }, [bookDetail?.book, filterSet?.fetch, filterSet?.filters, isbn, handleImageClick, orIndex]);
+  }, [book, filterSet?.fetch, filterSet?.filters, isbn, handleImageClick, orIndex]);
 
   const onClickWrap = useCallback(() => {
     if (!isbn) return;

@@ -1,17 +1,12 @@
 import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
-import type { Collection, FilterAndGroup, FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { Isbn13 } from '@/types/book.ts';
+import type { Collection, FilterAndGroup, FilterSet } from '@/types/book.ts';
 import type { Schema } from '$/amplify/data/resource.ts';
 import { generateClient } from 'aws-amplify/data';
 import { omit } from 'es-toolkit/compat';
 import { useCallback } from 'react';
-import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import {
-  addUpdatingCollectionIsbnList,
-  BookStatusEnum,
-  isBookStatus,
-  selectAllFilterSets,
-} from '@/store/subscriptionDataSlice.ts';
+import { useAppDispatch } from '@/store/hooks.ts';
+import { addUpdatingCollectionApiIdList } from '@/store/subscriptionDataSlice.ts';
+import { BookStatusEnum, isBookStatus } from '@/types/book.ts';
 import { wait } from '@/utils/primitive.ts';
 
 const userPoolClient = generateClient<Schema>({
@@ -20,21 +15,18 @@ const userPoolClient = generateClient<Schema>({
 
 export const useAwsAccess = () => {
   const dispatch = useAppDispatch();
-  const allFilterSets = useAppSelector(selectAllFilterSets);
 
   const makeCollectionByDb = useCallback((db: Schema['Collection']['type']): Collection => {
-    const isbn = db.isbn as Isbn13;
     const status = db.status;
 
     return {
       ...db,
-      isbn,
       status: isBookStatus(status) ? status : BookStatusEnum.Unregistered,
     } as const satisfies Collection;
   }, []);
 
   const makeCreateCollection = useCallback(
-    (collection: { isbn: Isbn13; status: Collection['status'] }): Schema['Collection']['createType'] => ({
+    (collection: { apiId: string; status: Collection['status'] }): Schema['Collection']['createType'] => ({
       ...collection,
     }),
     []
@@ -42,10 +34,10 @@ export const useAwsAccess = () => {
 
   const makeCreateFilterSet = useCallback(
     (filterSet: {
+      apiId: string;
       name: string;
       fetch: NdlFullOptions;
       filters: FilterAndGroup[];
-      collectionId: string;
     }): Schema['FilterSet']['createType'] => ({
       ...filterSet,
       fetch: JSON.stringify(filterSet.fetch),
@@ -55,7 +47,7 @@ export const useAwsAccess = () => {
   );
 
   const makeUpdateCollection = (
-    collection: Partial<Omit<Collection, 'isbn' | 'createdAt' | 'updatedAt' | 'owner'>> & { id: string }
+    collection: Partial<Omit<Collection, 'createdAt' | 'updatedAt' | 'owner'>> & { id: string }
   ): Schema['Collection']['updateType'] => ({
     ...collection,
   });
@@ -79,7 +71,7 @@ export const useAwsAccess = () => {
 
   const createCollections = useCallback(
     async (props: Parameters<typeof makeCreateCollection>[0]): Promise<Collection | null> => {
-      dispatch(addUpdatingCollectionIsbnList([props.isbn]));
+      dispatch(addUpdatingCollectionApiIdList([props.apiId]));
       await wait(10);
 
       const { errors, data } = await userPoolClient.models.Collection.create(makeCreateCollection(props));
@@ -101,8 +93,8 @@ export const useAwsAccess = () => {
   );
 
   const updateCollections = useCallback(
-    async (collection: Parameters<typeof makeUpdateCollection>[0] & { isbn: Isbn13 }): Promise<Collection | null> => {
-      dispatch(addUpdatingCollectionIsbnList([collection.isbn]));
+    async (collection: Parameters<typeof makeUpdateCollection>[0] & { apiId: string }): Promise<Collection | null> => {
+      dispatch(addUpdatingCollectionApiIdList([collection.apiId]));
       await wait(10);
 
       const { errors, data } = await userPoolClient.models.Collection.update(
@@ -128,11 +120,8 @@ export const useAwsAccess = () => {
   );
 
   const deleteCollections = useCallback(
-    async (collection: { id: string; isbn: Isbn13 }): Promise<Collection | null> => {
-      // フィルターセットから参照されていたら削除しない
-      if (allFilterSets.some(({ collectionId }) => collectionId === collection.id)) return null;
-
-      dispatch(addUpdatingCollectionIsbnList([collection.isbn]));
+    async (collection: { id: string; apiId: string }): Promise<Collection | null> => {
+      dispatch(addUpdatingCollectionApiIdList([collection.apiId]));
       await wait(10);
 
       const { errors, data } = await userPoolClient.models.Collection.delete({ id: collection.id });
@@ -140,7 +129,17 @@ export const useAwsAccess = () => {
       if (errors) console.error('Error delete collection', errors);
       return null;
     },
-    [allFilterSets, dispatch, makeCollectionByDb]
+    [dispatch, makeCollectionByDb]
+  );
+
+  const deleteFilterSet = useCallback(
+    async (filterSet: { id: string }): Promise<FilterSet | null> => {
+      const { errors, data } = await userPoolClient.models.FilterSet.delete(filterSet);
+      if (data) return makeFilterSetByDb(data);
+      if (errors) console.error('Error delete collection', errors);
+      return null;
+    },
+    [makeFilterSetByDb]
   );
 
   return {
@@ -151,5 +150,6 @@ export const useAwsAccess = () => {
     deleteCollections,
     createFilterSet,
     updateFilterSet,
+    deleteFilterSet,
   };
 };

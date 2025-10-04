@@ -13,24 +13,26 @@ const NDC_MAPS = {
 } as const;
 
 const NDL_XML_QUERY = {
-  resource: 'recordData > RDF > BibResource',
   numberOfRecords: 'numberOfRecords',
   nextRecordPosition: 'nextRecordPosition',
+  resource: 'recordData > RDF',
+  adminResource: 'BibAdminResource',
+  about: 'rdf:about',
   records: 'records > record',
-  isbn: 'identifier',
+  isbn: 'BibResource > identifier',
   datatype: 'rdf:datatype',
   isbnDatatype: 'h' + 'ttp://ndl.go.jp/dcndl/terms/ISBN',
-  title: 'title > Description > value',
-  publisher: 'publisher > Agent > name',
-  creators: 'creator > Agent > name',
-  creator: 'creator',
-  date: 'date',
-  volume: 'volume > Description > value',
-  volumeTitle: 'volumeTitle > Description > value',
-  seriesTitle: 'seriesTitle > Description > value',
-  edition: 'edition',
-  extent: 'extent',
-  ndc: 'subject',
+  title: 'BibResource > title > Description > value',
+  publisher: 'BibResource > publisher > Agent > name',
+  creators: 'BibResource > creator > Agent > name',
+  creator: 'BibResource > creator',
+  date: 'BibResource > date',
+  volume: 'BibResource > volume > Description > value',
+  volumeTitle: 'BibResource > volumeTitle > Description > value',
+  seriesTitle: 'BibResource > seriesTitle > Description > value',
+  edition: 'BibResource > edition',
+  extent: 'BibResource > extent',
+  ndc: 'BibResource > subject',
   resourceAttr: 'rdf:resource',
 } as const;
 
@@ -88,6 +90,7 @@ const getNdlBooks = (recordElm: Element): [BookData] | [] => {
 
   return [
     {
+      apiId: xml.getAttribute('adminResource', 'about')?.replace('https://ndlsearch.ndl.go.jp/books/', '') ?? '',
       isbn: getIsbn13(maybeIsbn),
       title: xml.getContents('title'),
       volume: xml.getContents('volume'),
@@ -136,7 +139,6 @@ const getNdlQueryStr = (options: NdlFetchOptions): string => {
 export const callNdlSearchApi = async (optionsStr: string): Promise<FetchProcessResult<NdlSearchResult>> => {
   const options = JSON.parse(optionsStr) as NdlFetchOptions;
   const query = getNdlQueryStr(options);
-  console.log(query);
   const params = [
     ['operation', 'searchRetrieve'],
     ['version', '1.2'],
@@ -193,6 +195,12 @@ export class XmlProcessor<T extends Record<string, string>> {
 
   public getContents(query: keyof T) {
     return this.parentElm.querySelector(this.queryMap[query])?.textContent?.trim() ?? null;
+  }
+
+  public getAttribute(query: keyof T, attribute: keyof T) {
+    const elm = this.parentElm.querySelector(this.queryMap[query]);
+    if (!elm) return null;
+    return elm.getAttribute(this.queryMap[attribute]);
   }
 
   public getAllContents(query: keyof T) {

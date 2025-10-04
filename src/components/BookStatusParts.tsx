@@ -1,3 +1,4 @@
+import type { ClassValue } from 'clsx';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils.ts';
@@ -9,7 +10,7 @@ const VERTICAL_TEXT = 'tracking-[.25em] [writing-mode:vertical-rl]';
 type Props = {
   onClick: () => void;
   zIndex: number;
-  className: string;
+  className: ClassValue;
   label: ReactNode;
   isFirst?: boolean;
 };

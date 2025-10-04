@@ -1,59 +1,17 @@
 import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
-import type { Isbn13 } from '@/types/book.ts';
-import type { Values } from '@/utils/type.ts';
+import type { BookData, BookStatus, Collection, FilterAndGroup, FilterSet } from '@/types/book.ts';
+import type { BookWithVolume } from '@/utils/groupByVolume.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import type { Schema } from '$/amplify/data/resource.ts';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { filterMatch } from '@/utils/primitive.ts';
 import { createSimpleReducers, simpleSelector } from '@/utils/store.ts';
-import { getKeys } from '@/utils/type.ts';
-
-export const BookStatusEnum = {
-  // 未登録
-  Unregistered: 'Unregistered',
-  // 買わない
-  NotBuy: 'NotBuy',
-  // 保留
-  Hold: 'Hold',
-  // 購入予定
-  Planned: 'Planned',
-  // 所持済
-  Owned: 'Owned',
-} as const;
-
-export const isBookStatus = (str: string): str is BookStatus =>
-  getKeys(BookStatusEnum).some(key => BookStatusEnum[key] === str);
-
-export type BookStatus = Values<typeof BookStatusEnum>;
-
-export const BookStatusLabelMap: Record<BookStatus, { label: string; className: string }> = {
-  [BookStatusEnum.Unregistered]: { label: '未登録', className: 'bg-yellow-700 text-white' },
-  [BookStatusEnum.NotBuy]: { label: '買わない', className: 'bg-gray-700 text-white' },
-  [BookStatusEnum.Hold]: { label: '保留', className: 'bg-green-700 text-white' },
-  [BookStatusEnum.Planned]: { label: '購入予定', className: 'bg-fuchsia-900 text-white' },
-  [BookStatusEnum.Owned]: { label: '所持済', className: 'bg-blue-600 text-white' },
-} as const;
-
-export type Collection = Omit<Schema['Collection']['type'], 'isbn' | 'status'> & {
-  isbn: Isbn13;
-  status: BookStatus;
-};
-
-export type Sign = '==' | '*=' | '!=' | '!*';
-export type FilterBean = { keyword: string; sign: Sign };
-export type FilterAndGroup = { list: FilterBean[]; groupByType: 'volume' | null };
-
-export type FilterSet = Omit<Schema['FilterSet']['type'], 'fetch' | 'filters'> & {
-  fetch: NdlFullOptions;
-  filters: FilterAndGroup[];
-};
 
 type State = {
   collections: Collection[];
   tempCollections: Collection[];
   filterSets: FilterSet[];
   tempFilterSets: FilterSet[];
-  updatingCollectionIsbnList: Isbn13[];
+  updatingCollectionApiIdList: string[];
 };
 
 const initialState: State = {
@@ -61,7 +19,7 @@ const initialState: State = {
   tempCollections: [],
   filterSets: [],
   tempFilterSets: [],
-  updatingCollectionIsbnList: [],
+  updatingCollectionApiIdList: [],
 } as const;
 
 export const subscriptionDataSlice = createSlice({
@@ -74,12 +32,11 @@ export const subscriptionDataSlice = createSlice({
         state.collections.some(c => c.id === id && c.updatedAt !== updatedAt)
       );
       const deleteList = state.collections.filter(({ id }) => !action.payload.some(a => a.id === id));
-      const isbnList = [createList, updateList, deleteList].flatMap(list => list.map(({ isbn }) => isbn));
-      console.log(isbnList);
-      state.updatingCollectionIsbnList
-        .flatMap((isbn, idx) => (isbnList.includes(isbn) ? [idx] : []))
+      const apiIdList = [createList, updateList, deleteList].flatMap(list => list.map(({ apiId }) => apiId));
+      state.updatingCollectionApiIdList
+        .flatMap((apiId, idx) => (apiIdList.includes(apiId) ? [idx] : []))
         .reverse()
-        .forEach(idx => state.updatingCollectionIsbnList.splice(idx, 1));
+        .forEach(idx => state.updatingCollectionApiIdList.splice(idx, 1));
       state.collections = action.payload;
     },
     addTempCollections: (state, action: PayloadAction<Collection[]>) => {
@@ -107,9 +64,8 @@ export const subscriptionDataSlice = createSlice({
       if (!filterSet) return;
       filterSet.filters = action.payload.filters;
     },
-    addUpdatingCollectionIsbnList: (state, action: PayloadAction<Isbn13[]>) => {
-      state.updatingCollectionIsbnList.push(...action.payload);
-      console.log(JSON.stringify(state.updatingCollectionIsbnList));
+    addUpdatingCollectionApiIdList: (state, action: PayloadAction<string[]>) => {
+      state.updatingCollectionApiIdList.push(...action.payload);
     },
     clearTempData: state => {
       state.tempCollections = [];
@@ -126,7 +82,7 @@ export const {
   updateTempFilterSet,
   updateTempFilterSetOption,
   updateFetchedFilterAnywhere,
-  addUpdatingCollectionIsbnList,
+  addUpdatingCollectionApiIdList,
   clearTempData,
 } = subscriptionDataSlice.actions;
 
@@ -134,10 +90,57 @@ export const selectCollections = simpleSelector('subscriptionData', 'collections
 export const selectTempCollections = simpleSelector('subscriptionData', 'tempCollections');
 export const selectFilterSets = simpleSelector('subscriptionData', 'filterSets');
 export const selectTempFilterSets = simpleSelector('subscriptionData', 'tempFilterSets');
-export const selectUpdatingCollectionIsbnList = simpleSelector('subscriptionData', 'updatingCollectionIsbnList');
+export const selectUpdatingCollectionApiIdList = simpleSelector('subscriptionData', 'updatingCollectionApiIdList');
 export const selectAllFilterSets = createSelector(
   [selectFilterSets, selectTempFilterSets],
   (filterSets, tempFilterSets): FilterSet[] => [...filterSets, ...tempFilterSets]
+);
+
+const DEFAULT_COLLECTION: Collection = {
+  id: '',
+  apiId: '',
+  status: 'Unregistered',
+  updatedAt: '',
+  createdAt: '',
+  owner: '',
+} as const;
+
+export const selectCollectionByApiId = createSelector(
+  [selectCollections, (_state, apiId: string | null | undefined) => apiId],
+  (collections, apiId): Collection =>
+    apiId ? (collections.find(filterMatch({ apiId })) ?? DEFAULT_COLLECTION) : DEFAULT_COLLECTION
+);
+
+export const selectBookCollections = createSelector(
+  [
+    selectCollections,
+    (_state, books: BookData[]) => books,
+    (_state, _books: BookData[], bookStatusList: BookStatus[]) => bookStatusList,
+  ],
+  (collections, books, bookStatusList): { book: BookData; collection: Collection }[] =>
+    books.flatMap(book => {
+      const { apiId } = book;
+      const dbCollection = collections.find(filterMatch({ apiId }));
+      if (!bookStatusList.includes(dbCollection?.status ?? 'Unregistered')) return [];
+
+      return [{ book, collection: dbCollection ?? DEFAULT_COLLECTION }];
+    })
+);
+
+export const selectBookWithVolumeCollections = createSelector(
+  [
+    selectCollections,
+    (_state, books: BookWithVolume[]) => books,
+    (_state, _books: BookWithVolume[], bookStatusList: BookStatus[]) => bookStatusList,
+  ],
+  (collections, books, bookStatusList): { book: BookData; volume: number; collection: Collection }[] =>
+    books.flatMap(({ book, volume }) => {
+      const { apiId } = book;
+      const dbCollection = collections.find(filterMatch({ apiId }));
+      if (!bookStatusList.includes(dbCollection?.status ?? 'Unregistered')) return [];
+
+      return [{ book, volume, collection: dbCollection ?? DEFAULT_COLLECTION }];
+    })
 );
 
 export default subscriptionDataSlice.reducer;

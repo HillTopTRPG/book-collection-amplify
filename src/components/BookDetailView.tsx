@@ -1,72 +1,60 @@
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookDetail } from '@/types/book.ts';
+import type { BookData, BookStatus, FilterSet } from '@/types/book.ts';
 import type { RefObject } from 'react';
 import { memo, useMemo } from 'react';
 import BookCardList from '@/components/BookCardList.tsx';
 import GroupByBlock from '@/components/GroupByBlock.tsx';
-import { Separator } from '@/components/ui/separator.tsx';
 import { getFilteredItems } from '@/utils/filter.ts';
 import { groupByVolume } from '@/utils/groupByVolume.ts';
 
 type Props = {
   stickyTop: number;
   scrollParentRef: RefObject<HTMLDivElement | null>;
-  bookDetails: BookDetail[];
+  books: BookData[];
   filterSet: FilterSet;
   setContentHeight: (height: number) => void;
   groupByType: 'volume' | null;
   orIndex?: number;
+  viewBookStatusList: BookStatus[];
 };
 
 const BookDetailView = ({
   stickyTop,
   scrollParentRef,
-  bookDetails,
+  books,
   filterSet,
   setContentHeight,
   groupByType,
   orIndex,
+  viewBookStatusList,
 }: Props) => {
   const filteredResults = useMemo(
-    (): BookDetail[] => getFilteredItems(bookDetails, filterSet, orIndex),
-    [bookDetails, filterSet, orIndex]
+    (): BookData[] => getFilteredItems(books, filterSet, orIndex),
+    [books, filterSet, orIndex]
   );
 
   const groupedBooks = useMemo(() => groupByVolume(filteredResults), [filteredResults]);
 
   const bookCardList = useMemo(
-    () => <BookCardList bookDetails={filteredResults} {...{ filterSet, orIndex, setContentHeight }} />,
-    [filterSet, filteredResults, orIndex, setContentHeight]
+    () => <BookCardList books={filteredResults} {...{ filterSet, orIndex, setContentHeight, viewBookStatusList }} />,
+    [filterSet, filteredResults, orIndex, setContentHeight, viewBookStatusList]
   );
 
   const groupedBooksElement = useMemo(
     () =>
       groupedBooks.map((list, idx) => (
-        <div key={idx}>
-          {idx ? <Separator /> : null}
-          <GroupByBlock
-            stickyTop={stickyTop}
-            setContentHeight={setContentHeight}
-            {...{ scrollParentRef, list, idx, filterSet, orIndex }}
-          />
-        </div>
+        <GroupByBlock
+          key={idx}
+          stickyTop={stickyTop}
+          setContentHeight={setContentHeight}
+          viewBookStatusList={viewBookStatusList}
+          {...{ scrollParentRef, list, idx, filterSet, orIndex }}
+        />
       )),
-    [filterSet, groupedBooks, orIndex, scrollParentRef, setContentHeight, stickyTop]
+    [filterSet, groupedBooks, orIndex, scrollParentRef, setContentHeight, stickyTop, viewBookStatusList]
   );
 
   return <div className="flex flex-col gap-5">{!groupByType ? bookCardList : groupedBooksElement}</div>;
 };
 
 // カスタム比較関数で不要な再レンダリングを防止
-export default memo(BookDetailView, (prevProps, nextProps) => {
-  // bookDetails の配列参照が同じかチェック
-  if (prevProps.bookDetails !== nextProps.bookDetails) return false;
-  // filterSet の ID が同じかチェック
-  if (prevProps.filterSet.id !== nextProps.filterSet.id) return false;
-  // 他の props をチェック
-  if (prevProps.stickyTop !== nextProps.stickyTop) return false;
-  if (prevProps.groupByType !== nextProps.groupByType) return false;
-  if (prevProps.orIndex !== nextProps.orIndex) return false;
-  // scrollParentRef と setContentHeight は関数なので、変わらないと仮定
-  return true;
-});
+export default memo(BookDetailView);

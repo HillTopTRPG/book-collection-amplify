@@ -37,6 +37,7 @@ const mergeBookData = (b1: BookData | string | null, b2: BookData | string | nul
   if (isBookData(b1) && isBookData(b2)) {
     return {
       isbn: b1.isbn,
+      ...pickBookDataProps('apiId', b1, b2),
       ...pickBookDataProps('title', b1, b2),
       ...pickBookDataProps('volume', b1, b2),
       ...pickBookDataProps('volumeTitle', b1, b2),

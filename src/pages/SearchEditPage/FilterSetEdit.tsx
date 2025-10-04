@@ -1,10 +1,10 @@
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { FilterSet } from '@/types/book.ts';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import FilterBlock from '@/components/FilterBlock.tsx';
 import NdlOptionsForm, { type NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectAllBookDetails } from '@/store/ndlSearchSlice.ts';
+import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 
 type Props = {
@@ -14,13 +14,13 @@ type Props = {
 
 export default function FilterSetEdit({ filterSet, onFilterSetUpdate }: Props) {
   const dispatch = useAppDispatch();
-  const allBookDetails = useAppSelector(selectAllBookDetails);
+  const allBooks = useAppSelector(selectAllNdlSearchResults);
   const scrollParentRef = useRef<HTMLDivElement>(document.getElementById('root') as HTMLDivElement);
 
   const stringifyFetchOptions = useMemo(() => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch), [filterSet.fetch]);
-  const bookDetails = useMemo(
-    () => (stringifyFetchOptions in allBookDetails ? allBookDetails[stringifyFetchOptions] : []),
-    [allBookDetails, stringifyFetchOptions]
+  const books = useMemo(
+    () => (stringifyFetchOptions in allBooks ? allBooks[stringifyFetchOptions] : []),
+    [allBooks, stringifyFetchOptions]
   );
 
   const handleOptionsChange = useCallback(
@@ -46,7 +46,7 @@ export default function FilterSetEdit({ filterSet, onFilterSetUpdate }: Props) {
       <div>
         <div className="text-xs bg-background pl-2 z-[60]">さらに絞り込む</div>
         {filterSet.filters.map((_, orIndex) => (
-          <FilterBlock key={orIndex} {...{ scrollParentRef, filterSet, orIndex, bookDetails, onFilterSetUpdate }} />
+          <FilterBlock key={orIndex} {...{ scrollParentRef, filterSet, orIndex, books, onFilterSetUpdate }} />
         ))}
       </div>
     </div>
