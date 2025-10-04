@@ -13,16 +13,6 @@ import DrawerContent from './DrawerContent.tsx';
 export default function FilterDetailDrawer() {
   const dispatch = useDispatch();
   const filterSet = useAppSelector(selectSelectedFilterSet);
-  // const scannedItemMapValueBySelectedFilterSet = useAppSelector(selectBookDataBySelectedFilterSet);
-
-  // const filterSetId = filterSet?.id;
-
-  // useEffect(() => {
-  //   if (!filterSet) return;
-  //   fetchNdlSearch(filterSet.fetch).then(({ books }) => {
-  //     dispatch(updateFetchResult({ [filterSet.id]: books }));
-  //   });
-  // }, [dispatch, filterSet, filterSetId]);
 
   const handleCloseDrawer = useCallback(() => {
     dispatch(closeDrawer());
@@ -36,15 +26,6 @@ export default function FilterDetailDrawer() {
 
   const [bufferedFilterSet] = useState<FilterSet | null>(null);
   const [bufferedBookDatas] = useState<CollectionBook[]>([]);
-  // useEffect(() => {
-  //   if (filterSet) {
-  //     setBufferedFilterSet(structuredClone(filterSet));
-  //     setBufferedBookDatas(structuredClone(scannedItemMapValueBySelectedFilterSet));
-  //   } else if (!shouldRender) {
-  //     setBufferedFilterSet(null);
-  //     setBufferedBookDatas([]);
-  //   }
-  // }, [scannedItemMapValueBySelectedFilterSet, filterSet, shouldRender]);
 
   if (!shouldRender || !bufferedFilterSet) return null;
 

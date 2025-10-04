@@ -1,6 +1,4 @@
-import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
-import type { BookData, BookStatus, Collection, CollectionBook, FilterAndGroup, FilterSet } from '@/types/book.ts';
-import type { BookWithVolume } from '@/utils/groupByVolume.ts';
+import type { BookData, BookStatus, Collection, CollectionBook, FilterSet } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { filterMatch } from '@/utils/primitive.ts';
@@ -43,27 +41,6 @@ export const subscriptionDataSlice = createSlice({
       state.tempCollections.push(...action.payload);
     },
     setFilterSets: createSimpleReducers('filterSets'),
-    addTempFilterSets: (state, action: PayloadAction<FilterSet[]>) => {
-      state.tempFilterSets.push(...action.payload);
-    },
-    updateTempFilterSet: (state, action: PayloadAction<FilterSet>) => {
-      const id = action.payload.id;
-      const idx = state.tempFilterSets.findIndex(filterMatch({ id }));
-      if (idx < 0) return;
-      state.tempFilterSets.splice(idx, 1, action.payload);
-    },
-    updateTempFilterSetOption: (state, action: PayloadAction<{ id: string; fetch: NdlFullOptions }>) => {
-      const id = action.payload.id;
-      const filterSet = state.tempFilterSets.find(filterMatch({ id }));
-      if (!filterSet) return;
-      filterSet.fetch = action.payload.fetch;
-    },
-    updateFetchedFilterAnywhere: (state, action: PayloadAction<{ id: string; filters: FilterAndGroup[] }>) => {
-      const id = action.payload.id;
-      const filterSet = state.tempFilterSets.find(filterMatch({ id }));
-      if (!filterSet) return;
-      filterSet.filters = action.payload.filters;
-    },
     addUpdatingCollectionApiIdList: (state, action: PayloadAction<string[]>) => {
       state.updatingCollectionApiIdList.push(...action.payload);
     },
@@ -79,10 +56,6 @@ export const {
   setCollections,
   addTempCollections,
   setFilterSets,
-  addTempFilterSets,
-  updateTempFilterSet,
-  updateTempFilterSetOption,
-  updateFetchedFilterAnywhere,
   addUpdatingCollectionApiIdList,
   clearTempData,
   resetSubscriptionData,
@@ -131,22 +104,6 @@ export const selectCollectionBooks = createSelector(
       if (!bookStatusList.includes(collection.status)) return [];
 
       return [{ ...collection, ...book }];
-    })
-);
-
-export const selectBookWithVolumeCollections = createSelector(
-  [
-    selectCollections,
-    (_state, books: BookWithVolume[]) => books,
-    (_state, _books: BookWithVolume[], bookStatusList: BookStatus[]) => bookStatusList,
-  ],
-  (collections, books, bookStatusList): { collectionBook: CollectionBook; volume: number; collection: Collection }[] =>
-    books.flatMap(({ collectionBook, volume }) => {
-      const { apiId } = collectionBook;
-      const dbCollection = collections.find(filterMatch({ apiId }));
-      if (!bookStatusList.includes(dbCollection?.status ?? 'Unregistered')) return [];
-
-      return [{ collectionBook, volume, collection: dbCollection ?? DEFAULT_COLLECTION }];
     })
 );
 

@@ -1,5 +1,5 @@
 import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
-import type { BookData, CollectionBook, FilterResultSet, FilterSet, Isbn13 } from '@/types/book.ts';
+import type { BookData, CollectionBook, FilterResultSet, Isbn13 } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { DEFAULT_COLLECTION, selectAllFilterSets, selectCollections } from '@/store/subscriptionDataSlice.ts';
@@ -43,19 +43,6 @@ export const selectNdlSearchTargets = createSelector([_selectQueue], queue => qu
 /** NDL検索条件：書籍一覧 のRecord */
 export const selectAllNdlSearchResults = simpleSelector('ndlSearch', 'results');
 
-export const selectAllFilterResults = createSelector(
-  [selectAllFilterSets, selectAllNdlSearchResults],
-  (allFilters, allBooks): { filterSet: FilterSet; books: BookData[] }[] | null => {
-    const list: { filterSet: FilterSet; books: BookData[] }[] = allFilters.flatMap(filterSet => {
-      const key = makeNdlOptionsStringByNdlFullOptions(filterSet.fetch);
-      if (!(key in allBooks)) return [];
-      return [{ filterSet, books: allBooks[key] }];
-    });
-    if (list.length !== allFilters.length) return null;
-    return list;
-  }
-);
-
 export const selectIsbnByApiId = createSelector(
   [selectAllNdlSearchResults, (_state, apiId: string) => apiId],
   (allNdlSearchResults, apiId): Isbn13 | null => {
@@ -64,20 +51,6 @@ export const selectIsbnByApiId = createSelector(
       if (isbn) return isbn;
     }
     return null;
-  }
-);
-
-const EMPTY_BOOK_DETAIL_ARRAY: BookData[] = [];
-
-/** 特定のキーに対応する Book[] を取得するセレクター */
-export const selectBooksByKeys = createSelector(
-  [selectAllNdlSearchResults, (_state, keys: string[]) => keys],
-  (allBooks: Record<string, BookData[]>, keys): BookData[] => {
-    if (!keys.length) return EMPTY_BOOK_DETAIL_ARRAY;
-    return keys.flatMap(key => {
-      if (!(key in allBooks)) return EMPTY_BOOK_DETAIL_ARRAY;
-      return allBooks[key];
-    });
   }
 );
 

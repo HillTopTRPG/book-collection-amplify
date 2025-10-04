@@ -35,13 +35,5 @@ export const selectSelectedFilterSet = createSelector(
     return filterSets.find(filterMatch({ id })) ?? null;
   }
 );
-// export const selectBookDataBySelectedFilterSet = createSelector(
-//   [selectSelectedFilterSet, selectFetchResultMap, selectCollections],
-//   (selectedFilterSet, fetchResultMap, collections): BookData[] => {
-//     const books = fetchResultMap[selectedFilterSet?.id ?? ''] ?? [];
-//
-//     return books.map(book => getBookDataByBookData(collections, book));
-//   }
-// );
 
 export default filterDetailDrawerSlice.reducer;
