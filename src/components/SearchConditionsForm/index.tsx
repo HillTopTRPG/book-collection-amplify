@@ -1,19 +1,15 @@
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookDetail } from '@/types/book.ts';
+import type { BookData, FilterSet } from '@/types/book.ts';
 import type { RefObject } from 'react';
-import { MessageCircleQuestionMark } from 'lucide-react';
-import { Checkbox } from '@/components/ui/checkbox.tsx';
-import { Label } from '@/components/ui/label.tsx';
-import { IconButton } from '@/components/ui/shadcn-io/icon-button';
+import GroupByTypeCheck from '@/components/GroupByTypeCheck.tsx';
 import SearchConditionItem from './SearchConditionItem.tsx';
 
 type Props = {
   ref: RefObject<HTMLDivElement | null>;
   filterSet: FilterSet;
   orIndex: number;
-  bookDetails: BookDetail[];
-  filteredResults: BookDetail[];
-  updateGroupingType: (value: boolean) => void;
+  books: BookData[];
+  filteredResults: BookData[];
+  onUpdateGroupByType: (groupByType: 'volume' | null) => void;
   onFilterSetUpdate: (value: FilterSet) => void;
 };
 
@@ -21,9 +17,9 @@ export default function SearchConditionsForm({
   ref,
   filterSet,
   orIndex,
-  bookDetails,
+  books,
   filteredResults,
-  updateGroupingType,
+  onUpdateGroupByType,
   onFilterSetUpdate,
 }: Props) {
   return (
@@ -34,19 +30,14 @@ export default function SearchConditionsForm({
       <div className="text-sm min-w-[4rem] flex items-center justify-between">
         <span className="ml-4">{!orIndex ? '条件' : `OR条件${orIndex}`}</span>
         <span>計{filteredResults.length}件</span>
-        <div className="flex items-center gap-1">
-          <Checkbox
-            id="use-group-by-volume"
-            checked={filterSet.filters[orIndex].groupByType === 'volume'}
-            onCheckedChange={updateGroupingType}
-          />
-          <Label htmlFor="use-group-by-volume">連載グルーピング</Label>
-          <IconButton icon={MessageCircleQuestionMark} className="border-0" />
-        </div>
+        <GroupByTypeCheck
+          groupByType={filterSet.filters[orIndex].groupByType}
+          onUpdateGroupByType={onUpdateGroupByType}
+        />
       </div>
-      {bookDetails.length
+      {books.length
         ? filterSet.filters[orIndex].list.map((_, andIndex) => (
-            <SearchConditionItem key={andIndex} {...{ filterSet, orIndex, bookDetails, andIndex, onFilterSetUpdate }} />
+            <SearchConditionItem key={andIndex} {...{ filterSet, orIndex, books, andIndex, onFilterSetUpdate }} />
           ))
         : null}
     </div>

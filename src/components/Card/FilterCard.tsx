@@ -1,23 +1,28 @@
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { FilterSet } from '@/types/book.ts';
+import { X } from 'lucide-react';
 import { useCallback } from 'react';
 import CardFrame from '@/components/Card/CardFrame.tsx';
-import { openDrawer } from '@/store/filterDetailDrawerSlice.ts';
-import { useAppDispatch } from '@/store/hooks.ts';
+import { Button } from '@/components/ui/button.tsx';
+import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 
 type Props = {
   filterSet: FilterSet;
 };
 
 export default function FilterCard({ filterSet }: Props) {
-  const dispatch = useAppDispatch();
+  const { deleteFilterSet } = useAwsAccess();
 
-  const handleClick = useCallback(() => {
-    dispatch(openDrawer(filterSet.id));
-  }, [filterSet.id, dispatch]);
+  const handleDeleteFilterSet = useCallback(() => {
+    void deleteFilterSet({ id: filterSet.id });
+  }, [deleteFilterSet, filterSet.id]);
 
   return (
-    <CardFrame onClick={handleClick}>
+    <CardFrame>
       <h5 className="text-[14px] mb-1">{filterSet.name}</h5>
+      <Button onClick={handleDeleteFilterSet}>
+        <X />
+        消去
+      </Button>
     </CardFrame>
   );
 }

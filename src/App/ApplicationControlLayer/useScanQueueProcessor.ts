@@ -1,11 +1,10 @@
-import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookData, Isbn13 } from '@/types/book.ts';
+import type { BookData, Collection, FilterSet, Isbn13 } from '@/types/book.ts';
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueAllNdlSearch } from '@/store/ndlSearchSlice.ts';
 import { dequeueScan, selectScanQueueTargets } from '@/store/scannerSlice.ts';
 import { addTempCollections } from '@/store/subscriptionDataSlice.ts';
-import { getScannedItemMapValueByBookData } from '@/utils/data.ts';
+import { getBookDataByBookData } from '@/utils/data.ts';
 import { entries } from '@/utils/primitive.ts';
 
 type Props = {
@@ -43,13 +42,7 @@ export default function useScanQueueProcessor({
       if (!ndlSearchQueueResult.length) {
         return acc;
       }
-      const { tempCollection } = getScannedItemMapValueByBookData(
-        ndlSearchQueueResult[0],
-        collections,
-        tempCollections,
-        filterSets,
-        allNdlSearchQueueResults
-      );
+      const { tempCollection } = getBookDataByBookData(ndlSearchQueueResult[0], collections, tempCollections);
 
       if (tempCollection) {
         tempCollections.push(tempCollection);

@@ -24,7 +24,7 @@ export default function CardFrame({ children, onClick, className, style }: Props
 
   return (
     <div
-      className={cn(BASE, FLEX, COLOR, TOUCH, className)}
+      className={cn(BASE, FLEX, COLOR, TOUCH, className, onClick ? 'cursor-pointer' : 'cursor-default')}
       style={style}
       onClick={handleClick}
       role="button"

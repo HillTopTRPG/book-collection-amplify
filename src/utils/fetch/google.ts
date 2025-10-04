@@ -22,6 +22,7 @@ export const callGoogleBooksApi = async (isbn: Isbn13): Promise<FetchProcessResu
   const item = data.items[0].volumeInfo;
 
   const value = {
+    apiId: '',
     isbn,
     title: item?.title,
     volume: item?.subtitle,

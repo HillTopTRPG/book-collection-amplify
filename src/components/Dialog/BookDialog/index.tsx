@@ -9,16 +9,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectBookDetailDialogValue, setBookDetailDialogValue } from '@/store/uiSlice.ts';
-import BookDetailDialogContent from './BookDetailDialogContent.tsx';
+import { selectBookDialogValue, setBookDialogValue } from '@/store/uiSlice.ts';
+import BookDialogContent from './BookDialogContent.tsx';
 
-export default function BookDetailDialog() {
+export default function BookDialog() {
   const dispatch = useAppDispatch();
-  const bookDetail = useAppSelector(selectBookDetailDialogValue);
+  const book = useAppSelector(selectBookDialogValue);
   const handleClose = () => {
-    dispatch(setBookDetailDialogValue(null));
+    dispatch(setBookDialogValue(null));
   };
-  const book = bookDetail?.book;
 
   return (
     <Dialog open={Boolean(book)} onOpenChange={handleClose}>
@@ -29,7 +28,7 @@ export default function BookDetailDialog() {
           </DialogTitle>
           <DialogDescription>書籍の詳細情報を表示します</DialogDescription>
         </DialogHeader>
-        {book ? <BookDetailDialogContent book={book} /> : null}
+        {book ? <BookDialogContent book={book} /> : null}
         <DialogFooter>
           <DialogClose asChild>
             <Button>閉じる</Button>

@@ -18,7 +18,7 @@ const preQueueProcess = async (
       isbn =>
         new Promise<{ isbn: Isbn13; url: string | null; type: 'ndl' | 'other' }>(resolve => {
           const ndlUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`;
-          checkImageExists(ndlUrl).then(result => {
+          void checkImageExists(ndlUrl).then(result => {
             if (result) {
               resolve({ isbn, url: ndlUrl, type: 'ndl' });
               return;
@@ -37,6 +37,7 @@ const mergeBookData = (b1: BookData | string | null, b2: BookData | string | nul
   if (isBookData(b1) && isBookData(b2)) {
     return {
       isbn: b1.isbn,
+      ...pickBookDataProps('apiId', b1, b2),
       ...pickBookDataProps('title', b1, b2),
       ...pickBookDataProps('volume', b1, b2),
       ...pickBookDataProps('volumeTitle', b1, b2),
@@ -68,7 +69,7 @@ export default function useBookImageQueueProcessor() {
   // 書影URL取得処理1
   useEffect(() => {
     if (!fetchBookImageQueueTargets.length) return;
-    preQueueProcess(fetchBookImageQueueTargets).then(list => {
+    void preQueueProcess(fetchBookImageQueueTargets).then(list => {
       const dequeueInfo: Record<Isbn13, string> = {};
       const enqueueList: Isbn13[] = [];
       list.forEach(({ isbn, url }) => {

@@ -1,6 +1,5 @@
 import type { NdlSearchResult } from '@/store/fetchNdlSearchSlice.ts';
-import type { Collection, FilterSet } from '@/store/subscriptionDataSlice.ts';
-import type { BookData } from '@/types/book.ts';
+import type { BookData, Collection, FilterSet } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/types/fetch.ts';
 import { useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -82,13 +81,13 @@ export default function useNdlSearchQueueEnqueueer({ collections, tempCollection
         if (!nextRequest && !retrying) {
           const _tempCollections: Collection[] = [];
           books.forEach(book => {
-            const isbn = book.isbn;
-            const collection = collections.find(filterMatch({ isbn }));
-            const tempCollection = tempCollections.find(filterMatch({ isbn }));
+            const { apiId } = book;
+            const collection = collections.find(filterMatch({ apiId }));
+            const tempCollection = tempCollections.find(filterMatch({ apiId }));
             if (!collection && !tempCollection) {
               _tempCollections.push({
                 id: uuidv4(),
-                isbn,
+                apiId,
                 status: 'Unregistered',
                 createdAt: '',
                 updatedAt: '',

@@ -1,18 +1,21 @@
-import {a, type ClientSchema, defineData} from '@aws-amplify/backend'
+import { a, type ClientSchema, defineData } from '@aws-amplify/backend';
 
 const schema = a.schema({
+  // Collection : API Result = 1 : 1
   Collection: a
     .model({
-      isbn: a.string().required(),
+      /** relation key */
+      apiId: a.string().required(),
       status: a.string().required(),
     })
     .authorization((allow) => [allow.owner()]),
+  // FilterSet : API result = 1 : 1
   FilterSet: a
     .model({
+      apiId: a.string().required(), // relation key
       name: a.string().required(),
       fetch: a.string().required(),
       filters: a.string().required(),
-      collectionId: a.string().required(),
     })
     .authorization((allow) => [allow.owner()]),
 });

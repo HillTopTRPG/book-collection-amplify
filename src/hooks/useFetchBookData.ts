@@ -33,10 +33,10 @@
 //   const filterQueueResults = useAppSelector(selectNdlSearchQueueResults);
 //
 //   const fetchBookData = useCallback(
-//     async (isbn: Isbn13): Promise<ScannedItemMapValue> => {
+//     async (isbn: Isbn13): Promise<BookData> => {
 //       console.log('fetchBookData', isbn);
 //       const book = await _fetchBookData(isbn);
-//       const scannedItemMapValue = getScannedItemMapValueByBookData(collections, book);
+//       const scannedItemMapValue = getBookDataByBookData(collections, book);
 //       const _filterSets: FilterSet[] = dbFilterSets.filter(
 //         filterSet => filterQueueResults[JSON.stringify(filterSet.fetch)]
 //       );

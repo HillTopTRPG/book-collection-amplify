@@ -1,41 +1,52 @@
 import type { BottomNavigationItem } from '@/pages/MainLayout/BottomNavigation.tsx';
-import type { FilterSet } from '@/store/subscriptionDataSlice.ts';
+import type { FilterSet } from '@/types/book.ts';
 import { Save, X } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import { useLogs } from '@/hooks/useLogs.ts';
+import FilterSetEdit from '@/pages/FilterSetEditPage/FilterSetEdit.tsx';
 import BottomNavigation from '@/pages/MainLayout/BottomNavigation.tsx';
-import FilterSetEdit from '@/pages/SearchEditPage/FilterSetEdit.tsx';
-import { useAppSelector } from '@/store/hooks.ts';
-import { selectAllFilterResults } from '@/store/ndlSearchSlice.ts';
+import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
+import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { selectFilterSet } from '@/store/subscriptionDataSlice.ts';
+import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 
-export default function SearchEditPage() {
+export default function FilterSetEditPage() {
+  const dispatch = useAppDispatch();
   const { filterSetId } = useParams<{ filterSetId: string }>();
-  const allFilterResults = useAppSelector(selectAllFilterResults);
+  const dbFilterSet = useAppSelector(state => selectFilterSet(state, filterSetId));
   const [filterSet, setFilterSet] = useState<FilterSet | null>(null);
   const { updateFilterSet } = useAwsAccess();
+
+  useEffect(() => {
+    if (filterSet) return;
+    setFilterSet(structuredClone(dbFilterSet));
+  }, [dbFilterSet, filterSet]);
+
+  // scrollParentRef を useEffect で初期化（レンダリング時の DOM 検索を回避）
+  const scrollParentRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!scrollParentRef.current) {
+      scrollParentRef.current = document.getElementById('root') as HTMLDivElement;
+    }
+  }, []);
 
   useLogs({
     componentName: 'SearchEditPage',
     additionalInfo: `filterSetId: ${filterSetId || 'N/A'}`,
   });
 
-  // ロードが終わるまで待つ
   useEffect(() => {
-    if (filterSet) return;
-    const filterSetResult = allFilterResults?.find(({ filterSet }) => filterSet.id === filterSetId) ?? null;
-    if (!filterSetResult) return;
-    setFilterSet(structuredClone(filterSetResult.filterSet));
-  }, [allFilterResults, filterSet, filterSetId]);
+    if (!filterSet?.fetch) return;
+    dispatch(enqueueNdlSearch({ type: 'priority', list: [makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)] }));
+  }, [dispatch, filterSet?.fetch]);
 
   const content = useMemo(() => {
-    if (!allFilterResults) return <Spinner variant="bars" />;
     if (!filterSet) return '存在しないフィルターです。';
 
-    return <FilterSetEdit filterSet={filterSet} onFilterSetUpdate={setFilterSet} />;
-  }, [allFilterResults, filterSet]);
+    return <FilterSetEdit filterSet={filterSet} scrollParentRef={scrollParentRef} onFilterSetUpdate={setFilterSet} />;
+  }, [filterSet]);
 
   const navigationList: BottomNavigationItem[] = useMemo(
     () => [
@@ -44,7 +55,7 @@ export default function SearchEditPage() {
         label: 'キャンセル',
         handleClick: navigate => {
           console.log('キャンセル');
-          navigate(-1);
+          void navigate(-1);
         },
         disabled: !filterSet,
       },
@@ -55,7 +66,7 @@ export default function SearchEditPage() {
           console.log('保存');
           if (!filterSet) return;
           await updateFilterSet(filterSet);
-          navigate(-1);
+          void navigate(-1);
         },
         disabled: !filterSet,
       },

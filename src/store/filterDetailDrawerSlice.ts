@@ -35,12 +35,12 @@ export const selectSelectedFilterSet = createSelector(
     return filterSets.find(filterMatch({ id })) ?? null;
   }
 );
-// export const selectScannedItemMapValueBySelectedFilterSet = createSelector(
+// export const selectBookDataBySelectedFilterSet = createSelector(
 //   [selectSelectedFilterSet, selectFetchResultMap, selectCollections],
-//   (selectedFilterSet, fetchResultMap, collections): ScannedItemMapValue[] => {
+//   (selectedFilterSet, fetchResultMap, collections): BookData[] => {
 //     const books = fetchResultMap[selectedFilterSet?.id ?? ''] ?? [];
 //
-//     return books.map(book => getScannedItemMapValueByBookData(collections, book));
+//     return books.map(book => getBookDataByBookData(collections, book));
 //   }
 // );
 

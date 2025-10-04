@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanResultList } from '@/store/scannerSlice.ts';
 import { getIsbn13, getIsbnCode } from '@/utils/isbn.ts';
+import { filterMatch } from '@/utils/primitive.ts';
 
 const FormSchema = z
   .object({
@@ -38,12 +39,12 @@ export default function IsbnForm() {
       const maybeIsbn = getIsbnCode(data.isbn);
       if (!maybeIsbn) return;
 
-      const isbn13 = getIsbn13(maybeIsbn);
+      const isbn = getIsbn13(maybeIsbn);
 
       form.setValue('isbn', '');
 
       // 既に存在する場合はスキップ
-      if (scanResultList.some(sr => sr.isbn === isbn13)) {
+      if (scanResultList.some(filterMatch({ isbn }))) {
         toast({
           title: 'You submitted the following values',
           description: (
@@ -55,7 +56,7 @@ export default function IsbnForm() {
         return;
       }
 
-      dispatch(enqueueScan({ type: 'new', list: [isbn13] }));
+      dispatch(enqueueScan({ type: 'new', list: [isbn] }));
     },
     [dispatch, form, scanResultList, toast]
   );
