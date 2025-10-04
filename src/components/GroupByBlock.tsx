@@ -1,128 +1,71 @@
-import type { BookStatus, FilterSet } from '@/types/book.ts';
+import type { BookData, FilterSet } from '@/types/book.ts';
 import type { BookWithVolume } from '@/utils/groupByVolume';
-import type { ReactNode, RefObject } from 'react';
-import { ChevronsDownUp, ChevronsUpDown, UnfoldVertical } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Separator } from '@/components/ui/separator.tsx';
-import useDOMSize from '@/hooks/useDOMSize.ts';
-import { useAppSelector } from '@/store/hooks.ts';
-import { selectBookWithVolumeCollections } from '@/store/subscriptionDataSlice.ts';
-import BookCardList from './BookCardList.tsx';
-
-type CollapseOpenType = 'full' | 'collapse' | 'close';
-
-const COLLAPSE_ICON_MAP: Record<CollapseOpenType, ReactNode> = {
-  full: <ChevronsDownUp />,
-  collapse: <UnfoldVertical />,
-  close: <ChevronsUpDown />,
-};
+import type { RefObject } from 'react';
+import { useCallback, useMemo } from 'react';
+import BookCardNavi from '@/components/BookCardNavi.tsx';
+import CollapsibleFrame from '@/components/CollapsibleFrame.tsx';
+import { useAppDispatch } from '@/store/hooks.ts';
+import { setBookDialogValue } from '@/store/uiSlice.ts';
 
 type Props = {
   scrollParentRef: RefObject<HTMLDivElement | null>;
-  list: BookWithVolume[];
+  bookCollections: BookWithVolume[];
   idx: number;
   stickyTop: number;
   filterSet: FilterSet;
   orIndex?: number;
   setContentHeight: (height: number) => void;
-  viewBookStatusList: BookStatus[];
 };
 
-const GroupByBlock = ({
+export default function GroupByBlock({
   scrollParentRef,
-  list,
+  bookCollections,
   idx,
   stickyTop,
   filterSet,
   orIndex,
   setContentHeight,
-  viewBookStatusList,
-}: Props) => {
-  const [stickyRef, stickySize] = useDOMSize();
-  const [contentRef, contentSize] = useDOMSize();
-  const countRef = useRef<HTMLDivElement>(null);
+}: Props) {
+  const dispatch = useAppDispatch();
 
-  const books = useMemo(() => list.map(({ collectionBook }) => collectionBook), [list]);
-
-  const bookCollections = useAppSelector(state => selectBookWithVolumeCollections(state, list, viewBookStatusList));
-  const [openType, setOpenType] = useState<CollapseOpenType>(bookCollections.length < 6 ? 'full' : 'collapse');
-
-  useEffect(() => {
-    setContentHeight(stickySize.height + contentSize.height);
-  }, [setContentHeight, contentSize.height, stickySize.height]);
-
-  useEffect(() => {
-    setOpenType(bookCollections.length < 6 ? 'full' : 'collapse');
-  }, [bookCollections.length]);
-
-  const scrollToRef = useCallback(
-    (ref: RefObject<HTMLDivElement | null>) => {
-      setTimeout(() => {
-        if (!stickyRef.current) return;
-        if (!ref.current) return;
-        if (!scrollParentRef.current) return;
-        const stickyRect = stickyRef.current.getBoundingClientRect();
-        const countRect = ref.current.getBoundingClientRect();
-        scrollParentRef.current.scrollBy(0, countRect.top - stickyRect.bottom);
-      });
+  const handleOpenBook = useCallback(
+    (book: BookData) => {
+      dispatch(setBookDialogValue(book));
     },
-    [scrollParentRef, stickyRef]
+    [dispatch]
   );
 
-  const handleOpenChange = useCallback(() => {
-    if (openType === 'full') {
-      setOpenType('close');
-
-      // 「〜件」が見える位置までスクロールする
-      scrollToRef(countRef);
-      return;
-    }
-
-    if (openType === 'close' && bookCollections.length >= 6) {
-      setOpenType('collapse');
-      if (!contentRef.current) return;
-      // コンテンツが見える位置までスクロールする
-      scrollToRef(contentRef);
-    } else {
-      setOpenType('full');
-    }
-  }, [contentRef, bookCollections.length, openType, scrollToRef]);
-
-  const stickyStyle = useMemo(() => ({ top: stickyTop }), [stickyTop]);
-
-  const bookCardList = useMemo(
-    () => (
-      <BookCardList countRef={countRef} {...{ filterSet, orIndex, openType, setOpenType, books, viewBookStatusList }} />
-    ),
-    [books, filterSet, openType, orIndex, viewBookStatusList]
+  const collectionBookElms = useMemo(
+    () =>
+      bookCollections.map(({ collectionBook }, idx) => (
+        <div key={idx} className="relative">
+          <div
+            className="absolute inset-0 bg-indigo-900"
+            style={{ opacity: 0.2 + (idx / bookCollections.length) * 0.6 }}
+          />
+          <BookCardNavi {...{ collectionBook, filterSet, orIndex }} onOpenBook={() => handleOpenBook(collectionBook)} />
+        </div>
+      )),
+    [bookCollections, filterSet, handleOpenBook, orIndex]
   );
 
   if (!bookCollections.length) return null;
 
   return (
-    <div>
-      {idx ? <Separator /> : null}
-      <div
-        ref={stickyRef}
-        className="flex bg-green-800 text-white px-2 py-1 sticky z-[10] cursor-pointer"
-        style={stickyStyle}
-        onClick={handleOpenChange}
-      >
-        <div className="flex-1">
-          {bookCollections[0].volume === -1
-            ? 'グルーピングなし'
-            : `グルーピング${idx + 1} (${bookCollections[0].volume}~${bookCollections[bookCollections.length - 1].volume}) ${bookCollections.length}件`}
-        </div>
-        {COLLAPSE_ICON_MAP[openType]}
-      </div>
-      <div ref={contentRef} className="flex">
-        <div className="bg-green-800 w-2" />
-        <div className="flex flex-col flex-1" style={{ maxWidth: 'calc(100% - 0.5rem)' }}>
-          {bookCardList}
-        </div>
-      </div>
-    </div>
+    <CollapsibleFrame
+      mode="foldable"
+      className="bg-green-800 text-white"
+      stickyTop={stickyTop}
+      scrollParentRef={scrollParentRef}
+      headerText={
+        bookCollections[0].volume === -1
+          ? 'グルーピングなし'
+          : `グルーピング${idx + 1} (${bookCollections[0].volume}~${bookCollections[bookCollections.length - 1].volume}) ${bookCollections.length}件`
+      }
+      setContentHeight={setContentHeight}
+      zIndex={10}
+    >
+      {collectionBookElms}
+    </CollapsibleFrame>
   );
-};
-
-export default memo(GroupByBlock);
+}

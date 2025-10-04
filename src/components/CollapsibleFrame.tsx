@@ -14,33 +14,41 @@ const COLLAPSE_ICON_MAP: Record<CollapseOpenType, ReactNode> = {
   close: <ChevronsUpDown />,
 };
 
-const collapseButtonIndex = 2;
+const COLLAPSE_BUTTON_INDEX = 2;
 
 type Props = {
   mode: 'foldable' | 'foldable-footer' | 'normal' | 'normal-footer';
+  hasGap?: boolean;
   className: ClassValue;
   stickyTop: number;
   scrollParentRef: RefObject<HTMLDivElement | null>;
-  headerRef: RefObject<HTMLDivElement | null>;
   headerText: ReactNode;
   setContentHeight: (height: number) => void;
-  children: ReactNode[];
+  children: ReactNode[] | ((stickyTop: number) => ReactNode[]);
+  zIndex: number;
 };
+
+const isReactNode = (c: Props['children']): c is ReactNode[] => Array.isArray(c);
 
 export default function CollapsibleFrame({
   mode,
+  hasGap,
   className,
   stickyTop,
   scrollParentRef,
   headerText,
   setContentHeight,
   children,
+  zIndex,
 }: Props) {
   const [headerRef, headerSize] = useDOMSize();
-  const stickyStyle = useMemo(() => ({ top: stickyTop }), [stickyTop]);
   const [contentRef, contentSize] = useDOMSize();
+  const stickyStyle = useMemo(() => ({ top: stickyTop, zIndex }), [stickyTop, zIndex]);
   const footerRef = useRef<HTMLDivElement>(null);
-  const [openType, setOpenType] = useState<CollapseOpenType>(children.length < 6 ? 'full' : 'collapse');
+  const isFoldable = useMemo(() => mode.startsWith('foldable'), [mode]);
+  const isUseFooter = useMemo(() => mode.endsWith('footer'), [mode]);
+  const defaultOpenType = useMemo(() => (children.length > 5 ? 'collapse' : 'full'), [children.length]);
+  const [openType, setOpenType] = useState<CollapseOpenType>(isFoldable ? defaultOpenType : 'full');
 
   useEffect(() => {
     setContentHeight(headerSize.height + contentSize.height);
@@ -54,10 +62,10 @@ export default function CollapsibleFrame({
         if (!scrollParentRef.current) return;
         const headerRect = headerRef.current.getBoundingClientRect();
         const countRect = ref.current.getBoundingClientRect();
-        scrollParentRef.current.scrollBy(0, countRect.top - headerRect.bottom);
+        scrollParentRef.current.scrollBy(0, headerRect.top - stickyTop + (countRect.top - headerRect.bottom));
       });
     },
-    [scrollParentRef, headerRef]
+    [headerRef, scrollParentRef, stickyTop]
   );
 
   const handleOpenChange = useCallback(() => {
@@ -65,11 +73,11 @@ export default function CollapsibleFrame({
       setOpenType('close');
 
       // 「〜件」が見える位置までスクロールする
-      scrollToRef(footerRef);
+      scrollToRef(isUseFooter ? footerRef : contentRef);
       return;
     }
 
-    if (mode.startsWith('foldable')) {
+    if (isFoldable) {
       if (openType === 'close' && children.length >= 6) {
         setOpenType('collapse');
         if (!contentRef.current) return;
@@ -81,24 +89,52 @@ export default function CollapsibleFrame({
     } else {
       setOpenType('full');
     }
-  }, [mode, contentRef, children.length, openType, scrollToRef]);
-
-  const isOpen = useMemo(() => ['collapse', 'full'].some(v => v === openType), [openType]);
-
-  const isCollapse = useMemo(
-    () => isOpen && openType === 'collapse' && children.length > 5,
-    [children.length, isOpen, openType]
-  );
+  }, [children.length, contentRef, isFoldable, isUseFooter, openType, scrollToRef]);
 
   const handleShowAll = useCallback(() => {
     setOpenType('full');
   }, [setOpenType]);
 
+  const childrenList = useMemo(
+    () => (isReactNode(children) ? children : children(stickyTop + headerSize.height)),
+    [children, headerSize.height, stickyTop]
+  );
+
+  const childrenListElm = useMemo(
+    () =>
+      childrenList.flatMap((elm, idx) => {
+        if (openType === 'collapse' && COLLAPSE_BUTTON_INDEX <= idx && idx < childrenList.length - 2) {
+          if (idx == COLLAPSE_BUTTON_INDEX) {
+            return [
+              <div key={idx} className="flex flex-col">
+                {!hasGap ? <Separator /> : null}
+                <div
+                  className="flex py-2 text-xs items-center justify-center cursor-pointer text-white bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+                  onClick={handleShowAll}
+                >
+                  すべて表示する
+                </div>
+              </div>,
+            ];
+          }
+          return null;
+        }
+        if (!elm) return [];
+        return [
+          <div key={idx} className="flex flex-col">
+            {idx && !hasGap ? <Separator /> : null}
+            {elm}
+          </div>,
+        ];
+      }),
+    [childrenList, handleShowAll, hasGap, openType]
+  );
+
   return (
     <>
       <div
         ref={headerRef}
-        className={cn('flex px-2 py-1 sticky z-[10] cursor-pointer', className)}
+        className={cn('flex px-2 py-1 sticky cursor-pointer', className)}
         style={stickyStyle}
         onClick={handleOpenChange}
       >
@@ -106,34 +142,13 @@ export default function CollapsibleFrame({
         {COLLAPSE_ICON_MAP[openType]}
       </div>
       <div ref={contentRef} className="flex">
-        <div className="bg-green-800 w-2" />
+        <div className={cn('w-2', className)} />
         <div className="flex flex-col flex-1" style={{ maxWidth: 'calc(100% - 0.5rem)' }}>
-          {children.map((elm, idx) => {
-            if (isCollapse && (2 <= idx || idx < children.length - 2)) {
-              if (idx == collapseButtonIndex) {
-                return (
-                  <>
-                    <Separator />
-                    <div
-                      className="flex py-2 text-xs items-center justify-center cursor-pointer text-white bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
-                      onClick={handleShowAll}
-                    >
-                      すべて表示する
-                    </div>
-                  </>
-                );
-              }
-              return null;
-            }
-            return (
-              <>
-                {idx ? <Separator /> : null}
-                {elm}
-              </>
-            );
-          })}
-          <div className={cn('w-full', className)} ref={footerRef}>
-            {mode.endsWith('footer') ? <div className="px-2 py-1">{children.length}件</div> : null}
+          <div className={cn('flex flex-col flex-1', hasGap ? 'gap-5' : null)}>
+            {openType === 'close' ? null : childrenListElm}
+          </div>
+          <div ref={footerRef} className={cn('w-full', className)}>
+            {isUseFooter ? <div className="px-2 py-1">{children.length}件</div> : null}
           </div>
         </div>
       </div>

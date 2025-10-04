@@ -1,7 +1,8 @@
 import type { BookStatus, CollectionBook, FilterSet } from '@/types/book.ts';
 import type { RefObject } from 'react';
-import { memo, useMemo } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import BookCardList from '@/components/BookCardList.tsx';
+import CollapsibleFrame from '@/components/CollapsibleFrame.tsx';
 import GroupByBlock from '@/components/GroupByBlock.tsx';
 import { getFilteredItems } from '@/utils/filter.ts';
 import { groupByVolume } from '@/utils/groupByVolume.ts';
@@ -33,27 +34,56 @@ const FilterResultSetComponent = ({
   );
 
   const groupedBooks = useMemo(() => groupByVolume(filteredResults), [filteredResults]);
+  const filteredGroupedBooks = useMemo(
+    () =>
+      groupedBooks.map(bookWithVolumes =>
+        bookWithVolumes.filter(({ collectionBook }) => viewBookStatusList.includes(collectionBook.status))
+      ),
+    [groupedBooks, viewBookStatusList]
+  );
 
   const bookCardList = useMemo(
     () => <BookCardList books={filteredResults} {...{ filterSet, orIndex, setContentHeight, viewBookStatusList }} />,
     [filterSet, filteredResults, orIndex, setContentHeight, viewBookStatusList]
   );
 
-  const groupedBooksElement = useMemo(
-    () =>
-      groupedBooks.map((list, idx) => (
-        <GroupByBlock
-          key={idx}
-          stickyTop={stickyTop}
-          setContentHeight={setContentHeight}
-          viewBookStatusList={viewBookStatusList}
-          {...{ scrollParentRef, list, idx, filterSet, orIndex }}
-        />
-      )),
-    [filterSet, groupedBooks, orIndex, scrollParentRef, setContentHeight, stickyTop, viewBookStatusList]
+  const groupedBookElms = useCallback(
+    (stickyTop: number) =>
+      filteredGroupedBooks
+        .map((list, idx) =>
+          !list.length ? null : (
+            <GroupByBlock
+              key={idx}
+              stickyTop={stickyTop}
+              setContentHeight={setContentHeight}
+              bookCollections={list}
+              {...{ scrollParentRef, idx, filterSet, orIndex }}
+            />
+          )
+        )
+        .filter(Boolean),
+    [filterSet, filteredGroupedBooks, orIndex, scrollParentRef, setContentHeight]
   );
 
-  return <div className="flex flex-col gap-5">{!groupByType ? bookCardList : groupedBooksElement}</div>;
+  const groupedBooksElement = useMemo(
+    () => (
+      <CollapsibleFrame
+        mode="normal"
+        hasGap
+        className="bg-orange-800 text-white"
+        stickyTop={stickyTop}
+        scrollParentRef={scrollParentRef}
+        headerText={filterSet.name}
+        setContentHeight={setContentHeight}
+        zIndex={11}
+      >
+        {!groupByType ? [bookCardList] : stickyTop => groupedBookElms(stickyTop)}
+      </CollapsibleFrame>
+    ),
+    [bookCardList, filterSet.name, groupByType, groupedBookElms, scrollParentRef, setContentHeight, stickyTop]
+  );
+
+  return <div className="flex flex-col">{groupedBooksElement}</div>;
 };
 
 // カスタム比較関数で不要な再レンダリングを防止

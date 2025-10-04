@@ -11,6 +11,8 @@ type Props = {
   useFooter?: boolean;
 };
 
+const isReactNode = (c: Props['children']): c is ReactNode => isValidElement(c);
+
 export default function DrawerFrame({ isVisible, onClose, header, children, useFooter }: Props) {
   const scrollParentRef = useRef<HTMLDivElement>(null);
   const overlayClassName = useMemo(
@@ -24,8 +26,6 @@ export default function DrawerFrame({ isVisible, onClose, header, children, useF
       `fixed top-0 right-0 bottom-0 w-full md:w-[32rem] bg-background border-l z-50 shadow-lg transition-transform duration-300 ease-in-out ${isVisible ? 'transform translate-x-0' : 'transform translate-x-full'}`,
     [isVisible]
   );
-
-  const isReactNode = (c: Props['children']): c is ReactNode => isValidElement(c);
 
   return (
     <Fragment>

@@ -102,12 +102,12 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
 
   return (
     <>
-      <div ref={searchConditionsRef} className="sticky top-0 z-[110] flex flex-col bg-background px-2 pt-2">
+      <div className="flex flex-col bg-background px-2 py-1">
         <div className="text-xs">関連フィルター一覧</div>
         {!filterResultSets ? (
           <Spinner variant="bars" />
         ) : (
-          <div className="flex flex-col gap-1 pt-1 pb-3">
+          <div className="flex flex-col gap-1 pt-1">
             {filterResultSets.map(({ filterSet }) => (
               <Button
                 key={filterSet.id}
@@ -132,8 +132,10 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
             新規追加
           </Button>
         ) : null}
+      </div>
+      <div ref={searchConditionsRef} className="sticky top-0 z-[110] flex flex-col bg-background px-2 pb-1">
         <GroupByTypeCheck groupByType={groupByType} onUpdateGroupByType={setGroupByType} />
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-2">
           <BookStatusChecks statusList={checkBookStatusList} onUpdate={handleCheckBookStatusListUpdate} />
         </div>
       </div>
