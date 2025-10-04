@@ -3,6 +3,7 @@ import { Barcode, Home, LibraryBig } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
 import BookDialog from '@/components/Dialog/BookDialog';
 import FilterDetailDrawer from '@/components/Drawer/FilterDetailDrawer';
+import NavigationSpinner from '@/components/NavigationSpinner';
 import { useLogs } from '@/hooks/useLogs.ts';
 import BottomNavigation from './BottomNavigation';
 import MenuBar from './MenuBar';
@@ -49,6 +50,9 @@ export default function MainLayout() {
 
       {/* ダイアログ */}
       <BookDialog />
+
+      {/* ナビゲーションスピナー */}
+      <NavigationSpinner />
     </>
   );
 }

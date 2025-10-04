@@ -2,7 +2,6 @@ import type { BookStatus, CollectionBook } from '@/types/book.ts';
 import type { RefObject } from 'react';
 import { ListFilterPlus, Pencil } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import BookStatusChecks from '@/components/BookStatusChecks';
 import FilterResultSetComponent from '@/components/FilterResultSetComponent.tsx';
 import FilterSetCollapsibleHeader from '@/components/FilterSetCollapsibleHeader.tsx';
@@ -11,6 +10,7 @@ import { Button } from '@/components/ui/button.tsx';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import useDOMSize from '@/hooks/useDOMSize.ts';
+import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectFilterResultSetsByApiId } from '@/store/ndlSearchSlice.ts';
@@ -27,7 +27,7 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
   const [searchConditionsRef, searchConditionsSize] = useDOMSize();
   const checkBookStatusList = useAppSelector(selectCheckBookStatusList);
   const [groupByType, setGroupByType] = useState<'volume' | null>('volume');
-  const navigate = useNavigate();
+  const navigate = useNavigateWithLoading();
   const { createFilterSet } = useAwsAccess();
 
   const { hasPrime, priorityFetchList, filterResultSets } = useAppSelector(state =>
@@ -65,7 +65,7 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
 
   const handleFilterSetEdit = useCallback(
     (id: string) => {
-      void navigate(`/search/${id}`);
+      navigate(`/search/${id}`);
     },
     [navigate]
   );
