@@ -11,9 +11,8 @@ import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
-import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectFilterResultSetsByApiId } from '@/store/ndlSearchSlice.ts';
+import { enqueueAllNdlSearch, selectFilterResultSetsByApiId } from '@/store/ndlSearchSlice.ts';
 import { selectCheckBookStatusList, updateCheckBookStatusList } from '@/store/scannerSlice.ts';
 
 type Props = {
@@ -43,7 +42,7 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
 
   useEffect(() => {
     if (!priorityFetchList.length) return;
-    dispatch(enqueueNdlSearch({ type: 'priority', list: priorityFetchList }));
+    dispatch(enqueueAllNdlSearch({ type: 'priority', list: priorityFetchList }));
   }, [dispatch, priorityFetchList]);
 
   const handleFilterSetCreate = useCallback(async () => {

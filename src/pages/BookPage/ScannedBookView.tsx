@@ -47,13 +47,17 @@ export default function ScannedBookView({ isbn }: Props) {
       dispatch(setBookDialogValue(collectionBook));
     };
 
-    return <BookCardNavi collectionBook={collectionBook} onOpenBook={handleBookOpen} />;
+    return (
+      <div className="bg-background">
+        <BookCardNavi collectionBook={collectionBook} onOpenBook={handleBookOpen} />
+      </div>
+    );
   }, [collectionBook, dispatch]);
 
   return (
     <div className="flex flex-col w-full flex-1">
       <div className="flex flex-col gap-3 pt-3">
-        <div className="bg-background">{bookCardNavi}</div>
+        {bookCardNavi}
         {collectionBook ? (
           <CollectionBooksFilterResultView
             setContentHeight={setContentHeight}

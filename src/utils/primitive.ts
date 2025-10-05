@@ -8,7 +8,18 @@ export const removeNumberText = (v: string | null | undefined) =>
     .replace(/[0-9.)\] ]+$/, '')
     .trim() ?? '';
 
-export const unique = <T>(list: T[]) => list.filter((v, i, s) => s.findIndex(a => a === v) === i);
+export const unique = <T>(list: T[]): T[] => {
+  const seen = new Set<T>();
+
+  return list.filter(item => {
+    if (seen.has(item)) return false;
+    seen.add(item);
+    return true;
+  });
+};
+
+export const arrayEqualityCheck = <T>(a: T[], b: T[]): boolean =>
+  a.length === b.length && a.every((item, index) => item === b[index]);
 
 export const filterMatch =
   <Conditions extends Record<string, unknown>>(conditions: Conditions): ((obj: Conditions) => boolean) =>

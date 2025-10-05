@@ -34,10 +34,12 @@ export default function CameraView() {
     interrupt: true,
   });
 
+  const selectedApiId = selectedBookData?.apiId;
+
   // cameraEnabledが更新されたら、初回フラグを立てる
   useEffect(() => {
     setIsFirst(true);
-  }, [selectedBookData]);
+  }, [selectedApiId]);
 
   const setVolume = useCallback((volume: number) => {
     localStorage.volume = volume;

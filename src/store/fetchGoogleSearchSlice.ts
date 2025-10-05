@@ -1,9 +1,8 @@
 import type { BookData, Isbn13 } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { makeInitialQueueState } from '@/types/queue.ts';
-import { unique } from '@/utils/primitive.ts';
-import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
+import { createQueueTargetSelector, dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 
 type QueueType = Isbn13;
 type QueueResult = BookData | 'retrying' | null;
@@ -32,11 +31,8 @@ export const fetchGoogleSearchSlice = createSlice({
 
 export const { enqueueGoogleSearch, dequeueGoogleSearch } = fetchGoogleSearchSlice.actions;
 
-const _selectQueueUnUnique = simpleSelector('fetchGoogleSearch', 'queue');
-const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => unique(unUniqueQueue));
-
 // Google Books APIキューの中で処理対象のもの
-export const selectGoogleSearchTargets = createSelector([_selectQueue], queue => queue.slice(0, 1));
+export const selectGoogleSearchTargets = createQueueTargetSelector('fetchGoogleSearch', 1);
 // ISBNコード：Google Books APIで取得した書籍データ のRecord
 export const selectGoogleSearchResults = simpleSelector('fetchGoogleSearch', 'results');
 

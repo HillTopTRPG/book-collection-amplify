@@ -1,9 +1,8 @@
 import type { BookData, Isbn13 } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { makeInitialQueueState } from '@/types/queue.ts';
-import { unique } from '@/utils/primitive.ts';
-import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
+import { createQueueTargetSelector, dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 
 type QueueType = Isbn13;
 type QueueResult = BookData | 'retrying' | null;
@@ -12,7 +11,7 @@ const initialState = makeInitialQueueState<QueueType, QueueResult>();
 
 // Rakuten Books API処理
 export const fetchRakutenSearchSlice = createSlice({
-  name: 'fetchGoogleSearch',
+  name: 'fetchRakutenSearch',
   initialState,
   reducers: {
     enqueueRakutenSearch: (
@@ -32,11 +31,8 @@ export const fetchRakutenSearchSlice = createSlice({
 
 export const { enqueueRakutenSearch, dequeueRakutenSearch } = fetchRakutenSearchSlice.actions;
 
-const _selectQueueUnUnique = simpleSelector('fetchRakutenSearch', 'queue');
-const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => unique(unUniqueQueue));
-
 // Rakuten Books APIキューの中で処理対象のもの
-export const selectRakutenSearchTargets = createSelector([_selectQueue], queue => queue.slice(0, 1));
+export const selectRakutenSearchTargets = createQueueTargetSelector('fetchRakutenSearch', 1);
 // ISBNコード：Rakuten Books APIで取得した書籍データ のRecord
 export const selectRakutenSearchResults = simpleSelector('fetchRakutenSearch', 'results');
 

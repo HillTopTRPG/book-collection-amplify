@@ -1,9 +1,8 @@
 import type { BookData } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { makeInitialQueueState } from '@/types/queue.ts';
-import { unique } from '@/utils/primitive.ts';
-import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
+import { createQueueTargetSelector, dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 
 export type NdlSearchResult = {
   list: BookData[];
@@ -38,10 +37,8 @@ export const fetchNdlSearchSlice = createSlice({
 
 export const { enqueueNdlSearch, dequeueNdlSearch } = fetchNdlSearchSlice.actions;
 
-const _selectQueueUnUnique = simpleSelector('fetchNdlSearch', 'queue');
-const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => unique(unUniqueQueue));
 /** NDL検索キューの中で処理対象のもの */
-export const selectNdlSearchTargets = createSelector([_selectQueue], queue => queue.slice(0, 2));
+export const selectNdlSearchTargets = createQueueTargetSelector('fetchNdlSearch', 1);
 /** NDL検索条件：書籍一覧 のRecord */
 export const selectNdlSearchResults = simpleSelector('fetchNdlSearch', 'results');
 

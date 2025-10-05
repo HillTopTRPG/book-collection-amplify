@@ -68,3 +68,37 @@ Username: amplify-admin
 - `src/index.tsx` - Todo CRUD操作を持つメインアプリケーションコンポーネント
 - `amplify/data/resource.ts` - GraphQLスキーマ定義（Todoモデル拡張用の開発コメントを含む）
 - `amplify.yml` - CI/CDパイプライン用AWSビルド設定
+
+## ドキュメント管理
+
+### キューイングシステムドキュメント (`queuing.md`)
+
+本プロジェクトでは、API レート制限対策としてキューイングシステムを実装しています。その仕様は `queuing.md` に記載されています。
+
+**定期更新が必要**: キューイングシステムの実装を変更した後は、`queuing.md` を実装と同期させる必要があります。
+
+#### 更新作業の手順
+
+1. **更新ガイドを参照**: `.claude/queuing-update-guide.md` に詳細な更新手順が記載されています
+2. **実装の変更点を確認**: 以下のファイルをチェック
+   - Redux Slice: `src/store/*Slice.ts`（キュー定義）
+   - Processor: `src/App/ApplicationControlLayer/use*Processor.ts`（処理ロジック）
+   - 統合レイヤー: `src/App/ApplicationControlLayer/QueueProcessLayer.tsx`（設定値）
+   - 共通関数: `src/utils/store.ts`（enqueue/dequeue）
+3. **queuing.mdを更新**: 変更があった箇所を特定し、該当セクションを修正
+   - 並行実行数（selectorの`slice`範囲）
+   - リトライ間隔（`timeoutInterval`の値）
+   - エンキュー/デキュー条件（`enqueue`/`dequeue`関数のロジック）
+   - 処理フロー（Mermaid図）
+
+#### チェックポイント
+
+- **並行実行数**: 各Sliceの`selector`で`queue.slice(0, N)`のNを確認
+- **リトライ間隔**: `QueueProcessLayer.tsx`の`useSearchQueueProcessor`の`timeoutInterval`を確認
+- **処理ロジック**: 各Processorの`useEffect`内の処理順序を確認
+
+#### 注意事項
+
+- Mermaid図は実装と正確に一致させること
+- LocalStorage連携はスキャンキューのみ（特殊処理）
+- コード引用時は正確なファイルパスと行番号を記載

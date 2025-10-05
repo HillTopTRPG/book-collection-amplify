@@ -1,12 +1,12 @@
 import type { BookData, BookStatus, Collection, CollectionBook, FilterSet } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
+import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import { filterMatch } from '@/utils/primitive.ts';
 import { createSimpleReducers, simpleSelector } from '@/utils/store.ts';
 
 type State = {
   collections: Collection[];
-  tempCollections: Collection[];
   filterSets: FilterSet[];
   tempFilterSets: FilterSet[];
   updatingCollectionApiIdList: string[];
@@ -14,7 +14,6 @@ type State = {
 
 const initialState: State = {
   collections: [],
-  tempCollections: [],
   filterSets: [],
   tempFilterSets: [],
   updatingCollectionApiIdList: [],
@@ -37,38 +36,35 @@ export const subscriptionDataSlice = createSlice({
         .forEach(idx => state.updatingCollectionApiIdList.splice(idx, 1));
       state.collections = action.payload;
     },
-    addTempCollections: (state, action: PayloadAction<Collection[]>) => {
-      state.tempCollections.push(...action.payload);
-    },
     setFilterSets: createSimpleReducers('filterSets'),
     addUpdatingCollectionApiIdList: (state, action: PayloadAction<string[]>) => {
       state.updatingCollectionApiIdList.push(...action.payload);
     },
     clearTempData: state => {
-      state.tempCollections = [];
       state.tempFilterSets = [];
     },
     resetSubscriptionData: () => initialState,
   },
 });
 
-export const {
-  setCollections,
-  addTempCollections,
-  setFilterSets,
-  addUpdatingCollectionApiIdList,
-  clearTempData,
-  resetSubscriptionData,
-} = subscriptionDataSlice.actions;
+export const { setCollections, setFilterSets, addUpdatingCollectionApiIdList, clearTempData, resetSubscriptionData } =
+  subscriptionDataSlice.actions;
 
 export const selectCollections = simpleSelector('subscriptionData', 'collections');
-export const selectTempCollections = simpleSelector('subscriptionData', 'tempCollections');
 export const selectFilterSets = simpleSelector('subscriptionData', 'filterSets');
 export const selectTempFilterSets = simpleSelector('subscriptionData', 'tempFilterSets');
 export const selectUpdatingCollectionApiIdList = simpleSelector('subscriptionData', 'updatingCollectionApiIdList');
 export const selectAllFilterSets = createSelector(
   [selectFilterSets, selectTempFilterSets],
   (filterSets, tempFilterSets): FilterSet[] => [...filterSets, ...tempFilterSets]
+);
+
+export const selectAllFilerSetFetchOptionStrings = createSelector([selectAllFilterSets], (allFilterSets): string[] =>
+  allFilterSets.map(filterSet => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch))
+);
+
+export const selectTempFilerSetFetchOptionStrings = createSelector([selectTempFilterSets], (tempFilterSets): string[] =>
+  tempFilterSets.map(filterSet => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch))
 );
 
 export const selectFilterSet = createSelector(

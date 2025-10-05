@@ -1,16 +1,19 @@
 import type { Isbn13 } from '@/types/book.ts';
 import type { ClassValue } from 'clsx';
-import type { MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import { ImageOff } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { Spinner } from '@/components/ui/shadcn-io/spinner';
 import { useInView } from '@/hooks/useInView.ts';
 import { cn } from '@/lib/utils.ts';
-import { enqueueBookImage, selectFetchBookImageQueueResults } from '@/store/fetchBookImageSlice.ts';
+import { enqueueBookImage, selectBookImageByIsbn } from '@/store/fetchBookImageSlice.ts';
 import { useAppSelector } from '@/store/hooks.ts';
 
-const SIZE: Record<'small' | 'big' | 'default', { width: number; height: number }> = {
+const COLOR: ClassValue = 'bg-gradient-to-tr from-pink-300 via-red-300 to-orange-300';
+const CENTER: ClassValue = 'flex items-center justify-center';
+
+const BOOK_IMAGE_SIZE: Record<'small' | 'big' | 'default', { width: number; height: number }> = {
   default: {
     width: 50,
     height: 75,
@@ -33,68 +36,46 @@ type Props = {
 
 export default function BookImage({ isbn, size = 'default', onClick }: Props) {
   const dispatch = useDispatch();
-  const fetchBookImageQueueResults = useAppSelector(selectFetchBookImageQueueResults);
-  const [imageUrl, setImageUrl] = useState<{ status: 'loading' | 'retrying' | 'done'; url: string | null }>({
-    status: 'loading',
-    url: null,
-  });
+  const imageUrl = useAppSelector(state => selectBookImageByIsbn(state, isbn));
 
   const { ref, inView } = useInView({ threshold: 0.2, once: false });
 
+  // このコンポーネントが表示されたら優先的に書影を取得してもらう
   useEffect(() => {
-    if (inView && isbn) {
-      dispatch(enqueueBookImage({ type: 'priority', list: [isbn] }));
-    }
+    if (!inView) return;
+    if (!isbn) return;
+    dispatch(enqueueBookImage({ type: 'priority', list: [isbn] }));
   }, [dispatch, inView, isbn]);
 
-  const { width, height } = SIZE[size];
+  const cursorClass: ClassValue = useMemo(() => (onClick ? 'cursor-pointer' : 'cursor-default'), [onClick]);
 
-  useEffect(() => {
-    if (!isbn) return;
-    setImageUrl({ status: 'loading', url: null });
-  }, [dispatch, isbn]);
+  const className = useMemo(() => cn(COLOR, CENTER, cursorClass), [cursorClass]);
+  const imgClassName = useMemo(() => cn('select-none', cursorClass), [cursorClass]);
 
-  useEffect(() => {
-    if (!isbn) return;
-    const url: string | null | undefined =
-      isbn in fetchBookImageQueueResults ? fetchBookImageQueueResults[isbn] : undefined;
-    if (url !== undefined && imageUrl.status !== 'done') {
-      if (url === 'retrying') {
-        setImageUrl({ url: null, status: 'retrying' });
-      } else {
-        setImageUrl({ url, status: 'done' });
-      }
+  const handleClick = useCallback((e: MouseEvent) => onClick?.(e), [onClick]);
+
+  const { width, height } = useMemo(() => BOOK_IMAGE_SIZE[size], [size]);
+
+  const style: CSSProperties = useMemo(
+    () => ({ minWidth: width, maxWidth: width, minHeight: height, maxHeight: height }),
+    [height, width]
+  );
+  const imgStyle = useMemo((): CSSProperties => ({ objectFit: 'cover', width, height }), [height, width]);
+
+  const content = useMemo(() => {
+    switch (imageUrl) {
+      case 'retrying':
+      case undefined:
+        return <Spinner variant="bars" />;
+      case null:
+        return <ImageOff />;
+      default:
+        return <img src={imageUrl} alt="表紙" className={imgClassName} style={imgStyle} draggable="false" />;
     }
-  }, [fetchBookImageQueueResults, imageUrl.status, isbn]);
-
-  const cursorClass: ClassValue = onClick ? 'cursor-pointer' : 'cursor-default';
-
-  const content = (() => {
-    if (!imageUrl.url) {
-      return imageUrl.status !== 'done' ? <Spinner variant="bars" /> : <ImageOff />;
-    }
-    return (
-      <img
-        src={imageUrl.url}
-        alt="表紙"
-        className={cn('select-none', cursorClass)}
-        style={{ objectFit: 'cover', width, height }}
-        onClick={onClick}
-        draggable="false"
-      />
-    );
-  })();
+  }, [imgClassName, imageUrl, imgStyle]);
 
   return (
-    <div
-      ref={ref}
-      className={cn(
-        'min-w-[50px] min-h-[75px] bg-gradient-to-tr from-pink-300 via-red-300 to-orange-300 flex items-center justify-center',
-        cursorClass
-      )}
-      onClick={onClick}
-      style={{ minWidth: width, maxWidth: width, minHeight: height, maxHeight: height }}
-    >
+    <div {...{ ref, className, style }} onClick={handleClick}>
       {content}
     </div>
   );

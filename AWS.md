@@ -26,7 +26,7 @@ AWS Amplify Gen 2 でスキーマ変更を行う際のデータ保護方法に�
 CloudFormation スタック削除時でも DynamoDB テーブルが削除されないようにする設定です。
 
 ```typescript
-import { RemovalPolicy } from "aws-cdk-lib";
+import { RemovalPolicy } from 'aws-cdk-lib';
 
 // すべての DynamoDB テーブルに削除保護を適用
 const { amplifyDynamoDbTables } = backend.data.resources.cfnResources;
@@ -41,8 +41,7 @@ CloudFormation スタックを削除してもリソースを AWS アカウント
 
 ```typescript
 // 特定のテーブルに保持ポリシーを適用
-backend.data.resources.cfnResources.amplifyDynamoDbTables["Todo"]
-  .applyRemovalPolicy(RemovalPolicy.RETAIN);
+backend.data.resources.cfnResources.amplifyDynamoDbTables['Todo'].applyRemovalPolicy(RemovalPolicy.RETAIN);
 
 // または、すべてのテーブルに適用
 for (const table of Object.values(amplifyDynamoDbTables)) {
@@ -168,34 +167,36 @@ aws dynamodb update-continuous-backups \
 35日以上のバックアップが必要な場合に使用します。
 
 ```typescript
-import { BackupVault, BackupPlan, BackupPlanRule } from "aws-cdk-lib/aws-backup";
-import { Duration } from "aws-cdk-lib";
-import { Schedule } from "aws-cdk-lib/aws-events";
+import { BackupVault, BackupPlan, BackupPlanRule } from 'aws-cdk-lib/aws-backup';
+import { Duration } from 'aws-cdk-lib';
+import { Schedule } from 'aws-cdk-lib/aws-events';
 
-const backupVault = new BackupVault(backupStack, "BackupVault", {
-  backupVaultName: "backup-vault",
+const backupVault = new BackupVault(backupStack, 'BackupVault', {
+  backupVaultName: 'backup-vault',
 });
 
-const plan = new BackupPlan(backupStack, "BackupPlan", {
-  backupVaultName: "backup-plan",
+const plan = new BackupPlan(backupStack, 'BackupPlan', {
+  backupVaultName: 'backup-plan',
   backupVault,
 });
 
-plan.addRule(new BackupPlanRule({
-  deleteAfter: Duration.days(60),
-  ruleName: "backup-plan-rule",
-  scheduleExpression: Schedule.cron({
-    minute: "0",
-    hour: "0",
-    day: "*",
-    month: "*",
-    year: "*",
-  }),
-}));
+plan.addRule(
+  new BackupPlanRule({
+    deleteAfter: Duration.days(60),
+    ruleName: 'backup-plan-rule',
+    scheduleExpression: Schedule.cron({
+      minute: '0',
+      hour: '0',
+      day: '*',
+      month: '*',
+      year: '*',
+    }),
+  })
+);
 
 // DynamoDB テーブルを Backup Plan に追加
 for (const table of Object.values(amplifyDynamoDbTables)) {
-  plan.addSelection("BackupSelection", {
+  plan.addSelection('BackupSelection', {
     resources: [BackupResource.fromDynamoDbTable(table)],
   });
 }
@@ -238,13 +239,12 @@ import { a } from '@aws-amplify/backend';
 export const data = a.configure({
   name: 'myDataResource',
   authorization: [a.allow.public()],
-})
-.addToSchema(`
+}).addToSchema(`
   type ExistingData @refersTo(name: "existing-table-name") {
     id: ID!
     # 既存のフィールド定義
   }
-`)
+`);
 ```
 
 ### データ移行が必要な場合
@@ -253,24 +253,28 @@ export const data = a.configure({
 
 ```typescript
 // Lambda 関数の例（疑似コード）
-import { DynamoDBClient, ScanCommand, BatchWriteItemCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ScanCommand, BatchWriteItemCommand } from '@aws-sdk/client-dynamodb';
 
 const client = new DynamoDBClient({});
 
 async function migrateData() {
   // 旧テーブルからデータを取得
-  const scanResult = await client.send(new ScanCommand({
-    TableName: "OldTable-xxx-prod",
-  }));
+  const scanResult = await client.send(
+    new ScanCommand({
+      TableName: 'OldTable-xxx-prod',
+    })
+  );
 
   // 新テーブルにデータを書き込み
-  await client.send(new BatchWriteItemCommand({
-    RequestItems: {
-      "NewTable-xxx-prod": scanResult.Items.map(item => ({
-        PutRequest: { Item: transformItem(item) }
-      }))
-    }
-  }));
+  await client.send(
+    new BatchWriteItemCommand({
+      RequestItems: {
+        'NewTable-xxx-prod': scanResult.Items.map(item => ({
+          PutRequest: { Item: transformItem(item) },
+        })),
+      },
+    })
+  );
 }
 ```
 
@@ -389,21 +393,23 @@ const maintenanceWaf = new CfnWebACL(backend.data, 'MaintenanceWAF', {
     metricName: 'MaintenanceMode',
     sampledRequestsEnabled: true,
   },
-  rules: [{
-    name: 'AllowAdminIP',
-    priority: 1,
-    statement: {
-      ipSetReferenceStatement: {
-        arn: 'arn:aws:wafv2:region:account-id:regional/ipset/admin-ips/xxx',
+  rules: [
+    {
+      name: 'AllowAdminIP',
+      priority: 1,
+      statement: {
+        ipSetReferenceStatement: {
+          arn: 'arn:aws:wafv2:region:account-id:regional/ipset/admin-ips/xxx',
+        },
+      },
+      action: { allow: {} },
+      visibilityConfig: {
+        cloudWatchMetricsEnabled: true,
+        metricName: 'AllowAdminIP',
+        sampledRequestsEnabled: true,
       },
     },
-    action: { allow: {} },
-    visibilityConfig: {
-      cloudWatchMetricsEnabled: true,
-      metricName: 'AllowAdminIP',
-      sampledRequestsEnabled: true,
-    },
-  }],
+  ],
 });
 ```
 
@@ -430,18 +436,13 @@ function App() {
 
 ```typescript
 // scripts/migrate-filter-structure.ts
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  ScanCommand,
-  UpdateCommand,
-  BatchWriteCommand
-} from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, UpdateCommand, BatchWriteCommand } from '@aws-sdk/lib-dynamodb';
 
-const client = new DynamoDBClient({ region: "ap-northeast-1" });
+const client = new DynamoDBClient({ region: 'ap-northeast-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
-const TABLE_NAME = "FilterSet-xxxxx-main"; // 実際のテーブル名に置き換え
+const TABLE_NAME = 'FilterSet-xxxxx-main'; // 実際のテーブル名に置き換え
 
 interface OldFilterStructure {
   id: string;
@@ -468,11 +469,13 @@ async function migrateFilterStructure() {
 
   do {
     // テーブル全体をスキャン
-    const scanResult = await docClient.send(new ScanCommand({
-      TableName: TABLE_NAME,
-      ExclusiveStartKey: lastEvaluatedKey,
-      Limit: 25, // バッチサイズ
-    }));
+    const scanResult = await docClient.send(
+      new ScanCommand({
+        TableName: TABLE_NAME,
+        ExclusiveStartKey: lastEvaluatedKey,
+        Limit: 25, // バッチサイズ
+      })
+    );
 
     const items = scanResult.Items as OldFilterStructure[];
 
@@ -489,15 +492,17 @@ async function migrateFilterStructure() {
         };
 
         // DynamoDBを更新
-        await docClient.send(new UpdateCommand({
-          TableName: TABLE_NAME,
-          Key: { id: item.id },
-          UpdateExpression: 'SET filters = :filters, migratedAt = :migratedAt',
-          ExpressionAttributeValues: {
-            ':filters': JSON.stringify(newFilter),
-            ':migratedAt': new Date().toISOString(),
-          },
-        }));
+        await docClient.send(
+          new UpdateCommand({
+            TableName: TABLE_NAME,
+            Key: { id: item.id },
+            UpdateExpression: 'SET filters = :filters, migratedAt = :migratedAt',
+            ExpressionAttributeValues: {
+              ':filters': JSON.stringify(newFilter),
+              ':migratedAt': new Date().toISOString(),
+            },
+          })
+        );
 
         processedCount++;
         console.log(`✅ ${processedCount}: ${item.id} を更新しました`);
@@ -511,7 +516,6 @@ async function migrateFilterStructure() {
 
     // 進捗表示
     console.log(`📊 進捗: ${processedCount}件処理完了, ${errorCount}件エラー`);
-
   } while (lastEvaluatedKey);
 
   console.log('✨ データ移行が完了しました');
@@ -526,13 +530,13 @@ migrateFilterStructure().catch(console.error);
 
 ```typescript
 // scripts/add-required-field.ts
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 
-const client = new DynamoDBClient({ region: "ap-northeast-1" });
+const client = new DynamoDBClient({ region: 'ap-northeast-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
-const TABLE_NAME = "Collection-xxxxx-main";
+const TABLE_NAME = 'Collection-xxxxx-main';
 
 interface Collection {
   id: string;
@@ -549,12 +553,14 @@ async function addRequiredField() {
   let lastEvaluatedKey: any = undefined;
 
   do {
-    const scanResult = await docClient.send(new ScanCommand({
-      TableName: TABLE_NAME,
-      ExclusiveStartKey: lastEvaluatedKey,
-      FilterExpression: 'attribute_not_exists(createdAt)', // 既にフィールドがあるものは除外
-      Limit: 25,
-    }));
+    const scanResult = await docClient.send(
+      new ScanCommand({
+        TableName: TABLE_NAME,
+        ExclusiveStartKey: lastEvaluatedKey,
+        FilterExpression: 'attribute_not_exists(createdAt)', // 既にフィールドがあるものは除外
+        Limit: 25,
+      })
+    );
 
     const items = scanResult.Items as Collection[];
 
@@ -563,15 +569,17 @@ async function addRequiredField() {
         // createdAt が無い場合は現在時刻を設定
         const createdAt = new Date().toISOString();
 
-        await docClient.send(new UpdateCommand({
-          TableName: TABLE_NAME,
-          Key: { id: item.id },
-          UpdateExpression: 'SET createdAt = :createdAt, updatedAt = :updatedAt',
-          ExpressionAttributeValues: {
-            ':createdAt': createdAt,
-            ':updatedAt': new Date().toISOString(),
-          },
-        }));
+        await docClient.send(
+          new UpdateCommand({
+            TableName: TABLE_NAME,
+            Key: { id: item.id },
+            UpdateExpression: 'SET createdAt = :createdAt, updatedAt = :updatedAt',
+            ExpressionAttributeValues: {
+              ':createdAt': createdAt,
+              ':updatedAt': new Date().toISOString(),
+            },
+          })
+        );
 
         processedCount++;
         console.log(`✅ ${processedCount}: ${item.id} に createdAt を追加しました`);
@@ -582,7 +590,6 @@ async function addRequiredField() {
 
     lastEvaluatedKey = scanResult.LastEvaluatedKey;
     console.log(`📊 進捗: ${processedCount}件処理完了`);
-
   } while (lastEvaluatedKey);
 
   console.log('✨ 必須フィールドの追加が完了しました');
@@ -595,23 +602,25 @@ addRequiredField().catch(console.error);
 
 ```typescript
 // amplify/functions/data-migration/handler.ts
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
 import type { Handler } from 'aws-lambda';
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
 
-export const handler: Handler = async (event) => {
+export const handler: Handler = async event => {
   const { tableName, lastEvaluatedKey } = event;
 
   console.log(`Processing table: ${tableName}`);
 
-  const scanResult = await docClient.send(new ScanCommand({
-    TableName: tableName,
-    ExclusiveStartKey: lastEvaluatedKey,
-    Limit: 100,
-  }));
+  const scanResult = await docClient.send(
+    new ScanCommand({
+      TableName: tableName,
+      ExclusiveStartKey: lastEvaluatedKey,
+      Limit: 100,
+    })
+  );
 
   const items = scanResult.Items || [];
   const results = [];
@@ -621,18 +630,20 @@ export const handler: Handler = async (event) => {
       // データ変換ロジック
       const transformedData = transformData(item);
 
-      await docClient.send(new UpdateCommand({
-        TableName: tableName,
-        Key: { id: item.id },
-        UpdateExpression: 'SET #data = :data, migratedAt = :migratedAt',
-        ExpressionAttributeNames: {
-          '#data': 'filters',
-        },
-        ExpressionAttributeValues: {
-          ':data': transformedData,
-          ':migratedAt': new Date().toISOString(),
-        },
-      }));
+      await docClient.send(
+        new UpdateCommand({
+          TableName: tableName,
+          Key: { id: item.id },
+          UpdateExpression: 'SET #data = :data, migratedAt = :migratedAt',
+          ExpressionAttributeNames: {
+            '#data': 'filters',
+          },
+          ExpressionAttributeValues: {
+            ':data': transformedData,
+            ':migratedAt': new Date().toISOString(),
+          },
+        })
+      );
 
       results.push({ id: item.id, status: 'success' });
     } catch (error) {
@@ -666,10 +677,10 @@ function transformData(item: any): any {
 
 ```typescript
 // scripts/validate-migration.ts
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, ScanCommand } from '@aws-sdk/lib-dynamodb';
 
-const client = new DynamoDBClient({ region: "ap-northeast-1" });
+const client = new DynamoDBClient({ region: 'ap-northeast-1' });
 const docClient = DynamoDBDocumentClient.from(client);
 
 async function validateMigration(tableName: string) {
@@ -680,10 +691,12 @@ async function validateMigration(tableName: string) {
   let lastEvaluatedKey: any = undefined;
 
   do {
-    const scanResult = await docClient.send(new ScanCommand({
-      TableName: tableName,
-      ExclusiveStartKey: lastEvaluatedKey,
-    }));
+    const scanResult = await docClient.send(
+      new ScanCommand({
+        TableName: tableName,
+        ExclusiveStartKey: lastEvaluatedKey,
+      })
+    );
 
     for (const item of scanResult.Items || []) {
       try {
@@ -717,7 +730,7 @@ async function validateMigration(tableName: string) {
   }
 }
 
-validateMigration("FilterSet-xxxxx-main").catch(console.error);
+validateMigration('FilterSet-xxxxx-main').catch(console.error);
 ```
 
 ### 4. 実行手順
@@ -782,6 +795,7 @@ AWS Amplify Gen 2 では、DynamoDB テーブル名は以下の形式で自動�
 ```
 
 **例:**
+
 - `Collection-<appsync-api-id>-NONE`
 - `FilterSet-<appsync-api-id>-NONE`
 
@@ -820,24 +834,22 @@ const backend = defineBackend({
 });
 
 // Lambda 関数にテーブル名を環境変数として渡す
-backend.myFunction.addEnvironment(
-  'COLLECTION_TABLE_NAME',
-  backend.data.resources.tables.Collection.tableName
-);
+backend.myFunction.addEnvironment('COLLECTION_TABLE_NAME', backend.data.resources.tables.Collection.tableName);
 
-backend.myFunction.addEnvironment(
-  'FILTERSET_TABLE_NAME',
-  backend.data.resources.tables.FilterSet.tableName
-);
+backend.myFunction.addEnvironment('FILTERSET_TABLE_NAME', backend.data.resources.tables.FilterSet.tableName);
 
 // テーブルへのアクセス権限を付与
 backend.myFunction.resources.lambda.addToRolePolicy(
   new PolicyStatement({
-    actions: ['dynamodb:GetItem', 'dynamodb:PutItem', 'dynamodb:UpdateItem', 'dynamodb:DeleteItem', 'dynamodb:Query', 'dynamodb:Scan'],
-    resources: [
-      backend.data.resources.tables.Collection.tableArn,
-      backend.data.resources.tables.FilterSet.tableArn,
+    actions: [
+      'dynamodb:GetItem',
+      'dynamodb:PutItem',
+      'dynamodb:UpdateItem',
+      'dynamodb:DeleteItem',
+      'dynamodb:Query',
+      'dynamodb:Scan',
     ],
+    resources: [backend.data.resources.tables.Collection.tableArn, backend.data.resources.tables.FilterSet.tableArn],
   })
 );
 ```
@@ -846,8 +858,8 @@ Lambda 関数内での使用：
 
 ```typescript
 // amplify/functions/my-function/handler.ts
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand } from '@aws-sdk/lib-dynamodb';
 
 const client = new DynamoDBClient({});
 const docClient = DynamoDBDocumentClient.from(client);
@@ -855,10 +867,12 @@ const docClient = DynamoDBDocumentClient.from(client);
 export const handler = async (event: any) => {
   const tableName = process.env.COLLECTION_TABLE_NAME;
 
-  const result = await docClient.send(new GetCommand({
-    TableName: tableName,
-    Key: { id: event.id },
-  }));
+  const result = await docClient.send(
+    new GetCommand({
+      TableName: tableName,
+      Key: { id: event.id },
+    })
+  );
 
   return result.Item;
 };
@@ -881,9 +895,7 @@ const backend = defineBackend({
 // カスタムテーブル名を設定（非推奨）
 const customTableName = 'MyApp-Collection-Production';
 
-backend.data.resources.cfnResources.amplifyDynamoDbTables.Collection
-  // @ts-expect-error - private property
-  .resource
+backend.data.resources.cfnResources.amplifyDynamoDbTables.Collection.resource // @ts-expect-error - private property
   .addPropertyOverride('TableName', customTableName);
 
 // IAM ポリシーもカスタムテーブル名に対応させる必要がある
@@ -891,6 +903,7 @@ backend.data.resources.cfnResources.amplifyDynamoDbTables.Collection
 ```
 
 **この方法の問題点:**
+
 - TypeScript エラーを抑制する必要がある
 - Amplify の内部実装に依存している
 - 将来のアップデートで破壊的変更が起きる可能性が高い
@@ -993,6 +1006,7 @@ DynamoDB テーブル:
 #### 使用上の注意
 
 ⚠️ **重要**:
+
 - **本番環境のテーブル名**: CloudFormation スタックから取得される「本番環境（main ブランチ）」のテーブル名を使用してください
 - **サンドボックス環境**: `tmp/amplify_outputs.json` に記載されている AppSync API ID は、現在アクティブなサンドボックス環境のものです
 - **データ移行時**: 必ず対象環境（本番 or サンドボックス）のテーブル名を確認してから実行してください

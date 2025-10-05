@@ -8,10 +8,11 @@ import { getKeys } from '@/utils/type.ts';
 export const searchProcess = async <Key extends string, Value>(
   fetchFunc: (input: Key) => Promise<FetchProcessResult<Value>>,
   targets: Key[],
-  lastEndTime: RefObject<number>
+  lastEndTime: RefObject<number>,
+  apiInterval: number
 ): Promise<{ results: Record<Key, Value | 'retrying'>; retryList: Key[] }> => {
   if (!targets.length) return { results: {} as Record<Key, Value>, retryList: [] };
-  const needWait = Math.ceil(100 - (performance.now() - lastEndTime.current));
+  const needWait = Math.ceil(apiInterval - (performance.now() - lastEndTime.current));
   if (needWait > 0) await wait(needWait);
 
   const retryList: Key[] = [];
@@ -54,6 +55,7 @@ export default function useSearchQueueProcessor<Key extends string, Value>(
     type: string;
   },
   timeoutInterval: number,
+  apiInterval: number,
   additionalResultsFunc?: (results: Record<Key, Value | 'retrying'>) => void
 ) {
   const dispatch = useAppDispatch();
@@ -63,14 +65,16 @@ export default function useSearchQueueProcessor<Key extends string, Value>(
 
   const [isFirst, setIsFirst] = useState(true);
 
+  const firstTarget = targets.at(0);
+
   useEffect(() => {
     setIsFirst(true);
-  }, [targets.length]);
+  }, [firstTarget]);
 
   return useCallback(() => {
     if (!isFirst) return;
     setIsFirst(false);
-    void searchProcess(fetchFunc, targets, lastEndTime).then(({ results, retryList }) => {
+    void searchProcess(fetchFunc, targets, lastEndTime, apiInterval).then(({ results, retryList }) => {
       if (getKeys(results).length) dispatch(dequeueFunc(results));
       if (retryList.length) {
         setTimeout(() => {
@@ -79,5 +83,15 @@ export default function useSearchQueueProcessor<Key extends string, Value>(
       }
       additionalResultsFunc?.(results);
     });
-  }, [additionalResultsFunc, dequeueFunc, dispatch, enqueueFunc, fetchFunc, timeoutInterval, isFirst, targets]);
+  }, [
+    additionalResultsFunc,
+    apiInterval,
+    dequeueFunc,
+    dispatch,
+    enqueueFunc,
+    fetchFunc,
+    timeoutInterval,
+    isFirst,
+    targets,
+  ]);
 }

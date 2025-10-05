@@ -5,30 +5,8 @@ import { enqueueGoogleSearch, selectGoogleSearchResults } from '@/store/fetchGoo
 import { enqueueRakutenSearch, selectRakutenSearchResults } from '@/store/fetchRakutenSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { isBookData } from '@/utils/bookData.ts';
-import { checkImageExists } from '@/utils/fetch';
+import { getNdlBookImage } from '@/utils/fetch';
 import { getKeys } from '@/utils/type.ts';
-
-const preQueueProcess = async (
-  queuedBookImageIsbn: Isbn13[]
-): Promise<{ isbn: Isbn13; url: string | null; type: 'ndl' | 'other' }[]> => {
-  if (!queuedBookImageIsbn.length) return [];
-
-  return await Promise.all(
-    queuedBookImageIsbn.map(
-      isbn =>
-        new Promise<{ isbn: Isbn13; url: string | null; type: 'ndl' | 'other' }>(resolve => {
-          const ndlUrl = `https://ndlsearch.ndl.go.jp/thumbnail/${isbn}.jpg`;
-          void checkImageExists(ndlUrl).then(result => {
-            if (result) {
-              resolve({ isbn, url: ndlUrl, type: 'ndl' });
-              return;
-            }
-            resolve({ isbn, url: null, type: 'other' });
-          });
-        })
-    )
-  );
-};
 
 const pickBookDataProps = <P extends keyof BookData>(p: P, a: BookData, b: BookData) =>
   ({ [p]: a[p] || b[p] || null }) as Pick<BookData, P>;
@@ -69,18 +47,36 @@ export default function useBookImageQueueProcessor() {
   // 書影URL取得処理1
   useEffect(() => {
     if (!fetchBookImageQueueTargets.length) return;
-    void preQueueProcess(fetchBookImageQueueTargets).then(list => {
-      const dequeueInfo: Record<Isbn13, string> = {};
-      const enqueueList: Isbn13[] = [];
-      list.forEach(({ isbn, url }) => {
-        if (!url) enqueueList.push(isbn);
-        else dequeueInfo[isbn] = url;
-      });
-      if (getKeys(dequeueInfo).length) dispatch(dequeueBookImage(dequeueInfo));
-      if (enqueueList.length) {
-        dispatch(enqueueGoogleSearch({ type: 'new', list: enqueueList }));
-        dispatch(enqueueRakutenSearch({ type: 'new', list: enqueueList }));
+
+    // NDL書影APIは非常に高速なので、まとめて良い
+    void Promise.all(
+      fetchBookImageQueueTargets.map(
+        isbn =>
+          new Promise<{ isbn: Isbn13; url: string | null }>(resolve => {
+            void getNdlBookImage(isbn)
+              .then(url => {
+                resolve({ isbn, url });
+              })
+              .catch(() => {
+                resolve({ isbn, url: null });
+              });
+          })
+      )
+    ).then(list => {
+      const { enqueue, dequeue } = list.reduce<{ dequeue: Record<Isbn13, string>; enqueue: Isbn13[] }>(
+        (acc, { isbn, url }) => {
+          if (url) acc.dequeue[isbn] = url;
+          else acc.enqueue.push(isbn);
+          return acc;
+        },
+        { enqueue: [], dequeue: {} }
+      );
+      if (getKeys(dequeue).length) {
+        dispatch(dequeueBookImage(dequeue));
+        return;
       }
+      dispatch(enqueueGoogleSearch({ type: 'new', list: enqueue }));
+      dispatch(enqueueRakutenSearch({ type: 'new', list: enqueue }));
     });
   }, [dispatch, fetchBookImageQueueTargets]);
 
@@ -88,8 +84,27 @@ export default function useBookImageQueueProcessor() {
   useEffect(() => {
     if (!fetchBookImageQueueTargets.length) return;
     const results = fetchBookImageQueueTargets.reduce<Record<Isbn13, string | null>>((acc, isbn) => {
-      const google = isbn in googleSearchQueueResults ? googleSearchQueueResults[isbn] : undefined;
-      const rakuten = isbn in rakutenSearchQueueResults ? rakutenSearchQueueResults[isbn] : undefined;
+      const google: BookData | 'retrying' | null | undefined =
+        isbn in googleSearchQueueResults ? googleSearchQueueResults[isbn] : undefined;
+      const googleImageUrl = (() => {
+        if (google === 'retrying') return null;
+        return google?.cover ?? null;
+      })();
+      const rakuten: BookData | 'retrying' | null | undefined =
+        isbn in rakutenSearchQueueResults ? rakutenSearchQueueResults[isbn] : undefined;
+      const rakutenImageUrl = (() => {
+        if (rakuten === 'retrying') return null;
+        return rakuten?.cover ?? null;
+      })();
+
+      // 片方でも書影が取得できたらもう片方を待たずにデキューして良い
+      const imageUrl = googleImageUrl || rakutenImageUrl;
+      if (imageUrl) {
+        acc[isbn] = imageUrl;
+        return acc;
+      }
+
+      // 書影がまだ取得できてないなら、両方の結果を得てからデキューする
       if (google === undefined || rakuten === undefined) return acc;
       acc[isbn] = mergeBookData(rakuten, google)?.cover ?? null;
       return acc;
