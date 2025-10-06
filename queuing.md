@@ -828,7 +828,7 @@ const initialState = makeInitialQueueState<QueueType, QueueResult>(getBookImages
 dequeueBookImage: (state, action: PayloadAction<Record<QueueType, QueueResult>>) => {
   pushBookImageToLocalStorage(action.payload);
   dequeue(state, action);
-}
+};
 ```
 
 - 書影URL取得成功時、LocalStorageに圧縮形式で保存
@@ -840,16 +840,17 @@ dequeueBookImage: (state, action: PayloadAction<Record<QueueType, QueueResult>>)
 
 **圧縮パターン** (`src/utils/localStorage.ts:14-36`):
 
-| ソース | 元のURL例 | 圧縮形式 | サイズ |
-|--------|-----------|----------|--------|
-| NDL | `https://ndlsearch.ndl.go.jp/thumbnail/9784123456789.jpg` | `["n"]` または `["n", "異なるISBN"]` | 約22文字 |
-| Rakuten | `https://thumbnail.image.rakuten.co.jp/@0_mall/book/cabinet/1276/9784088511276.jpg?_ex=200x200` | `["r", "1276"]` または `["r", "1276", "異なるISBN"]` | 約29文字 |
-| Google Books | `http://books.google.com/books/content?id=wttstgEACAAJ&printsec=...` | `["g", "wttstgEACAAJ&printsec=..."]` | 約36文字 |
-| その他 | フルURL | `[url]` | URL長 |
+| ソース       | 元のURL例                                                                                       | 圧縮形式                                             | サイズ   |
+| ------------ | ----------------------------------------------------------------------------------------------- | ---------------------------------------------------- | -------- |
+| NDL          | `https://ndlsearch.ndl.go.jp/thumbnail/9784123456789.jpg`                                       | `["n"]` または `["n", "異なるISBN"]`                 | 約22文字 |
+| Rakuten      | `https://thumbnail.image.rakuten.co.jp/@0_mall/book/cabinet/1276/9784088511276.jpg?_ex=200x200` | `["r", "1276"]` または `["r", "1276", "異なるISBN"]` | 約29文字 |
+| Google Books | `http://books.google.com/books/content?id=wttstgEACAAJ&printsec=...`                            | `["g", "wttstgEACAAJ&printsec=..."]`                 | 約36文字 |
+| その他       | フルURL                                                                                         | `[url]`                                              | URL長    |
 
 **復元処理** (`src/utils/localStorage.ts:38-49`):
 
 圧縮データからフルURLを復元：
+
 - `["n"]` → `https://ndlsearch.ndl.go.jp/thumbnail/{現在のISBN}.jpg`
 - `["r", "1276"]` → `https://thumbnail.image.rakuten.co.jp/@0_mall/book/cabinet/1276/{現在のISBN}.jpg?_ex=200x200`
 - `["g", "id値"]` → `http://books.google.com/books/content?id={id値}`
@@ -857,11 +858,13 @@ dequeueBookImage: (state, action: PayloadAction<Record<QueueType, QueueResult>>)
 #### 容量制限と削除戦略
 
 **最大容量** (`src/utils/localStorage.ts:85`):
+
 ```typescript
 const BOOK_IMAGE_LOCAL_STORAGE_MAX_SIZE = 2048 * 1024; // 2MB
 ```
 
 **LRU削除方式** (`src/utils/localStorage.ts:95-97`):
+
 ```typescript
 while (JSON.stringify(nextInfo).length > BOOK_IMAGE_LOCAL_STORAGE_MAX_SIZE) {
   const deleteKey = getKeys(nextInfo).at(0)!; // 古いデータから削除
@@ -873,6 +876,7 @@ while (JSON.stringify(nextInfo).length > BOOK_IMAGE_LOCAL_STORAGE_MAX_SIZE) {
 - オブジェクトの挿入順序を利用し、先頭から削除
 
 **保存可能冊数**:
+
 - **最良ケース**（NDL中心）: 約**95,000冊**
 - **標準ケース**（Rakuten中心）: 約**72,000冊**
 - **最悪ケース**（Google中心）: 約**58,000冊**

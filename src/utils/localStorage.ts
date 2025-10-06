@@ -8,10 +8,14 @@ type LocalStorageBookImageData =
   | ['n', string]
   | ['r', string]
   | ['r', string, string]
+  | ['r2', string]
+  | ['r2', string, string]
   | ['g', string]
-  | [string];
+  | ['g2', string]
+  | string;
 
 const parseLocalStorageBookImageData = (url: string, isbn: Isbn13): LocalStorageBookImageData => {
+  console.log(isbn, url);
   const ndlIsbn = url.match(/^https:\/\/ndlsearch\.ndl\.go\.jp\/thumbnail\/(.+?)\.jpg$/)?.at(1);
   if (ndlIsbn) {
     if (ndlIsbn === isbn) return ['n'];
@@ -25,23 +29,34 @@ const parseLocalStorageBookImageData = (url: string, isbn: Isbn13): LocalStorage
     const cabinet = rakuten[1];
     const rakutenIsbn = rakuten[2];
     if (rakutenIsbn === isbn) return ['r', cabinet];
+    if (!rakutenIsbn.includes('_')) return ['r', cabinet, rakutenIsbn];
+    const sliced = rakutenIsbn.match(/^(.+?)_([^_]+_[^_]+)$/)?.slice(1);
+    if (sliced?.at(0) === isbn) return ['r2', cabinet, sliced[1]];
     return ['r', cabinet, rakutenIsbn];
   }
   // 例) http://books.google.com/books/content?id=Ng3XygAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api
   const google = url.match(/^http:\/\/books\.google\.com\/books\/content\?id=(.+?)$/);
   if (google) {
-    return ['g', google[1]];
+    if (google[1].endsWith('&printsec=frontcover&img=1&zoom=1&source=gbs_api')) {
+      return ['g', google[1].replace('&printsec=frontcover&img=1&zoom=1&source=gbs_api', '')];
+    }
+    return ['g2', google[1]];
   }
-  return [url];
+  return url;
 };
 
 const stringifyLocalStorageBookImageData = (list: LocalStorageBookImageData, isbn: Isbn13): string => {
+  if (typeof list === 'string') return list;
   switch (list[0]) {
     case 'n':
       return `https://ndlsearch.ndl.go.jp/thumbnail/${list.at(1) ?? isbn}.jpg`;
     case 'r':
       return `https://thumbnail.image.rakuten.co.jp/@0_mall/book/cabinet/${list.at(1)}/${list.at(2) ?? isbn}.jpg?_ex=200x200`;
+    case 'r2':
+      return `https://thumbnail.image.rakuten.co.jp/@0_mall/book/cabinet/${list.at(1)}/${isbn}_${list.at(2) ?? isbn}.jpg?_ex=200x200`;
     case 'g':
+      return `http://books.google.com/books/content?id=${list.at(1)}&printsec=frontcover&img=1&zoom=1&source=gbs_api`;
+    case 'g2':
       return `http://books.google.com/books/content?id=${list.at(1)}`;
     default:
       return list[0];
