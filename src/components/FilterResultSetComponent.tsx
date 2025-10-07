@@ -9,6 +9,7 @@ import { getFilteredItems } from '@/utils/filter.ts';
 import { groupByVolume } from '@/utils/groupByVolume.ts';
 
 type Props = {
+  viewType?: 'default' | 'simple';
   stickyTop: number;
   scrollParentRef: RefObject<HTMLDivElement | null>;
   collectionBooks: CollectionBook[];
@@ -20,6 +21,7 @@ type Props = {
 };
 
 const FilterResultSetComponent = ({
+  viewType,
   stickyTop,
   scrollParentRef,
   collectionBooks,
@@ -44,8 +46,13 @@ const FilterResultSetComponent = ({
   );
 
   const bookCardList = useMemo(
-    () => <BookCardList books={filteredResults} {...{ filterSet, orIndex, setContentHeight, viewBookStatusList }} />,
-    [filterSet, filteredResults, orIndex, setContentHeight, viewBookStatusList]
+    () => (
+      <BookCardList
+        books={filteredResults}
+        {...{ viewType, filterSet, orIndex, setContentHeight, viewBookStatusList }}
+      />
+    ),
+    [filterSet, filteredResults, orIndex, setContentHeight, viewBookStatusList, viewType]
   );
 
   const groupedBookElms = useCallback(
@@ -57,13 +64,13 @@ const FilterResultSetComponent = ({
               key={idx}
               stickyTop={stickyTop}
               setContentHeight={setContentHeight}
-              bookCollections={list}
-              {...{ scrollParentRef, idx, filterSet, orIndex }}
+              bookWithVolumes={list}
+              {...{ viewType, scrollParentRef, idx, filterSet, orIndex }}
             />
           )
         )
         .filter(Boolean),
-    [filterSet, filteredGroupedBooks, orIndex, scrollParentRef, setContentHeight]
+    [filterSet, filteredGroupedBooks, orIndex, scrollParentRef, setContentHeight, viewType]
   );
 
   const groupedBooksElement = useMemo(

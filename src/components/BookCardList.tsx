@@ -1,4 +1,4 @@
-import type { BookData, BookStatus, FilterSet } from '@/types/book.ts';
+import type { BookData, BookStatus, CollectionBook, FilterSet } from '@/types/book.ts';
 import type { RefObject } from 'react';
 import { Fragment, memo, useCallback, useEffect, useMemo } from 'react';
 import { Separator } from '@/components/ui/separator.tsx';
@@ -11,6 +11,7 @@ import BookCardNavi from './BookCardNavi.tsx';
 import '@m_three_ui/m3ripple/css';
 
 type Props = {
+  viewType?: 'default' | 'simple';
   countRef?: RefObject<HTMLDivElement | null>;
   books: BookData[];
   filterSet: FilterSet;
@@ -21,7 +22,15 @@ type Props = {
   viewBookStatusList: BookStatus[];
 };
 
-const BookCardList = ({ countRef, books, filterSet, orIndex, setContentHeight, viewBookStatusList }: Props) => {
+const BookCardList = ({
+  viewType,
+  countRef,
+  books,
+  filterSet,
+  orIndex,
+  setContentHeight,
+  viewBookStatusList,
+}: Props) => {
   const dispatch = useAppDispatch();
   const collectionBooks = useAppSelector(state => selectCollectionBooks(state, books, viewBookStatusList));
   const [contentRef, contentSize] = useDOMSize();
@@ -31,8 +40,8 @@ const BookCardList = ({ countRef, books, filterSet, orIndex, setContentHeight, v
   }, [setContentHeight, contentSize.height]);
 
   const handleOpenBook = useCallback(
-    (book: BookData) => {
-      dispatch(setBookDialogValue(book));
+    (collectionBook: CollectionBook) => {
+      dispatch(setBookDialogValue(collectionBook));
     },
     [dispatch]
   );
@@ -45,13 +54,14 @@ const BookCardList = ({ countRef, books, filterSet, orIndex, setContentHeight, v
           <div className="relative">
             <div className="absolute inset-0 bg-indigo-900" style={{ opacity: 0.2 + (idx / books.length) * 0.6 }} />
             <BookCardNavi
+              viewType={viewType}
               {...{ collectionBook, filterSet, orIndex }}
               onOpenBook={() => handleOpenBook(collectionBook)}
             />
           </div>
         </Fragment>
       )),
-    [collectionBooks, books.length, filterSet, handleOpenBook, orIndex]
+    [collectionBooks, books.length, viewType, filterSet, orIndex, handleOpenBook]
   );
 
   if (!collectionBooks.length) return null;

@@ -2,6 +2,7 @@ import type { BottomNavigationItem } from './BottomNavigation';
 import { Barcode, Home, LibraryBig } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
 import BookDialog from '@/components/Dialog/BookDialog';
+import BookStatusSwiper from '@/components/Dialog/BookStatusSwiper';
 import FilterDetailDrawer from '@/components/Drawer/FilterDetailDrawer';
 import NavigationSpinner from '@/components/NavigationSpinner';
 import { useLogs } from '@/hooks/useLogs.ts';
@@ -38,8 +39,9 @@ export default function MainLayout() {
       <MenuBar />
 
       {/* メインコンテンツ - ボトムナビの高さ分をpaddingで確保 */}
-      <div className="pt-12 pb-16 w-full md:w-[32rem] flex flex-col">
+      <div className="pt-12 pb-16 w-full md:w-[32rem] flex flex-col z-10">
         <Outlet />
+        <BookStatusSwiper />
       </div>
 
       {/* ボトムナビゲーション */}

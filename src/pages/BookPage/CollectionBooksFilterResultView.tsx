@@ -75,6 +75,7 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
       <>
         {filterResultSets.map(({ filterSet, collectionBooks }, idx) => (
           <FilterResultSetComponent
+            viewType="simple"
             key={filterSet.id}
             stickyTop={searchConditionsSize.height}
             setContentHeight={idx === filterResultSets.length - 1 ? handleListHeightChange : () => {}}

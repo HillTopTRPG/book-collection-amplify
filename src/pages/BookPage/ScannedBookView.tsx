@@ -49,7 +49,7 @@ export default function ScannedBookView({ isbn }: Props) {
 
     return (
       <div className="bg-background">
-        <BookCardNavi collectionBook={collectionBook} onOpenBook={handleBookOpen} />
+        <BookCardNavi viewType="simple" collectionBook={collectionBook} onOpenBook={handleBookOpen} />
       </div>
     );
   }, [collectionBook, dispatch]);

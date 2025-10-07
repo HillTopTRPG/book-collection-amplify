@@ -42,7 +42,7 @@ export const dequeue = <T extends string, U>(
     ...state.results,
     ...omit(
       results,
-      getKeys(results).filter(isbn => !state.queue.includes(isbn))
+      getKeys(results).filter(key => !state.queue.includes(key))
     ),
   };
   // キューから一致するISBNを全て削除する
