@@ -1,7 +1,7 @@
 import type { BottomNavigationItem } from './BottomNavigation';
 import { Barcode, Home, LibraryBig } from 'lucide-react';
 import { Outlet } from 'react-router-dom';
-import BookDialog from '@/components/Dialog/BookDialog';
+import BookDialog from '@/components/Dialog/BookDialog/BookDialog';
 import BookStatusSwiper from '@/components/Dialog/BookStatusSwiper';
 import FilterDetailDrawer from '@/components/Drawer/FilterDetailDrawer';
 import NavigationSpinner from '@/components/NavigationSpinner';
