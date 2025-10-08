@@ -27,10 +27,10 @@ export default function DialogLikeCard({
   collectionBook,
   index,
 }: Props) {
-  const isTopCard = useMemo(() => index === 0, [index]);
-  const scale = useMemo(() => 1 - index * 0.05, [index]); // 下のカードほど少し小さく
-  const yOffset = useMemo(() => index * 10, [index]); // 下のカードほど少し下に
-  const zIndex = useMemo(() => 100 - index, [index]); // 上のカードほど大きいz-index
+  const isTopCard = index === 0;
+  const scale = 1 - index * 0.05; // 下のカードほど少し小さく
+  const yOffset = index * 10; // 下のカードほど少し下に
+  const zIndex = 100 - index; // 上のカードほど大きいz-index
 
   // このカードがスワイプ中かどうか
   const isSwipingCard = swipingCardApiId.current === collectionBook.apiId;
@@ -99,18 +99,11 @@ export default function DialogLikeCard({
     [dragX, isTopCard, markOpacity]
   );
 
-  const titleText = useMemo(
-    () => [collectionBook.title, collectionBook.volume, collectionBook.volumeTitle].filter(Boolean).join(' '),
-    [collectionBook.title, collectionBook.volume, collectionBook.volumeTitle]
-  );
+  const titleText = [collectionBook.title, collectionBook.volume, collectionBook.volumeTitle].filter(Boolean).join(' ');
 
-  const descriptionText = useMemo(
-    () =>
-      [collectionBook.publisher || '出版社不明', collectionBook.creator?.join(', ') || '著者不明']
-        .filter(Boolean)
-        .join(' '),
-    [collectionBook.creator, collectionBook.publisher]
-  );
+  const descriptionText = [collectionBook.publisher || '出版社不明', collectionBook.creator?.join(', ') || '著者不明']
+    .filter(Boolean)
+    .join(' ');
 
   return (
     <motion.div

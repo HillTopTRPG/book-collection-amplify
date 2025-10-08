@@ -1,5 +1,4 @@
 import type { BookStatus } from '@/types/book.ts';
-import { useCallback } from 'react';
 import swipeImg from '@/assets/swipe.png';
 import { Button } from '@/components/ui/button.tsx';
 import { cn } from '@/lib/utils.ts';
@@ -10,13 +9,6 @@ type Props = {
 };
 
 export default function OverlayHeader({ onBookStatusSelect }: Props) {
-  const handleClick = useCallback(
-    (status: BookStatus) => {
-      onBookStatusSelect(status);
-    },
-    [onBookStatusSelect]
-  );
-
   return (
     <div className={cn('flex flex-col justify-center gap-1 py-1', 'bg-green-400 text-gray-700')}>
       <div className="flex items-center justify-center gap-3">
@@ -32,7 +24,7 @@ export default function OverlayHeader({ onBookStatusSelect }: Props) {
             key={status}
             size="sm"
             className={cn(BookStatusLabelMap[status].className, 'pointer-events-auto')}
-            onClick={() => handleClick(status)}
+            onClick={() => onBookStatusSelect(status)}
           >
             {BookStatusLabelMap[status].label}
           </Button>

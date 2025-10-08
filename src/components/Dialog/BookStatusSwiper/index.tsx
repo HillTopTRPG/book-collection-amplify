@@ -29,29 +29,29 @@ export default function BookStatusSwiper() {
   // 直近のスワイプされた書籍IDを格納
   const swipingCardApiId = useRef<string | null>(null);
 
-  const { paginationList, first, next, prev, last, viewList } = useMemo((): {
+  const { paginationList, next, prev, viewList } = useMemo((): {
     paginationList: (BookWithVolume | null)[];
-    first: BookWithVolume | null;
     prev: string | null;
     next: string | null;
-    last: BookWithVolume | null;
     viewList: BookWithVolume[];
   } => {
     const index = bookWithVolumes.findIndex(bwv => bwv.collectionBook.apiId === currentBookApiId);
-    if (index < 0) return { paginationList: [], first: null, prev: null, next: null, last: null, viewList: [] };
-    const viewList = bookWithVolumes.slice(index, index + 3);
-    const first = bookWithVolumes.at(0) ?? null;
+    if (index < 0) return { paginationList: [], prev: null, next: null, viewList: [] };
+    const viewList = bookWithVolumes.slice(index, index + 2);
     const prev = index ? (bookWithVolumes.at(index - 1)?.collectionBook.apiId ?? null) : null;
     const next =
       index < bookWithVolumes.length - 1 ? (bookWithVolumes.at(index + 1)?.collectionBook.apiId ?? null) : null;
-    const last = bookWithVolumes.at(-1) ?? null;
     const paginationList = [
-      first && index > 1 ? [first, null] : [],
-      bookWithVolumes.slice(index, index + 3),
-      last && index + 4 < bookWithVolumes.length ? [null, last] : [],
+      // first, '...' の制御
+      1 < index ? [bookWithVolumes[0], null] : [null, null],
+      index === 0 ? [null] : [bookWithVolumes[index - 1]],
+      [bookWithVolumes[index]],
+      index === bookWithVolumes.length - 1 ? [null] : [bookWithVolumes[index + 1]],
+      // '...', last の制御
+      index + 2 < bookWithVolumes.length ? [null, bookWithVolumes.at(-1) ?? null] : [null, null],
     ].flat();
 
-    return { paginationList, first, next, prev, last, viewList };
+    return { paginationList, next, prev, viewList };
   }, [bookWithVolumes, currentBookApiId]);
 
   useEffect(() => {
@@ -74,11 +74,11 @@ export default function BookStatusSwiper() {
     console.log(bookStatus);
   }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     console.log('SwipeDialog close');
     setCurrentBookApiId(next);
     swipingCardApiId.current = null;
-  };
+  }, [next]);
 
   const handleAllClose = useCallback(() => {
     dispatch(setSwipeDialogValue([]));
@@ -109,10 +109,8 @@ export default function BookStatusSwiper() {
               currentBookApiId,
               setCurrentBookApiId,
               paginationList,
-              first,
               prev,
               next,
-              last,
             }}
           />
         </div>

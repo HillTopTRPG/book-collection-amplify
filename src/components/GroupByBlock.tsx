@@ -75,7 +75,9 @@ export default function GroupByBlock({
       setContentHeight={setContentHeight}
       zIndex={10}
     >
-      <Button onClick={handleSwiperOpen}>まとめて更新</Button>
+      <Button size="sm" onClick={handleSwiperOpen}>
+        まとめて更新
+      </Button>
       {collectionBookElms}
     </CollapsibleFrame>
   );
