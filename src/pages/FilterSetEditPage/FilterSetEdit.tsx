@@ -3,7 +3,7 @@ import type { RefObject } from 'react';
 import { useCallback } from 'react';
 import FilterBlock from '@/components/FilterBlock.tsx';
 import NdlOptionsForm, { type NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { Spinner } from '@/components/ui/shadcn-io/spinner/spinner';
 import { useAppSelector } from '@/store/hooks.ts';
 import { selectCollectionBooksByFetch } from '@/store/ndlSearchSlice.ts';
 

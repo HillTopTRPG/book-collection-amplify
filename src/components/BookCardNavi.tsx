@@ -16,8 +16,8 @@ const BookCardNavi = (props: Props) =>
         <BookCard
           className="pl-8"
           style={{
-            maxWidth: 'calc(100% - 1.5rem)',
-            minWidth: 'calc(100% - 1.5rem)',
+            maxWidth: 'calc(100% - 0.5rem)',
+            minWidth: 'calc(100% - 0.5rem)',
           }}
           {...props}
         />

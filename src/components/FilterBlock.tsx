@@ -1,6 +1,6 @@
 import type { CollectionBook, FilterSet } from '@/types/book.ts';
 import { type CSSProperties, type RefObject, useCallback, useMemo, useState } from 'react';
-import SearchConditionsForm from '@/components/SearchConditionsForm';
+import SearchConditionsForm from '@/components/SearchConditionsForm/SearchConditionsForm';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { getFilteredItems } from '@/utils/filter.ts';
 import FilterResultSetComponent from './FilterResultSetComponent.tsx';

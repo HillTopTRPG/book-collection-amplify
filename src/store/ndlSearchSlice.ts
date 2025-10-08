@@ -1,12 +1,12 @@
 import type { NdlFullOptions } from '@/components/NdlOptionsForm.tsx';
-import type { BookData, CollectionBook, FilterResultSet, Isbn13 } from '@/types/book.ts';
+import type { BookData, Collection, CollectionBook, FilterResultSet, FilterSet, Isbn13 } from '@/types/book.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { DEFAULT_COLLECTION, selectAllFilterSets, selectCollections } from '@/store/subscriptionDataSlice.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
-import { filterMatch, unique } from '@/utils/primitive.ts';
-import { dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
+import { filterMatch } from '@/utils/primitive.ts';
+import { createQueueTargetSelector, dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 import { getKeys } from '@/utils/type.ts';
 
 type QueueType = string;
@@ -36,10 +36,8 @@ export const ndlSearchSlice = createSlice({
 
 export const { enqueueAllNdlSearch, dequeueAllNdlSearch } = ndlSearchSlice.actions;
 
-const _selectQueueUnUnique = simpleSelector('ndlSearch', 'queue');
-const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => unique(unUniqueQueue));
 /** NDL検索キューの中で処理対象のもの */
-export const selectNdlSearchTargets = createSelector([_selectQueue], queue => queue.slice(0, 2));
+export const selectAllNdlSearchTargets = createQueueTargetSelector('ndlSearch', 2);
 /** NDL検索条件：書籍一覧 のRecord */
 export const selectAllNdlSearchResults = simpleSelector('ndlSearch', 'results');
 
@@ -57,10 +55,10 @@ export const selectIsbnByApiId = createSelector(
 export const selectFilterResultSetsByApiId = createSelector(
   [selectAllFilterSets, selectAllNdlSearchResults, selectCollections, (_state, apiId: string) => apiId],
   (
-    allFilters,
-    allBooks,
-    collections,
-    apiId
+    allFilters: FilterSet[],
+    allBooks: Record<string, BookData[]>,
+    collections: Collection[],
+    apiId: string
   ): { hasPrime: boolean; priorityFetchList: string[]; filterResultSets: FilterResultSet[] | null } => {
     const priorityFetchList: string[] = [];
     const filterResultSets: FilterResultSet[] = [];
@@ -68,7 +66,7 @@ export const selectFilterResultSetsByApiId = createSelector(
     allFilters.forEach(filterSet => {
       const key = makeNdlOptionsStringByNdlFullOptions(filterSet.fetch);
       if (!(key in allBooks)) {
-        priorityFetchList.push(makeNdlOptionsStringByNdlFullOptions(filterSet.fetch));
+        priorityFetchList.push(key);
         return;
       }
       const books: BookData[] = allBooks[key];

@@ -3,16 +3,15 @@ import type { QueueState } from '@/types/queue.ts';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import { createSelector, createSlice } from '@reduxjs/toolkit';
 import { selectAllNdlSearchResults } from '@/store/ndlSearchSlice.ts';
-import { DEFAULT_COLLECTION, selectCollections, selectTempFilterSets } from '@/store/subscriptionDataSlice.ts';
+import { DEFAULT_COLLECTION, selectCollections } from '@/store/subscriptionDataSlice.ts';
 import { makeInitialQueueState } from '@/types/queue.ts';
-import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 import {
   deleteScannedIsbnToLocalStorage,
   pushScannedIsbnToLocalStorage,
   resetScannedIsbnToLocalStorage,
 } from '@/utils/localStorage.ts';
 import { deleteAllStrings, filterMatch, unique } from '@/utils/primitive.ts';
-import { createSimpleReducers, dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
+import { createQueueTargetSelector, createSimpleReducers, dequeue, enqueue, simpleSelector } from '@/utils/store.ts';
 import { getKeys } from '@/utils/type.ts';
 
 type QueueType = Isbn13;
@@ -52,6 +51,7 @@ export const scannerSlice = createSlice({
     },
     dequeueScan: (state, action: PayloadAction<Record<QueueType, QueueResult | null>>) => {
       dequeue(state, action);
+      // 有用な書籍データが取得できなかったIsbnコードは除外する
       const deleteIsbnList = getKeys(action.payload).filter(isbn => !action.payload[isbn]);
       deleteAllStrings(state.queueViewList, deleteIsbnList);
       // localStorageにも反映
@@ -80,22 +80,21 @@ export const scannerSlice = createSlice({
 export const { enqueueScan, dequeueScan, clearScanViewList, updateSelectedScanIsbn, updateCheckBookStatusList } =
   scannerSlice.actions;
 
-const _selectQueueUnUnique = simpleSelector('scanner', 'queue');
-const _selectQueue = createSelector([_selectQueueUnUnique], unUniqueQueue => unique(unUniqueQueue));
+// スキャンキューの中で処理対象のもの
+export const selectScanQueueTargets = createQueueTargetSelector('scanner', 1);
 const _selectScanQueueResults = simpleSelector('scanner', 'results');
+
 const _selectScanQueueViewList = simpleSelector('scanner', 'queueViewList');
 const _selectSelectedIsbn = simpleSelector('scanner', 'selectedIsbn');
 export const selectCheckBookStatusList = simpleSelector('scanner', 'checkBookStatusList');
 
-// スキャンキューの中で処理対象のもの
-export const selectScanQueueTargets = createSelector([_selectQueue], queue => queue.slice(0, 1));
 // スキャン中に表示するデータの整形済データ
 export const selectScanResultList = createSelector(
   [_selectScanQueueViewList, selectCollections, _selectScanQueueResults],
   (viewList, collections, results): { isbn: Isbn13; collectionBook: CollectionBook | null }[] =>
     unique(viewList).map(isbn => {
       if (!(isbn in results)) return { isbn, collectionBook: null };
-      const book: BookData = results[isbn];
+      const book = results[isbn];
       const { apiId } = book;
       const collection = collections.find(filterMatch({ apiId })) ?? DEFAULT_COLLECTION;
       const collectionBook = { ...collection, ...book };
@@ -132,6 +131,7 @@ export const selectScanSuccessCount = createSelector(
   [selectScanResultList],
   (scanResultList): number => scanResultList.length
 );
+
 // BookDrawerに表示するデータ
 export const selectSelectedCollectionBook = createSelector(
   [selectScanResultList, _selectSelectedIsbn],
@@ -141,19 +141,6 @@ export const selectSelectedCollectionBook = createSelector(
       scanResultList.find(scanResult => scanResult.isbn === selectedIsbn && Boolean(scanResult.collectionBook))
         ?.collectionBook ?? null
     );
-  }
-);
-
-const EMPTY_STRINGS: string[] = [];
-// BookDrawerで表示されている検索条件フォームの値（変化するたびにNDL検索キューにenqueueする）
-export const selectSelectedScannedItemFetchOptions = createSelector(
-  [selectSelectedCollectionBook, selectTempFilterSets],
-  (selectedBookData, tempFilterSets): string[] => {
-    const apiId = selectedBookData?.apiId;
-    if (!apiId) return EMPTY_STRINGS;
-    return tempFilterSets
-      .filter(filterMatch({ apiId }))
-      .map(filterSet => makeNdlOptionsStringByNdlFullOptions(filterSet.fetch));
   }
 );
 

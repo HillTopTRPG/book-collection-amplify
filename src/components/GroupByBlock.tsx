@@ -1,15 +1,17 @@
-import type { BookData, FilterSet } from '@/types/book.ts';
+import type { CollectionBook, FilterSet } from '@/types/book.ts';
 import type { BookWithVolume } from '@/utils/groupByVolume';
 import type { RefObject } from 'react';
 import { useCallback, useMemo } from 'react';
 import BookCardNavi from '@/components/BookCardNavi.tsx';
 import CollapsibleFrame from '@/components/CollapsibleFrame.tsx';
+import { Button } from '@/components/ui/button.tsx';
 import { useAppDispatch } from '@/store/hooks.ts';
-import { setBookDialogValue } from '@/store/uiSlice.ts';
+import { setBookDialogValue, setSwipeDialogValue } from '@/store/uiSlice.ts';
 
 type Props = {
+  viewType?: 'default' | 'simple';
   scrollParentRef: RefObject<HTMLDivElement | null>;
-  bookCollections: BookWithVolume[];
+  bookWithVolumes: BookWithVolume[];
   idx: number;
   stickyTop: number;
   filterSet: FilterSet;
@@ -18,8 +20,9 @@ type Props = {
 };
 
 export default function GroupByBlock({
+  viewType,
   scrollParentRef,
-  bookCollections,
+  bookWithVolumes,
   idx,
   stickyTop,
   filterSet,
@@ -29,27 +32,34 @@ export default function GroupByBlock({
   const dispatch = useAppDispatch();
 
   const handleOpenBook = useCallback(
-    (book: BookData) => {
-      dispatch(setBookDialogValue(book));
+    (collectionBook: CollectionBook) => {
+      dispatch(setBookDialogValue(collectionBook));
     },
     [dispatch]
   );
 
+  const handleSwiperOpen = useCallback(() => {
+    dispatch(setSwipeDialogValue(bookWithVolumes));
+  }, [bookWithVolumes, dispatch]);
+
   const collectionBookElms = useMemo(
     () =>
-      bookCollections.map(({ collectionBook }, idx) => (
+      bookWithVolumes.map(({ collectionBook }, idx) => (
         <div key={idx} className="relative">
           <div
             className="absolute inset-0 bg-indigo-900"
-            style={{ opacity: 0.2 + (idx / bookCollections.length) * 0.6 }}
+            style={{ opacity: 0.2 + (idx / bookWithVolumes.length) * 0.6 }}
           />
-          <BookCardNavi {...{ collectionBook, filterSet, orIndex }} onOpenBook={() => handleOpenBook(collectionBook)} />
+          <BookCardNavi
+            {...{ viewType, collectionBook, filterSet, orIndex }}
+            onOpenBook={() => handleOpenBook(collectionBook)}
+          />
         </div>
       )),
-    [bookCollections, filterSet, handleOpenBook, orIndex]
+    [bookWithVolumes, filterSet, handleOpenBook, orIndex, viewType]
   );
 
-  if (!bookCollections.length) return null;
+  if (!bookWithVolumes.length) return null;
 
   return (
     <CollapsibleFrame
@@ -58,13 +68,16 @@ export default function GroupByBlock({
       stickyTop={stickyTop}
       scrollParentRef={scrollParentRef}
       headerText={
-        bookCollections[0].volume === -1
+        bookWithVolumes[0].volume === -1
           ? 'グルーピングなし'
-          : `グルーピング${idx + 1} (${bookCollections[0].volume}~${bookCollections[bookCollections.length - 1].volume}) ${bookCollections.length}件`
+          : `グルーピング${idx + 1} (${bookWithVolumes[0].volume}~${bookWithVolumes[bookWithVolumes.length - 1].volume}) ${bookWithVolumes.length}件`
       }
       setContentHeight={setContentHeight}
       zIndex={10}
     >
+      <Button size="sm" onClick={handleSwiperOpen}>
+        まとめて更新
+      </Button>
       {collectionBookElms}
     </CollapsibleFrame>
   );

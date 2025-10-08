@@ -1,9 +1,8 @@
 import type { FilterSet } from '@/types/book.ts';
 import { useEffect } from 'react';
 import BookImage from '@/components/BookImage.tsx';
-import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectIsbnByApiId } from '@/store/ndlSearchSlice.ts';
+import { enqueueAllNdlSearch, selectIsbnByApiId } from '@/store/ndlSearchSlice.ts';
 
 type Props = {
   filterSet: FilterSet;
@@ -15,7 +14,7 @@ export default function FilterSetCollapsibleHeader({ filterSet }: Props) {
 
   useEffect(() => {
     if (isbn) return;
-    dispatch(enqueueNdlSearch({ type: 'priority', list: [JSON.stringify({ itemno: filterSet.apiId })] }));
+    dispatch(enqueueAllNdlSearch({ type: 'priority', list: [JSON.stringify({ itemno: filterSet.apiId })] }));
   }, [dispatch, filterSet.apiId, isbn]);
 
   return (

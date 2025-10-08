@@ -14,21 +14,21 @@ import BookDialogContent from './BookDialogContent.tsx';
 
 export default function BookDialog() {
   const dispatch = useAppDispatch();
-  const book = useAppSelector(selectBookDialogValue);
+  const collectionBook = useAppSelector(selectBookDialogValue);
   const handleClose = () => {
     dispatch(setBookDialogValue(null));
   };
 
   return (
-    <Dialog open={Boolean(book)} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px] max-h-[90svh] overflow-scroll z-[1001]">
+    <Dialog open={Boolean(collectionBook)} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-[425px] max-h-[100svh] overflow-scroll z-[1001]">
         <DialogHeader>
           <DialogTitle>
-            {book?.title} {book?.volume || book?.volumeTitle}
+            {collectionBook?.title} {collectionBook?.volume || collectionBook?.volumeTitle}
           </DialogTitle>
           <DialogDescription>書籍の詳細情報を表示します</DialogDescription>
         </DialogHeader>
-        {book ? <BookDialogContent book={book} /> : null}
+        {collectionBook ? <BookDialogContent collectionBook={collectionBook} /> : null}
         <DialogFooter>
           <DialogClose asChild>
             <Button>閉じる</Button>
