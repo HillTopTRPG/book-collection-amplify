@@ -1,4 +1,4 @@
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { Spinner } from '@/components/ui/shadcn-io/spinner/spinner';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsNavigating } from '@/store/uiSlice';
 

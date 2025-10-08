@@ -6,7 +6,7 @@ import useSound from 'use-sound';
 import { useInterval } from 'usehooks-ts';
 import se01 from '@/assets/se01.mp3';
 import { Button } from '@/components/ui/button.tsx';
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { Spinner } from '@/components/ui/shadcn-io/spinner/spinner';
 import { useToast } from '@/hooks/use-toast';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { enqueueScan, selectScanSuccessCount, selectSelectedCollectionBook } from '@/store/scannerSlice.ts';
@@ -34,10 +34,12 @@ export default function CameraView() {
     interrupt: true,
   });
 
+  const selectedApiId = selectedBookData?.apiId;
+
   // cameraEnabledが更新されたら、初回フラグを立てる
   useEffect(() => {
     setIsFirst(true);
-  }, [selectedBookData]);
+  }, [selectedApiId]);
 
   const setVolume = useCallback((volume: number) => {
     localStorage.volume = volume;

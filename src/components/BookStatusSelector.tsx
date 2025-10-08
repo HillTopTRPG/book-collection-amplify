@@ -1,7 +1,7 @@
 import type { BookStatus, CollectionBook } from '@/types/book.ts';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useState } from 'react';
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { Spinner } from '@/components/ui/shadcn-io/spinner/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import { useAppSelector } from '@/store/hooks.ts';
 import { selectCollectionByApiId, selectUpdatingCollectionApiIdList } from '@/store/subscriptionDataSlice.ts';

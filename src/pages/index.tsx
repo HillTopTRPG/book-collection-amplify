@@ -1,10 +1,10 @@
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import BookPage from './BookPage';
-import CollectionPage from './CollectionPage';
-import FilterSetEditPage from './FilterSetEditPage';
-import Home from './Home';
-import MainLayout from './MainLayout';
-import ScanPage from './ScanPage';
+import BookPage from './BookPage/BookPage';
+import CollectionPage from './CollectionPage/CollectionPage';
+import FilterSetEditPage from './FilterSetEditPage/FilterSetEditPage';
+import Home from './Home/Home';
+import MainLayout from './MainLayout/MainLayout';
+import ScanPage from './ScanPage/ScanPage';
 
 export default function Pages() {
   return (

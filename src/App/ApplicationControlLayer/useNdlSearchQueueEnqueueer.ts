@@ -1,15 +1,14 @@
 import type { NdlSearchResult } from '@/store/fetchNdlSearchSlice.ts';
-import type { BookData, Collection, FilterSet } from '@/types/book.ts';
+import type { BookData, Collection } from '@/types/book.ts';
 import type { NdlFetchOptions } from '@/types/fetch.ts';
 import { useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
 import { enqueueNdlSearch, selectNdlSearchResults } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { dequeueAllNdlSearch, enqueueAllNdlSearch, selectNdlSearchTargets } from '@/store/ndlSearchSlice.ts';
-import { selectSelectedScannedItemFetchOptions } from '@/store/scannerSlice.ts';
-import { addTempCollections } from '@/store/subscriptionDataSlice.ts';
-import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
-import { filterMatch } from '@/utils/primitive.ts';
+import { dequeueAllNdlSearch, enqueueAllNdlSearch, selectAllNdlSearchTargets } from '@/store/ndlSearchSlice.ts';
+import {
+  selectAllFilerSetFetchOptionStrings,
+  selectTempFilerSetFetchOptionStrings,
+} from '@/store/subscriptionDataSlice.ts';
 import { getKeys } from '@/utils/type.ts';
 
 const getRequests = (
@@ -41,25 +40,25 @@ const getRequests = (
       retrying: result.retrying,
     };
   }
-  return { numberOfRecords: numberOfRecords, nextRequest: null, retrying: false };
+  return { numberOfRecords, nextRequest: null, retrying: false };
 };
 
 type Props = {
   collections: Collection[];
-  tempCollections: Collection[];
-  allFilterSets: FilterSet[];
 };
 
-export default function useNdlSearchQueueEnqueueer({ collections, tempCollections, allFilterSets }: Props) {
+export default function useNdlSearchQueueEnqueueer({ collections }: Props) {
   const dispatch = useAppDispatch();
 
   // NDL検索キューの対象
-  const targets = useAppSelector(selectNdlSearchTargets);
+  const targets = useAppSelector(selectAllNdlSearchTargets);
   const ndlSearchResults = useAppSelector(selectNdlSearchResults);
 
-  const selectedScannedItemFetchOptions = useAppSelector(selectSelectedScannedItemFetchOptions);
+  const allFilerSetFetchOptionStrings = useAppSelector(selectAllFilerSetFetchOptionStrings);
+  const tempFilerSetFetchOptionStrings = useAppSelector(selectTempFilerSetFetchOptionStrings);
 
   useEffect(() => {
+    if (!targets.length) return;
     const list = targets.map(target => {
       const options = JSON.parse(target) as NdlFetchOptions;
       options.startRecord = 1;
@@ -69,61 +68,42 @@ export default function useNdlSearchQueueEnqueueer({ collections, tempCollection
   }, [dispatch, targets]);
 
   useEffect(() => {
+    if (!targets.length) return;
     const results = targets.reduce<{
       dequeue: Record<string, BookData[]>;
       enqueue: string[];
-      tempCollections: Collection[];
     }>(
       (acc, target) => {
         const options = JSON.parse(target) as NdlFetchOptions;
         const books: BookData[] = [];
         const { nextRequest, retrying } = getRequests(books, ndlSearchResults, options, 1);
         if (!nextRequest && !retrying) {
-          const _tempCollections: Collection[] = [];
-          books.forEach(book => {
-            const { apiId } = book;
-            const collection = collections.find(filterMatch({ apiId }));
-            const tempCollection = tempCollections.find(filterMatch({ apiId }));
-            if (!collection && !tempCollection) {
-              _tempCollections.push({
-                id: uuidv4(),
-                apiId,
-                status: 'Unregistered',
-                createdAt: '',
-                updatedAt: '',
-                owner: '',
-              });
-            }
-          });
           acc.dequeue[target] = books;
-          acc.tempCollections.push(..._tempCollections);
         }
         if (nextRequest) {
           acc.enqueue.push(nextRequest);
         }
         return acc;
       },
-      { dequeue: {}, enqueue: [], tempCollections: [] }
+      { dequeue: {}, enqueue: [] }
     );
-    if (results.tempCollections.length) dispatch(addTempCollections(results.tempCollections));
     if (getKeys(results.dequeue).length) {
       dispatch(dequeueAllNdlSearch(results.dequeue));
     }
     if (results.enqueue.length) {
       dispatch(enqueueNdlSearch({ type: 'new', list: results.enqueue }));
     }
-  }, [collections, dispatch, ndlSearchResults, targets, tempCollections]);
+  }, [collections, dispatch, ndlSearchResults, targets]);
 
-  // 蔵書のグループ本を全て検索する
+  // DBと更新中、両方のフィルターセットの検索条件は常にキューに突っ込もうとしまくる（キューイング時に結果があれば弾いてくれる）
   useEffect(() => {
-    allFilterSets.forEach(filterSet => {
-      dispatch(enqueueAllNdlSearch({ type: 'new', list: [makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)] }));
-    });
-  }, [dispatch, allFilterSets]);
+    if (!allFilerSetFetchOptionStrings.length) return;
+    dispatch(enqueueAllNdlSearch({ type: 'new', list: allFilerSetFetchOptionStrings }));
+  }, [dispatch, allFilerSetFetchOptionStrings]);
 
-  // 読み込み書籍のグループ本のフィルターが変更される毎に検索結果を取得し直す
+  // 更新中のフィルターセットの条件が変更される度に検索し直し
   useEffect(() => {
-    if (!selectedScannedItemFetchOptions.length) return;
-    dispatch(enqueueAllNdlSearch({ type: 'priority', list: selectedScannedItemFetchOptions }));
-  }, [dispatch, selectedScannedItemFetchOptions]);
+    if (!tempFilerSetFetchOptionStrings.length) return;
+    dispatch(enqueueAllNdlSearch({ type: 'priority', list: tempFilerSetFetchOptionStrings }));
+  }, [dispatch, tempFilerSetFetchOptionStrings]);
 }

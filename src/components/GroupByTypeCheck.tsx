@@ -2,7 +2,7 @@ import { MessageCircleQuestionMark } from 'lucide-react';
 import { useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox.tsx';
 import { Label } from '@/components/ui/label.tsx';
-import { IconButton } from '@/components/ui/shadcn-io/icon-button';
+import { IconButton } from '@/components/ui/shadcn-io/icon-button/icon-button';
 
 type Props = {
   groupByType: 'volume' | null;

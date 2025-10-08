@@ -27,7 +27,7 @@ export type BookData = {
 export const BookStatusEnum = {
   // 未登録
   Unregistered: 'Unregistered',
-  // 買わない
+  // 除外
   NotBuy: 'NotBuy',
   // 保留
   Hold: 'Hold',
@@ -44,7 +44,7 @@ export type BookStatus = Values<typeof BookStatusEnum>;
 
 export const BookStatusLabelMap: Record<BookStatus, { label: string; className: ClassValue }> = {
   [BookStatusEnum.Unregistered]: { label: '未登録', className: 'bg-yellow-700 text-white' },
-  [BookStatusEnum.NotBuy]: { label: '買わない', className: 'bg-gray-700 text-white' },
+  [BookStatusEnum.NotBuy]: { label: '除外', className: 'bg-gray-700 text-white' },
   [BookStatusEnum.Hold]: { label: '保留', className: 'bg-green-700 text-white' },
   [BookStatusEnum.Planned]: { label: '購入予定', className: 'bg-fuchsia-900 text-white' },
   [BookStatusEnum.Owned]: { label: '所持済', className: 'bg-blue-600 text-white' },

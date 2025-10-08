@@ -1,4 +1,4 @@
-import type { BookData, BookStatus, FilterSet } from '@/types/book.ts';
+import type { BookData, BookStatus, CollectionBook, FilterSet } from '@/types/book.ts';
 import type { RefObject } from 'react';
 import { Fragment, memo, useCallback, useEffect, useMemo } from 'react';
 import { Separator } from '@/components/ui/separator.tsx';
@@ -10,9 +10,8 @@ import BookCardNavi from './BookCardNavi.tsx';
 
 import '@m_three_ui/m3ripple/css';
 
-const collapseButtonIndex = 2;
-
 type Props = {
+  viewType?: 'default' | 'simple';
   countRef?: RefObject<HTMLDivElement | null>;
   books: BookData[];
   filterSet: FilterSet;
@@ -24,70 +23,45 @@ type Props = {
 };
 
 const BookCardList = ({
+  viewType,
   countRef,
   books,
   filterSet,
   orIndex,
-  openType,
-  setOpenType,
   setContentHeight,
   viewBookStatusList,
 }: Props) => {
   const dispatch = useAppDispatch();
   const collectionBooks = useAppSelector(state => selectCollectionBooks(state, books, viewBookStatusList));
   const [contentRef, contentSize] = useDOMSize();
-  const isOpen = useMemo(() => !openType || ['collapse', 'full'].some(v => v === openType), [openType]);
 
   useEffect(() => {
     setContentHeight?.(contentSize.height);
   }, [setContentHeight, contentSize.height]);
 
   const handleOpenBook = useCallback(
-    (book: BookData) => {
-      dispatch(setBookDialogValue(book));
+    (collectionBook: CollectionBook) => {
+      dispatch(setBookDialogValue(collectionBook));
     },
     [dispatch]
-  );
-
-  const handleShowAll = useCallback(() => {
-    setOpenType?.('full');
-  }, [setOpenType]);
-
-  const isCollapse = useMemo(
-    () => isOpen && openType === 'collapse' && books.length > 5,
-    [books.length, isOpen, openType]
   );
 
   const booksElement = useMemo(
     () =>
       collectionBooks.map((collectionBook, idx) => (
         <Fragment key={idx}>
-          {!isCollapse || idx < 2 || books.length - 3 < idx ? (
-            <>
-              {idx ? <Separator /> : null}
-              <div className="relative">
-                <div className="absolute inset-0 bg-indigo-900" style={{ opacity: 0.2 + (idx / books.length) * 0.6 }} />
-                <BookCardNavi
-                  {...{ collectionBook, filterSet, orIndex }}
-                  onOpenBook={() => handleOpenBook(collectionBook)}
-                />
-              </div>
-            </>
-          ) : null}
-          {isCollapse && idx == collapseButtonIndex ? (
-            <>
-              <Separator />
-              <div
-                className="flex py-2 text-xs items-center justify-center cursor-pointer text-white bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
-                onClick={handleShowAll}
-              >
-                すべて表示する
-              </div>
-            </>
-          ) : null}
+          {idx ? <Separator /> : null}
+          <div className="relative">
+            <div className="absolute inset-0 bg-indigo-900" style={{ opacity: 0.2 + (idx / books.length) * 0.6 }} />
+            <BookCardNavi
+              viewType={viewType}
+              {...{ collectionBook, filterSet, orIndex }}
+              onOpenBook={() => handleOpenBook(collectionBook)}
+            />
+          </div>
         </Fragment>
       )),
-    [collectionBooks, books.length, filterSet, handleOpenBook, handleShowAll, isCollapse, orIndex]
+    [collectionBooks, books.length, viewType, filterSet, orIndex, handleOpenBook]
   );
 
   if (!collectionBooks.length) return null;
@@ -95,7 +69,7 @@ const BookCardList = ({
   return (
     <div>
       <div ref={contentRef} className="flex flex-col bg-background">
-        {isOpen ? booksElement : null}
+        {booksElement}
       </div>
       <div ref={countRef} className="w-full px-2 py-1 bg-green-800 text-white">
         {collectionBooks.length}件

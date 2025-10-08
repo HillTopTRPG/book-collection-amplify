@@ -8,8 +8,8 @@ import { useLogs } from '@/hooks/useLogs.ts';
 import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
 import FilterSetEdit from '@/pages/FilterSetEditPage/FilterSetEdit.tsx';
 import BottomNavigation from '@/pages/MainLayout/BottomNavigation.tsx';
-import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
+import { enqueueAllNdlSearch } from '@/store/ndlSearchSlice.ts';
 import { selectFilterSet } from '@/store/subscriptionDataSlice.ts';
 import { makeNdlOptionsStringByNdlFullOptions } from '@/utils/data.ts';
 
@@ -41,7 +41,7 @@ export default function FilterSetEditPage() {
 
   useEffect(() => {
     if (!filterSet?.fetch) return;
-    dispatch(enqueueNdlSearch({ type: 'priority', list: [makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)] }));
+    dispatch(enqueueAllNdlSearch({ type: 'priority', list: [makeNdlOptionsStringByNdlFullOptions(filterSet.fetch)] }));
   }, [dispatch, filterSet?.fetch]);
 
   const content = useMemo(() => {

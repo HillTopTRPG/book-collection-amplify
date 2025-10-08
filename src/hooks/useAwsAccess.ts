@@ -85,6 +85,7 @@ export const useAwsAccess = () => {
   const createFilterSet = useCallback(
     async (props: Parameters<typeof makeCreateFilterSet>[0]): Promise<FilterSet | null> => {
       const { errors, data } = await userPoolClient.models.FilterSet.create(makeCreateFilterSet(props));
+      console.log('createFilterSet end');
       if (data) return makeFilterSetByDb(data);
       if (errors) console.error('Error create filterSet', errors);
       return null;

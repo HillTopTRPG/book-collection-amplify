@@ -1,5 +1,5 @@
 import { useLogs } from '@/hooks/useLogs.ts';
-import CameraView from './CameraView';
+import CameraView from './CameraView/CameraView';
 import IsbnForm from './IsbnForm.tsx';
 import ScannedResults from './ScannedResults';
 

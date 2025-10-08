@@ -2,18 +2,17 @@ import type { BookStatus, CollectionBook } from '@/types/book.ts';
 import type { RefObject } from 'react';
 import { ListFilterPlus, Pencil } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import BookStatusChecks from '@/components/BookStatusChecks';
+import BookStatusChecks from '@/components/BookStatusChecks/BookStatusChecks';
 import FilterResultSetComponent from '@/components/FilterResultSetComponent.tsx';
 import FilterSetCollapsibleHeader from '@/components/FilterSetCollapsibleHeader.tsx';
 import GroupByTypeCheck from '@/components/GroupByTypeCheck.tsx';
 import { Button } from '@/components/ui/button.tsx';
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { Spinner } from '@/components/ui/shadcn-io/spinner/spinner';
 import { useAwsAccess } from '@/hooks/useAwsAccess.ts';
 import useDOMSize from '@/hooks/useDOMSize.ts';
 import { useNavigateWithLoading } from '@/hooks/useNavigateWithLoading';
-import { enqueueNdlSearch } from '@/store/fetchNdlSearchSlice.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
-import { selectFilterResultSetsByApiId } from '@/store/ndlSearchSlice.ts';
+import { enqueueAllNdlSearch, selectFilterResultSetsByApiId } from '@/store/ndlSearchSlice.ts';
 import { selectCheckBookStatusList, updateCheckBookStatusList } from '@/store/scannerSlice.ts';
 
 type Props = {
@@ -43,7 +42,7 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
 
   useEffect(() => {
     if (!priorityFetchList.length) return;
-    dispatch(enqueueNdlSearch({ type: 'priority', list: priorityFetchList }));
+    dispatch(enqueueAllNdlSearch({ type: 'priority', list: priorityFetchList }));
   }, [dispatch, priorityFetchList]);
 
   const handleFilterSetCreate = useCallback(async () => {
@@ -76,6 +75,7 @@ export default function CollectionBooksFilterResultView({ collectionBook, scroll
       <>
         {filterResultSets.map(({ filterSet, collectionBooks }, idx) => (
           <FilterResultSetComponent
+            viewType="simple"
             key={filterSet.id}
             stickyTop={searchConditionsSize.height}
             setContentHeight={idx === filterResultSets.length - 1 ? handleListHeightChange : () => {}}
