@@ -1,5 +1,5 @@
 import { Amplify } from 'aws-amplify';
-import ApplicationControlLayer from '@/App/ApplicationControlLayer';
+import ApplicationControlLayer from '@/App/ApplicationControlLayer/ApplicationControlLayer';
 import AwsLayer from '@/App/AwsLayer/AwsLayer.tsx';
 import { Toaster } from '@/components/ui/toaster.tsx';
 import Pages from '@/pages';

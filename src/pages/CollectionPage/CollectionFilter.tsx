@@ -1,6 +1,6 @@
 import type { BookStatus } from '@/types/book.ts';
 import { useState } from 'react';
-import BookStatusChecks from '@/components/BookStatusChecks';
+import BookStatusChecks from '@/components/BookStatusChecks/BookStatusChecks';
 
 export default function CollectionFilter() {
   const [statusList, setStatusList] = useState<BookStatus[]>(['Unregistered', 'NotBuy', 'Hold', 'Planned', 'Owned']);

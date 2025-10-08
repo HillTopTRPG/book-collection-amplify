@@ -6,7 +6,7 @@ import BookImage from '@/components/BookImage.tsx';
 import CardFrame from '@/components/Card/CardFrame.tsx';
 import TempItem from '@/components/TempItem.tsx';
 import { Badge } from '@/components/ui/badge.tsx';
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { Spinner } from '@/components/ui/shadcn-io/spinner/spinner';
 import { cn } from '@/lib/utils.ts';
 import HighLightText from './HighLightText.tsx';
 

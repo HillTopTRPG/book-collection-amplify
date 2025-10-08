@@ -4,7 +4,7 @@ import type { CSSProperties, MouseEvent, SyntheticEvent } from 'react';
 import { ImageOff } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { Spinner } from '@/components/ui/shadcn-io/spinner';
+import { Spinner } from '@/components/ui/shadcn-io/spinner/spinner';
 import { useInView } from '@/hooks/useInView.ts';
 import { cn } from '@/lib/utils.ts';
 import { enqueueBookImage, selectBookImageByIsbn } from '@/store/fetchBookImageSlice.ts';

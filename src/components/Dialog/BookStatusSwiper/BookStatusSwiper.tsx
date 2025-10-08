@@ -9,7 +9,7 @@ import DialogLikeCard from '@/components/Dialog/BookStatusSwiper/DialogLikeCard.
 import OverlayHeader from '@/components/Dialog/BookStatusSwiper/OverlayHeader.tsx';
 import OverlaySide from '@/components/Dialog/BookStatusSwiper/OverlaySide.tsx';
 import { Dialog, DialogOverlay, DialogPortal } from '@/components/ui/dialog';
-import { IconButton } from '@/components/ui/shadcn-io/icon-button';
+import { IconButton } from '@/components/ui/shadcn-io/icon-button/icon-button';
 import { cn } from '@/lib/utils.ts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks.ts';
 import { selectSwipeDialogValue, setSwipeDialogValue } from '@/store/uiSlice.ts';
